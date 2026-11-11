@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>النموذج التصميمي للوحة تحكم الطالب — EduYemen</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800;900&display=swap');
+
+:root {
+    --primary: #0b3d6b;
+    --primary-dark: #072b4f;
+    --primary-light: #1565a8;
+    --accent: #c59b27;
+    --accent-light: #f0c842;
+    --bg-page: #f1f5f9;
+    --border-color: #cbd5e1;
+    --text-dark: #0f172a;
+    --text-muted: #64748b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+    direction: rtl;
+    text-align: right;
+    background: #0b1329;
+    color: var(--text-dark);
+    padding: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Main Documentation Frame for Word insertion */
+.doc-canvas {
+    width: 1450px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Top Academic Header Banner */
+.doc-top-bar {
+    background: linear-gradient(90deg, #072b4f 0%, #0b3d6b 60%, #1565a8 100%);
+    color: #ffffff;
+    padding: 14px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid var(--accent);
+}
+
+.doc-top-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.doc-top-title h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.doc-top-title span {
+    color: var(--accent-light);
+}
+
+.doc-top-sub {
+    font-size: 0.78rem;
+    color: #cbd5e1;
+}
+
+.doc-badge-word {
+    background: rgba(197, 155, 39, 0.25);
+    border: 1px solid var(--accent);
+    color: var(--accent-light);
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 20px;
+    direction: ltr;
+}
+
+/* Browser Chrome Frame */
+.browser-header {
+    background: #1e293b;
+    padding: 9px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #334155;
+}
+
+.window-dots {
+    display: flex;
+    gap: 7px;
+}
+
+.window-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+}
+
+.dot-red { background: #ef4444; }
+.dot-yellow { background: #f59e0b; }
+.dot-green { background: #10b981; }
+
+.browser-url-bar {
+    background: #0f172a;
+    color: #94a3b8;
+    padding: 4px 16px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-family: 'Consolas', monospace;
+    direction: ltr;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid #334155;
+    width: 440px;
+}
+
+/* System Navbar */
+.system-navbar {
+    background: #ffffff;
+    border-bottom: 1.5px solid #e2e8f0;
+    padding: 10px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-brand-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-brand-text {
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+}
+
+.nav-links {
+    display: flex;
+    gap: 22px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #475569;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-links a.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 4px;
+}
+
+.nav-user-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 5px 12px;
+    border-radius: 30px;
+}
+
+.user-mini-avatar {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+}
+
+/* Dashboard Main Content Body */
+.dashboard-body {
+    background: #f8fafc;
+    padding: 22px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Student ID Hero Card */
+.student-hero-card {
+    background: linear-gradient(135deg, #072b4f 0%, #0b3d6b 70%, #1565a8 100%);
+    border-radius: 16px;
+    padding: 20px 24px;
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(11, 61, 107, 0.18);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.student-hero-card::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: -50px;
+    width: 170px;
+    height: 170px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(197, 155, 39, 0.3) 0%, transparent 70%);
+}
+
+.hero-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-student-info {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.hero-avatar {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    background: #ffffff;
+    color: var(--primary);
+    font-size: 1.8rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+    border: 3px solid rgba(255,255,255,0.85);
+}
+
+.hero-name-badge {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.hero-name-badge h3 {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.verified-badge {
+    background: var(--accent);
+    color: #072b4f;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 2px 9px;
+    border-radius: 20px;
+}
+
+.hero-meta-tags {
+    display: flex;
+    gap: 16px;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.hero-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.stat-item-label {
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2px;
+}
+
+.stat-item-val {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.stat-item-val.highlight {
+    color: var(--accent-light);
+}
+
+/* Two Column Layout */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 290px 1fr;
+    gap: 20px;
+}
+
+/* Vertical Nav Sidebar */
+.vnav-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.vnav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 11px 14px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #334155;
+    cursor: pointer;
+    text-align: right;
+}
+
+.vnav-btn.active {
+    background: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(11, 61, 107, 0.22);
+}
+
+.vnav-btn-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.vnav-badge {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-weight: 800;
+}
+
+.vnav-btn.active .vnav-badge {
+    background: rgba(255,255,255,0.25);
+    color: #ffffff;
+}
+
+.vnav-badge.danger {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.vnav-badge.warning {
+    background: var(--accent);
+    color: #072b4f;
+}
+
+.vnav-badge.primary {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+/* Main Active View Area */
+.main-view-area {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* Application Cards Section */
+.content-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    padding: 18px 22px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+}
+
+.content-card-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid #f1f5f9;
+}
+
+.content-card-title h4 {
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.app-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.app-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8fafc;
+}
+
+.app-univ-title {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 3px;
+}
+
+.app-program-sub {
+    font-size: 0.78rem;
+    color: #64748b;
+    display: flex;
+    gap: 14px;
+}
+
+.status-badge {
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.status-success {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.status-pending {
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fde047;
+}
+
+/* Referral Card Widget */
+.referral-widget {
+    background: linear-gradient(135deg, #0b3d6b 0%, #072b4f 100%);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    padding: 16px 20px;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 16px rgba(197, 155, 39, 0.15);
+}
+
+.referral-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.referral-code {
+    font-family: 'Consolas', monospace;
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--accent-light);
+    background: rgba(0,0,0,0.3);
+    padding: 4px 14px;
+    border-radius: 8px;
+    border: 1px dashed rgba(197, 155, 39, 0.6);
+    letter-spacing: 1px;
+    direction: ltr;
+}
+
+.btn-copy {
+    background: var(--accent);
+    color: #072b4f;
+    font-weight: 800;
+    font-size: 0.76rem;
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Bottom Figure Caption */
+.doc-footer-caption {
+    background: #ffffff;
+    border-top: 1.5px solid #e2e8f0;
+    padding: 12px 24px;
+    text-align: center;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #334155;
+}
+
+.doc-footer-caption span {
+    color: var(--primary);
+}
+</style>
+</head>
+<body>
+
+<div class="doc-canvas">
+
+    <!-- Top Academic Documentation Title -->
+    <div class="doc-top-bar">
+        <div class="doc-top-title">
+            <div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="36" height="36">
+  <defs>
+    <linearGradient id="pGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#072b4f"/>
+      <stop offset="100%" stop-color="#0b3d6b"/>
+    </linearGradient>
+    <linearGradient id="gGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0c842"/>
+      <stop offset="100%" stop-color="#c59b27"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="54" fill="url(#pGrad)" stroke="url(#gGrad)" stroke-width="3"/>
+  <path d="M60 30 L94 45 L60 60 L26 45 Z" fill="url(#gGrad)"/>
+  <path d="M38 52 L38 66 C38 76 82 76 82 66 L82 52 L60 62 Z" fill="#ffffff" opacity="0.95"/>
+  <path d="M86 48 L92 56 L90 74 L86 74 L84 56 Z" fill="url(#gGrad)"/>
+  <circle cx="88" cy="74" r="3" fill="#ffffff"/>
+  <path d="M40 82 C50 78 58 81 60 85 C62 81 70 78 80 82 L80 94 C70 90 62 93 60 97 C58 93 50 90 40 94 Z" fill="url(#gGrad)"/>
+</svg></div>
+            <div>
+                <h2>منظومة <span>EduYemen</span> للخدمات الجامعية والتنسيق الموحد</h2>
+                <div class="doc-top-sub">فصل تصميم النظام (System UI Design Phase) — توثيق واجهة لوحة تحكم الطالب الرئيسية</div>
+            </div>
+        </div>
+        <div class="doc-badge-word">A4 Word Document Figure | الشكل (3-15)</div>
+    </div>
+
+    <!-- Browser Window Header Frame -->
+    <div class="browser-header">
+        <div class="window-dots">
+            <div class="window-dot dot-red"></div>
+            <div class="window-dot dot-yellow"></div>
+            <div class="window-dot dot-green"></div>
+        </div>
+        <div class="browser-url-bar">
+            <span style="color:#10b981;">🔒</span> https://eduyemen.ye/student/dashboard
+        </div>
+        <div style="font-size:0.75rem; color:#94a3b8; font-weight:700;">
+            بوابة الطالب الأكاديمية الموحدة
+        </div>
+    </div>
+
+    <!-- Platform Application Navbar -->
+    <div class="system-navbar">
+        <div class="nav-brand-group">
+            <div style="font-size:1.3rem; font-weight:900;">
+                <span style="color:var(--primary);">Edu</span><span style="color:var(--accent);">Yemen</span>
+            </div>
+            <span style="color:#94a3b8; font-size:0.8rem;">|</span>
+            <div class="nav-links">
+                <a href="#" class="active">لوحة التحكم</a>
+                <a href="#">دليل الجامعات</a>
+                <a href="#">المستشار الأكاديمي</a>
+                <a href="#">مقارنة الكليات</a>
+            </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div style="position:relative; cursor:pointer;">
+                <span style="font-size:1.1rem; color:#64748b;">🔔</span>
+                <span style="position:absolute; top:-4px; right:-6px; background:#ef4444; color:#fff; font-size:0.6rem; font-weight:800; border-radius:50%; width:15px; height:15px; display:flex; align-items:center; justify-content:center;">3</span>
+            </div>
+            <div class="nav-user-chip">
+                <div class="user-mini-avatar">أ</div>
+                <div style="text-align:right;">
+                    <div style="font-size:0.8rem; font-weight:800; color:#0f172a;">أحمد محمد السلامي</div>
+                    <div style="font-size:0.65rem; color:#64748b;">طالب مسجل</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Main Body -->
+    <div class="dashboard-body">
+
+        <!-- 1. Hero Student Profile Card -->
+        <div class="student-hero-card">
+            <div class="hero-main-row">
+                <div class="hero-student-info">
+                    <div class="hero-avatar">أ</div>
+                    <div>
+                        <div class="hero-name-badge">
+                            <h3>أحمد محمد علي السلامي</h3>
+                            <span class="verified-badge">✓ حساب طالب معتمد</span>
+                        </div>
+                        <div class="hero-meta-tags">
+                            <span>👤 ahmed_salami@</span>
+                            <span>📞 771234567</span>
+                            <span>📍 العاصمة صنعاء</span>
+                            <span>🎓 الثانوية العامة (علمي) — 89.5%</span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <button style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3); color:#fff; padding:6px 14px; border-radius:8px; font-family:inherit; font-weight:700; font-size:0.75rem; cursor:pointer;">
+                        ⚙️ إعدادات الحساب
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Bar -->
+            <div class="hero-stats-row">
+                <div>
+                    <div class="stat-item-label">طلبات التنسيق والقبول</div>
+                    <div class="stat-item-val highlight">2 طلبات نشطة</div>
+                </div>
+                <div>
+                    <div class="stat-item-label">رموز الإحالة والخصومات</div>
+                    <div class="stat-item-val highlight">1 كود خصم 15%</div>
+                </div>
+                <div>
+                    <div class="stat-item-label">حالة الوثائق والمستندات</div>
+                    <div class="stat-item-val">مكتملة ومصدقة</div>
+                </div>
+                <div>
+                    <div class="stat-item-label">المستشار الأكاديمي</div>
+                    <div class="stat-item-val" style="color:#67e8f9;">جاهز للاستشارة</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Grid Layout (Sidebar Nav + Main Content Area) -->
+        <div class="dashboard-grid">
+
+            <!-- Right Sidebar Tabs -->
+            <div class="vnav-card">
+                <button class="vnav-btn active">
+                    <div class="vnav-btn-inner">
+                        <span>🪪</span>
+                        <span>البيانات الأكاديمية والملف</span>
+                    </div>
+                    <span class="vnav-badge">نشط</span>
+                </button>
+
+                <button class="vnav-btn">
+                    <div class="vnav-btn-inner">
+                        <span>📄</span>
+                        <span>طلبات التسجيل والقبول</span>
+                    </div>
+                    <span class="vnav-badge primary">2</span>
+                </button>
+
+                <button class="vnav-btn">
+                    <div class="vnav-btn-inner">
+                        <span>🏷️</span>
+                        <span>رموز الإحالة الممنوحة</span>
+                    </div>
+                    <span class="vnav-badge warning">1</span>
+                </button>
+
+                <button class="vnav-btn">
+                    <div class="vnav-btn-inner">
+                        <span>🔔</span>
+                        <span>مركز الإشعارات والتنبيهات</span>
+                    </div>
+                    <span class="vnav-badge danger">3</span>
+                </button>
+
+                <button class="vnav-btn">
+                    <div class="vnav-btn-inner">
+                        <span>🎨</span>
+                        <span>المظهر والثيمات (نهاري / ليلي)</span>
+                    </div>
+                </button>
+
+                <button class="vnav-btn">
+                    <div class="vnav-btn-inner">
+                        <span>🔒</span>
+                        <span>الأمان وكلمة المرور</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Left Main Content View -->
+            <div class="main-view-area">
+
+                <!-- Applications Overview -->
+                <div class="content-card">
+                    <div class="content-card-title">
+                        <h4>
+                            <span>📋</span>
+                            <span>طلبات التنسيق والقبول الحالية في الجامعات اليمنية</span>
+                        </h4>
+                        <a href="#" style="color:var(--primary); font-size:0.75rem; font-weight:800; text-decoration:none;">+ تقديم طلب جديد</a>
+                    </div>
+
+                    <div class="app-items-list">
+                        <!-- Application 1 -->
+                        <div class="app-item">
+                            <div>
+                                <div class="app-univ-title">جامعة صنعاء — كلية الحاسوب وتكنولوجيا المعلومات</div>
+                                <div class="app-program-sub">
+                                    <span><strong>التخصص:</strong> بكالوريوس هندسة برمجيات (النظام العام)</span>
+                                    <span><strong>تاريخ التقديم:</strong> 2026/09/10</span>
+                                    <span><strong>رقم المعاملة:</strong> #EY-2026-8841</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="status-badge status-pending">
+                                    <span>⏳</span> قيد المراجعة والمفاضلة
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Application 2 -->
+                        <div class="app-item">
+                            <div>
+                                <div class="app-univ-title">جامعة العلوم والتكنولوجيا — كلية الهندسة</div>
+                                <div class="app-program-sub">
+                                    <span><strong>التخصص:</strong> الأمن السيبراني والشبكات</span>
+                                    <span><strong>تاريخ التقديم:</strong> 2026/09/12</span>
+                                    <span><strong>رقم المعاملة:</strong> #EY-2026-9104</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="status-badge status-success">
+                                    <span>✓</span> مقبول مبدئياً — بانتظار استكمال الرسوم
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Referral Card -->
+                <div class="referral-widget">
+                    <div class="referral-left">
+                        <div style="font-size:2rem;">🎟️</div>
+                        <div>
+                            <div style="font-size:0.92rem; font-weight:800; color:#fff;">كود الإحالة والخصم الجامعي الخاص بك</div>
+                            <div style="font-size:0.75rem; color:rgba(255,255,255,0.75);">يمكنك إبراز هذا الرمز عند تسديد الرسوم في شؤون الطلاب للحصول على خصم 15%</div>
+                        </div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="referral-code">EY-UST-8921</span>
+                        <button class="btn-copy">نسخ الرمز</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Official Word Documentation Caption -->
+    <div class="doc-footer-caption">
+        الشكل (3-15): النموذج التصميمي للوحة التحكم والصفحة الرئيسية للطالب في منصة <span>EduYemen</span> (مرحلة تصميم النظام — Architecture & UI Design)
+    </div>
+
+</div>
+
+</body>
+</html>
