@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Services\MinistryVerificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -49,6 +50,89 @@ class DashboardController extends Controller
         $recentRequests = RegRequest::where('status', '!=', 'مسودة')->with(['student', 'university'])->latest('req_id')->take(6)->get();
 
         return view('dashboards.admin', compact('stats', 'universities', 'recentRequests'));
+    }
+
+    /**
+     * توجيه إلى لوحة التحكم حيث تظهر نافذة تأمين الحساب المنبثقة
+     */
+    public function showFirstLoginForm()
+    {
+        return redirect()->route('university.dashboard');
+    }
+
+    /**
+     * حفظ وتأمين بيانات الدخول عند أول تسجيل دخول عبر النافذة المنبثقة
+     */
+    public function saveFirstLoginSetup(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'يرجى تسجيل الدخول للمتابعة.'], 401);
+            }
+            return redirect()->route('login');
+        }
+
+        $request->validate([
+            'username'         => 'required|string|min:4|max:50|unique:users,username,' . $user->user_id . ',user_id',
+            'current_password' => 'required|string',
+            'password'         => 'required|string|min:6|confirmed',
+        ], [
+            'username.required'         => 'اسم المستخدم إلزامي لتسجيل الدخول.',
+            'username.unique'           => 'اسم المستخدم هذا مستخدم بالفعل، يرجى اختيار اسم مستخدم متاح.',
+            'username.min'              => 'يجب ألا يقل اسم المستخدم عن 4 أحرف.',
+            'current_password.required' => 'كلمة المرور الحالية (المؤقتة) مطلوبة لتأكيد هويتكم.',
+            'password.required'         => 'يرجى إدخال كلمة المرور الجديدة.',
+            'password.min'              => 'يجب ألا تقل كلمة المرور الجديدة عن 6 أحرف.',
+            'password.confirmed'        => 'تأكيد كلمة المرور غير متطابق مع كلمة المرور الجديدة.',
+        ]);
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'كلمة المرور الحالية (المؤقتة) غير صحيحة، يرجى التأكد وإعادة المحاولة.',
+                    'errors'  => ['current_password' => ['كلمة المرور الحالية (المؤقتة) غير صحيحة.']]
+                ], 422);
+            }
+            return back()->withInput()->withErrors(['current_password' => 'كلمة المرور الحالية (المؤقتة) غير صحيحة.']);
+        }
+
+        try {
+            // تحديث بيانات الدخول وتأمين الحساب
+            $user->username = $request->username;
+            $user->password = Hash::make($request->password);
+            $user->must_change_password = false;
+            $user->last_login = now();
+            $user->save();
+
+            $redirectToProfile = $request->boolean('redirect_to_profile');
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success'             => true,
+                    'message'             => 'تم تأمين وتحديث بيانات الدخول بنجاح!',
+                    'redirect_to_profile' => $redirectToProfile,
+                ]);
+            }
+
+            if ($redirectToProfile) {
+                return redirect()->route('university.dashboard', ['tab' => 'profile'])
+                    ->with('success', 'تم تأمين وتحديث بيانات الدخول بنجاح! يمكنك الآن استعراض وتحديث بيانات ملف الجامعة.');
+            }
+
+            return redirect()->route('university.dashboard')
+                ->with('success', 'تم تأمين وتحديث بيانات الدخول بنجاح! مرحباً بكم في منصة EduYemen.');
+        } catch (\Exception $e) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'حدث خطأ أثناء حفظ بيانات الدخول: ' . $e->getMessage()
+                ], 500);
+            }
+            return back()->withInput()->withErrors(['general' => 'حدث خطأ أثناء حفظ بيانات الدخول: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -105,7 +189,11 @@ class DashboardController extends Controller
 
         $activeTab = ($request && $request->filled('tab')) ? $request->query('tab') : 'overview';
 
-        return view('dashboards.university', compact('university', 'stats', 'requests', 'referrals', 'announcements', 'paymentMethods', 'activeTab'));
+                $notifications = $user->notifications()->latest('notification_id')->take(30)->get();
+        $unreadNotifsCount = $notifications->where('is_read', false)->count();
+        $activeModerations = $university->activeModerations()->get();
+
+        return view('dashboards.university', compact('university', 'stats', 'requests', 'referrals', 'announcements', 'paymentMethods', 'activeTab', 'notifications', 'unreadNotifsCount', 'activeModerations'));
     }
 
     /**
@@ -338,9 +426,9 @@ class DashboardController extends Controller
         $universitiesQuery = University::whereNotIn('status', ['معلقة', 'محظورة'])
             ->with([
                 'colleges' => function ($cq) {
-                    $cq->where('status', 'نشطة')->select('college_id', 'university_id', 'college_name')
+                    $cq->where('status', 'نشطة')->whereDoesntHave('activeModeration')->select('college_id', 'university_id', 'college_name')
                         ->with(['specializations' => function ($sq) {
-                            $sq->where('status', 'نشط')
+                            $sq->where('status', 'نشط')->whereDoesntHave('activeModeration')
                                 ->select('specialization_id', 'college_id', 'specialization_name', 'tuition_fees', 'duration_years', 'language')
                                 ->with('admissionData');
                         }]);
@@ -473,6 +561,34 @@ class DashboardController extends Controller
         }
         if (!$desiredSpec) {
             $desiredSpec = 'تخصص عام';
+        }
+
+        // التعديل الثالث: التحقق من استيفاء معدل الطالب للحد الأدنى المطلوب للتخصص
+        $studentAvg = (float) ($request->sec_avg ?? ($request->highSchoolRate ?? ($student->high_school_avg ?? 0)));
+        if ($studentAvg > 0 && !$isDraft && $desiredSpec && $desiredSpec !== 'تخصص عام' && $request->filled('university_id')) {
+            $specObj = Specialization::where('specialization_name', $desiredSpec)
+                ->whereHas('college', function ($q) use ($request) {
+                    $q->where('university_id', $request->university_id);
+                })
+                ->with('admissionData')
+                ->first();
+
+            if ($specObj && $specObj->admissionData && $specObj->admissionData->minimum_average) {
+                $minAvg = (float) $specObj->admissionData->minimum_average;
+                if ($minAvg > 0 && $studentAvg < $minAvg) {
+                    $errorMessage = "معدلك ({$studentAvg}%) غير كافٍ للتسجيل بتخصص «{$desiredSpec}»؛ حيث أن الحد الأدنى المطلوب للقبول في هذا التخصص هو ({$minAvg}%).";
+                    if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => $errorMessage,
+                            'gpa_error' => true,
+                            'min_average' => $minAvg,
+                            'student_average' => $studentAvg,
+                        ], 422);
+                    }
+                    return back()->withInput()->with('error', $errorMessage);
+                }
+            }
         }
 
         $existingReqId = $request->existing_req_id ?? $request->req_id;
@@ -656,7 +772,18 @@ class DashboardController extends Controller
 
         $methodId = $request->payment_method_id ?? ($request->method_id ?? null);
         $reference = $request->payment_reference ?? ($request->reference ?? null);
-        $amount = $request->payment_amount ?? ($request->amount ?? 5000);
+
+        // احتساب رسوم التسجيل الرسمية المقررة من الجامعة للتخصص تلقائياً
+        $officialFee = 5000;
+        if ($request->university_id && $regReq->desired_spec) {
+            $specModel = Specialization::where('university_id', $request->university_id)
+                ->where('specialization_name', $regReq->desired_spec)
+                ->first();
+            if ($specModel && $specModel->admission && $specModel->admission->registration_fee) {
+                $officialFee = (float)$specModel->admission->registration_fee;
+            }
+        }
+        $amount = $officialFee;
         $payDate = $request->payment_date ?? ($request->pay_date ?? now()->toDateString());
         $payNotes = $request->payment_notes ?? ($request->pay_notes ?? null);
 
@@ -2184,10 +2311,21 @@ public function deleteSpecialization($id)
             $proofPath = $file->storeAs('payments', time() . '_' . uniqid() . '.' . $ext, 'public');
         }
 
+        // احتساب رسوم التسجيل الرسمية المقررة من الجامعة للتخصص تلقائياً
+        $officialFee = 5000;
+        if ($regReq->university_id && $regReq->desired_spec) {
+            $specModel = Specialization::where('university_id', $regReq->university_id)
+                ->where('specialization_name', $regReq->desired_spec)
+                ->first();
+            if ($specModel && $specModel->admission && $specModel->admission->registration_fee) {
+                $officialFee = (float)$specModel->admission->registration_fee;
+            }
+        }
+
         $payment = Payment::create([
             'req_id' => $regReq->req_id,
             'method_id' => $request->method_id,
-            'amount' => $request->amount ?? 5000,
+            'amount' => $officialFee,
             'pay_date' => $request->pay_date ?? now()->toDateString(),
             'reference' => $request->reference,
             'proof_file' => $proofPath,

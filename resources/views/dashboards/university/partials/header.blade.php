@@ -28,8 +28,9 @@
         <!-- أيقونة الإشعارات -->
         <button type="button" class="btn-icon notif-btn" onclick="switchTab('notifications')" title="الإشعارات" aria-label="الإشعارات">
             <i class="fa-solid fa-bell"></i>
-            @if(isset($stats['pending_requests']) && $stats['pending_requests'] > 0)
-                <span class="notif-badge">{{ $stats['pending_requests'] }}</span>
+            @php $bellCount = (isset($unreadNotifsCount) && $unreadNotifsCount > 0) ? $unreadNotifsCount : ((isset($stats['pending_requests']) && $stats['pending_requests'] > 0) ? $stats['pending_requests'] : 0); @endphp
+            @if($bellCount > 0)
+                <span class="notif-badge" style="{{ isset($unreadNotifsCount) && $unreadNotifsCount > 0 ? 'background:#ef4444;' : '' }}">{{ $bellCount }}</span>
             @endif
         </button>
 

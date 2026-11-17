@@ -34,6 +34,7 @@ class User extends Authenticatable
         'notification_sound',
         'notification_tone',
         'last_login',
+        'must_change_password',
         'remember_token',
     ];
 
@@ -55,6 +56,7 @@ class User extends Authenticatable
     {
         return [
             'password' => 'hashed',
+            'must_change_password' => 'boolean',
         ];
     }
 

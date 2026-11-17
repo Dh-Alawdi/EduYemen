@@ -69,8 +69,8 @@ Route::get('/apply', function (\Illuminate\Http\Request $request) {
 // نقطة نهاية لجلب تخصصات الجامعة ديناميكياً
 Route::get('/api/universities/{id}/specialties', function ($id) {
     $u = App\Models\University::with(['colleges' => function($cq) {
-        $cq->where('status', 'نشطة')->with(['specializations' => function($sq) {
-            $sq->where('status', 'نشط');
+        $cq->where('status', 'نشطة')->whereDoesntHave('activeModeration')->with(['specializations' => function($sq) {
+            $sq->where('status', 'نشط')->whereDoesntHave('activeModeration');
         }]);
     }])->findOrFail($id);
 
@@ -107,6 +107,10 @@ Route::get('/api/universities/{id}/payment-methods', function ($id) {
 |--------------------------------------------------------------------------
 */
 Route::middleware(['auth', 'user_type:university'])->prefix('university')->name('university.')->group(function () {
+    // تهيئة الحساب لأول مرة وتغيير كلمة المرور وتحديث البيانات الأولية
+    Route::get('/setup', [DashboardController::class, 'showFirstLoginForm'])->name('first_login');
+    Route::post('/setup', [DashboardController::class, 'saveFirstLoginSetup'])->name('first_login.save');
+
     Route::get('/dashboard', [DashboardController::class, 'universityDashboard'])->name('dashboard');
     Route::post('/profile', [DashboardController::class, 'updateUniversityProfile'])->name('profile.update');
     Route::post('/password', [DashboardController::class, 'changeUniversityPassword'])->name('password.change');
@@ -164,6 +168,63 @@ Route::middleware(['auth', 'user_type:university'])->prefix('university')->name(
 | مسارات مدير النظام المحمية (Admin Protected Routes)
 |--------------------------------------------------------------------------
 */
+use App\Http\Controllers\AdminController;
+
 Route::middleware(['auth', 'user_type:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+
+    // إدارة المستخدمين
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::get('/users/export', [AdminController::class, 'exportUsers'])->name('users.export');
+    Route::post('/users/bulk', [AdminController::class, 'bulkUserAction'])->name('users.bulk');
+    Route::post('/users/store', [AdminController::class, 'storeUser'])->name('users.store');
+    Route::get('/users/{id}', [AdminController::class, 'showUser'])->name('users.show');
+    Route::post('/users/{id}/update', [AdminController::class, 'updateUser'])->name('users.update');
+    Route::post('/users/{id}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle');
+    Route::post('/users/{id}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset-password');
+    Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('users.delete');
+
+    // إدارة الجامعات
+    Route::get('/universities', [AdminController::class, 'universities'])->name('universities');
+    Route::post('/universities/store', [AdminController::class, 'storeUniversity'])->name('universities.store');
+    Route::get('/universities/{id}', [AdminController::class, 'showUniversity'])->name('universities.show');
+    Route::post('/universities/{id}/update', [AdminController::class, 'updateUniversity'])->name('universities.update');
+    Route::post('/universities/{id}/toggle-status', [AdminController::class, 'toggleUniversityStatus'])->name('universities.toggle');
+    Route::delete('/universities/{id}', [AdminController::class, 'deleteUniversity'])->name('universities.delete');
+
+    // الحوكمة والرقابة المستقلة على ظهور المحتوى الجامعي (مركز الرقابة الإدارية)
+    Route::get('/moderation', [AdminController::class, 'moderationIndex'])->name('moderation');
+    Route::get('/moderation/university/{id}', [AdminController::class, 'getUniversityAuditData'])->name('moderation.university-audit');
+    Route::get('/moderations/quarantined', [AdminController::class, 'getQuarantinedItems'])->name('moderations.quarantined');
+    Route::post('/moderations/quarantine', [AdminController::class, 'quarantineItem'])->name('moderations.quarantine');
+    Route::post('/moderations/{id}/resolve', [AdminController::class, 'resolveQuarantine'])->name('moderations.resolve');
+
+    // إدارة الإعلانات الجامعية
+    Route::get('/advertisements', [AdminController::class, 'advertisements'])->name('advertisements');
+    Route::get('/advertisements/{id}', [AdminController::class, 'showAdvertisement'])->name('advertisements.show');
+    Route::post('/advertisements/{id}/approve', [AdminController::class, 'approveAdvertisement'])->name('advertisements.approve');
+    Route::post('/advertisements/{id}/reject', [AdminController::class, 'rejectAdvertisement'])->name('advertisements.reject');
+    Route::delete('/advertisements/{id}', [AdminController::class, 'deleteAdvertisement'])->name('advertisements.delete');
+
+    // إدارة الإحالات
+    Route::get('/referrals', [AdminController::class, 'referrals'])->name('referrals');
+
+    // إدارة العمولات (مفصولة)
+    Route::get('/commissions', [AdminController::class, 'commissions'])->name('commissions');
+    Route::post('/referrals/{id}/confirm-commission', [AdminController::class, 'confirmCommission'])->name('referrals.confirm');
+    Route::post('/referrals/{id}/reject-commission', [AdminController::class, 'rejectCommission'])->name('referrals.reject');
+
+    // متابعة طلبات التسجيل
+    Route::get('/requests', [AdminController::class, 'requests'])->name('requests');
+    Route::get('/requests/{id}', [AdminController::class, 'showRequest'])->name('requests.show');
+
+    // التقارير والإحصائيات
+    Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
+
+    // الإعدادات العامة
+    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
+    Route::post('/settings/update', [AdminController::class, 'updateSettings'])->name('settings.update');
+    Route::post('/settings/platform', [AdminController::class, 'updatePlatformSettings'])->name('settings.platform');
+    Route::post('/settings/reset-defaults', [AdminController::class, 'resetDefaultSettings'])->name('settings.reset');
+    Route::post('/settings/change-password', [AdminController::class, 'changePassword'])->name('settings.password');
 });

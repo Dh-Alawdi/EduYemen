@@ -63,6 +63,9 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
+            // تحديث وقت آخر تسجيل دخول للمستخدم
+            $user->update(['last_login' => now()]);
+
             // إذا كان المستخدم طالباً: التوجيه للصفحة التي ضغط منها تسجيل الدخول أو الصفحة الرئيسية
             if ($user->isStudent()) {
                 $intended = session()->pull('url.intended');

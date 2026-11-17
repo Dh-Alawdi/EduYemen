@@ -54,4 +54,11 @@ class Specialization extends Model
     {
         return $this->hasOne(StudyPlan::class, 'specialization_id', 'specialization_id')->latest('study_plan_id');
     }
+
+    public function activeModeration(): HasOne
+    {
+        return $this->hasOne(ContentModeration::class, 'item_id', 'specialization_id')
+            ->where('item_type', 'specialization')
+            ->whereIn('status', ['محجوب', 'قيد_المراجعة']);
+    }
 }

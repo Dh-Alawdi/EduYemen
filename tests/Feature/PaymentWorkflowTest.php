@@ -313,4 +313,56 @@ class PaymentWorkflowTest extends TestCase
         $this->assertEquals('بنك التضامن الإسلامي المحدث', $this->paymentMethod->method_name);
         $this->assertEquals('9988776655', $this->paymentMethod->account_number);
     }
+
+    /**
+     * فحص اشتراط وتدقيق الحد الأدنى لمعدل الثانوية للقبول بالتخصص المختار
+     */
+    public function test_student_application_validates_minimum_gpa_for_specialization(): void
+    {
+        $college = $this->university->colleges()->first();
+        $spec = $college->specializations()->first();
+        $spec->admissionData()->updateOrCreate(
+            ['specialization_id' => $spec->specialization_id],
+            [
+                'minimum_average' => 85.0,
+                'registration_fee' => 5000,
+                'admission_status' => 'مفتوح',
+            ]
+        );
+
+        // محاولة التقديم بمعدل غير كافٍ (75%)
+        $failResponse = $this->actingAs($this->studentUser)
+            ->postJson(route('student.apply.submit'), [
+                'university_id' => $this->university->university_id,
+                'desired_spec' => $spec->specialization_name,
+                'full_name' => 'طالب تجريبي ذو معدل غير كاف',
+                'seat_number' => 'SEAT-LOW-' . rand(1000, 9999),
+                'sec_avg' => 75.0,
+                'phone' => '771234567',
+                'payment_timing' => 'later',
+            ]);
+
+        $failResponse->assertStatus(422)
+            ->assertJson([
+                'success' => false,
+                'gpa_error' => true,
+            ]);
+
+        // التقديم بمعدل مستوفٍ للشروط (88%)
+        $successResponse = $this->actingAs($this->studentUser)
+            ->postJson(route('student.apply.submit'), [
+                'university_id' => $this->university->university_id,
+                'desired_spec' => $spec->specialization_name,
+                'full_name' => 'طالب تجريبي ذو معدل كاف',
+                'seat_number' => 'SEAT-HIGH-' . rand(1000, 9999),
+                'sec_avg' => 88.0,
+                'phone' => '771234567',
+                'payment_timing' => 'later',
+            ]);
+
+        $successResponse->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+            ]);
+    }
 }

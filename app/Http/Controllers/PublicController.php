@@ -13,13 +13,17 @@ class PublicController extends Controller
     public function home()
     {
         $universities = University::whereNotIn('status', ['معلقة', 'محظورة'])
-            ->withCount(['colleges', 'specializations'])
+            ->withCount([
+                'colleges' => fn($q) => $q->where('colleges.status', 'نشطة')->whereDoesntHave('activeModeration'),
+                'specializations' => fn($q) => $q->where('specializations.status', 'نشط')->whereDoesntHave('activeModeration')
+            ])
+            ->with('activeModerations')
             ->get();
 
         $stats = [
             'universities_count' => $universities->count(),
-            'colleges_count' => College::where('status', 'نشطة')->count(),
-            'specializations_count' => Specialization::where('status', 'نشط')->count(),
+            'colleges_count' => College::where('colleges.status', 'نشطة')->whereDoesntHave('activeModeration')->count(),
+            'specializations_count' => Specialization::where('specializations.status', 'نشط')->whereDoesntHave('activeModeration')->count(),
         ];
 
         return view('home', compact('universities', 'stats'));
@@ -27,7 +31,12 @@ class PublicController extends Controller
 
     public function universities(Request $request)
     {
-        $query = University::whereNotIn('status', ['معلقة', 'محظورة'])->withCount(['colleges', 'specializations']);
+        $query = University::whereNotIn('status', ['معلقة', 'محظورة'])
+            ->withCount([
+                'colleges' => fn($q) => $q->where('colleges.status', 'نشطة')->whereDoesntHave('activeModeration'),
+                'specializations' => fn($q) => $q->where('specializations.status', 'نشط')->whereDoesntHave('activeModeration')
+            ])
+            ->with('activeModerations');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -67,17 +76,19 @@ class PublicController extends Controller
         $university = University::with([
             'colleges' => function ($q) use ($isPreview) {
                 if (!$isPreview) {
-                    $q->where('status', 'نشطة');
+                    $q->where('status', 'نشطة')->whereDoesntHave('activeModeration');
                 }
                 $q->with([
                     'specializations' => function ($sq) use ($isPreview) {
                         if (!$isPreview) {
-                            $sq->where('status', 'نشط');
+                            $sq->where('status', 'نشط')->whereDoesntHave('activeModeration');
                         }
-                        $sq->with(['admissionData']);
-                    }
+                        $sq->with(['admissionData', 'activeModeration']);
+                    },
+                    'activeModeration'
                 ]);
-            }
+            },
+            'activeModerations'
         ])->findOrFail($id);
 
         $allUniversitiesQuery = University::whereNotIn('status', ['معلقة', 'محظورة'])
@@ -86,7 +97,7 @@ class PublicController extends Controller
                 'colleges' => function ($cq) {
                     $cq->where('status', 'نشطة')->select('college_id', 'university_id', 'college_name')
                         ->with(['specializations' => function ($sq) {
-                            $sq->where('status', 'نشط')->select('specialization_id', 'college_id', 'specialization_name', 'tuition_fees', 'duration_years');
+                            $sq->where('status', 'نشط')->whereDoesntHave('activeModeration')->select('specialization_id', 'college_id', 'specialization_name', 'tuition_fees', 'duration_years');
                         }]);
                 }
             ])
@@ -148,6 +159,7 @@ class PublicController extends Controller
     {
         $spec = Specialization::with(['admissionData', 'college.university'])
             ->where('status', 'نشط')
+            ->whereDoesntHave('activeModeration')
             ->findOrFail($id);
 
         $admission = $spec->admissionData;

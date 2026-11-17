@@ -1,6 +1,27 @@
 {{-- ملخص لوحة التحكم: الترحيب والوقت وقسم حول والبطاقات الظاهرة (صفحة الرئيسية) --}}
 <div class="tab-pane-content active" id="overviewTabContent">
 
+    @if(isset($activeModerations) && $activeModerations->isNotEmpty())
+    <div class="alert alert-danger mb-4" style="background:#fef2f2; border:1.5px solid #fecaca; border-radius:14px; padding:18px 22px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px; box-shadow:0 4px 12px rgba(220,38,38,0.08);">
+        <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:46px; height:46px; border-radius:12px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+                <i class="fa-solid fa-shield-virus"></i>
+            </div>
+            <div>
+                <strong style="color:#991b1b; font-size:15px; display:block; margin-bottom:3px;">
+                    تنبيه رقابي عاجل: تم إيقاف ظهور بعض عناصر الجامعة في المنصة
+                </strong>
+                <span style="color:#b91c1c; font-size:13px; line-height:1.5;">
+                    أصدرت إدارة الرقابة بالمنظومة قرارات بحجب ({{ $activeModerations->pluck('item_title')->join('، ') }}). يرجى مراجعة التوجيهات وتصحيح البيانات لإعادة الاعتماد.
+                </span>
+            </div>
+        </div>
+        <button type="button" class="btn btn-sm" style="background:#dc2626; color:#ffffff; font-weight:700; border-radius:8px; padding:8px 16px; border:none; cursor:pointer;" onclick="switchTab('notifications')">
+            <i class="fa-solid fa-bell me-1"></i> استعراض الإشعارات والتوجيهات
+        </button>
+    </div>
+    @endif
+
     <div class="overview-grid-layout">
         
         <!-- الجانب الأول: حاوية الترحيب والوقت، يليه مباشرة قسم "حول" -->

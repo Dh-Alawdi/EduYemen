@@ -434,6 +434,45 @@
                                         <small class="text-muted d-block mt-1" id="specSelectHint">قائمة التخصصات المتاحة مصنفة حسب الكليات (اختر التخصص المطلوب).</small>
                                     </div>
                                 </div>
+
+                                {{-- تنبيه عند عدم كفاية معدل الطالب للتخصص المختار --}}
+                                <div id="specGpaErrorAlert" class="alert alert-danger py-3 px-3.5 rounded-3 border-danger shadow-sm mt-3 d-none">
+                                    <div class="d-flex align-items-start gap-2.5">
+                                        <i class="bi bi-exclamation-octagon-fill text-danger fs-4 flex-shrink-0 mt-0.5"></i>
+                                        <div class="w-100">
+                                            <strong class="d-block text-danger mb-1" style="font-size:0.95rem;">
+                                                تنبيه شروط القبول والتسجيل:
+                                            </strong>
+                                            <div class="text-dark small mb-2.5" id="specGpaErrorMsg">
+                                                معدلك غير كافٍ للتسجيل بهذا التخصص.
+                                            </div>
+                                            <div class="d-flex align-items-center flex-wrap gap-2 pt-2 border-top border-danger-subtle">
+                                                <button type="button" class="btn btn-danger btn-sm px-3.5 py-1.5 rounded-pill fw-bold" id="btnShowSuitableSpecs" onclick="toggleSuitableSpecialtiesList()">
+                                                    <i class="bi bi-mortarboard me-1"></i>عرض التخصصات التي تناسب معدلك
+                                                </button>
+                                                <a href="{{ route('ai.advisor') }}" target="_blank" class="btn btn-outline-danger btn-sm px-3 py-1.5 rounded-pill fw-bold">
+                                                    <i class="bi bi-compass me-1"></i>المستشار الذكي للتخصصات
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- قائمة التخصصات التي تناسب معدل الطالب في الجامعة المختارة --}}
+                                <div id="suitableSpecsContainer" class="suitable-specs-card card border-primary-subtle shadow-sm rounded-3 mt-3 d-none">
+                                    <div class="card-header bg-primary-subtle border-primary-subtle py-2.5 px-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-patch-check-fill text-primary"></i>
+                                            <strong class="text-primary small" id="suitableSpecsHeaderTitle">
+                                                التخصصات المتاحة التي تقبل معدلك
+                                            </strong>
+                                        </div>
+                                        <button type="button" class="btn-close btn-sm" onclick="toggleSuitableSpecialtiesList(false)" aria-label="إغلاق"></button>
+                                    </div>
+                                    <div class="card-body p-2.5" id="suitableSpecsListBody">
+                                        {{-- تُحقن كروت التخصصات المناسبة ديناميكياً بواسطة JavaScript --}}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -655,89 +694,171 @@
                                     </div>
                                 </div>
 
-                                {{-- في حال اختيار سداد الرسوم الآن: عرض خطوات السداد والحسابات ونموذج السند --}}
+                                {{-- في حال اختيار سداد الرسوم الآن: عرض خطوات وتعليمات السداد والحسابات ونموذج السند --}}
                                 <div id="payNowContainer" class="d-none">
 
-                                    {{-- عنوان تعليمات السداد فقط بدون ملاحظات فرعية --}}
-                                    <div class="mb-3 pb-2 border-bottom">
-                                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-shield-check text-primary me-1"></i>خطوات وتعليمات إتمام السداد</h6>
+                                    {{-- عنوان تعليمات السداد الرسمي --}}
+                                    <div class="mb-3 pb-2 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-shield-check text-primary me-2"></i>خطوات وتعليمات إتمام السداد</h6>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle small py-1 px-2.5 rounded-pill" style="font-size:0.75rem;">
+                                            <i class="bi bi-info-circle me-1"></i>اتبع الخطوات لإتمام طلبك
+                                        </span>
                                     </div>
 
-                                    {{-- التعليمة 1: اختيار الحساب البنكي أو المحفظة --}}
-                                    <div class="mb-3">
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <span class="step-circle-badge">١</span>
-                                            <strong class="text-dark" style="font-size:0.92rem;">اختر الحساب البنكي أو المحفظة المناسبة لك:</strong>
-                                        </div>
-
-                                        {{-- كبسولات / أيقونات بيضاوية لطرق الدفع المتاحة لدى الجامعة --}}
-                                        <div class="pay-methods-pills-wrap mb-2" id="univPayMethodsContainer">
-                                            {{-- تُحقن ديناميكياً بواسطة JavaScript --}}
-                                        </div>
-
-                                        {{-- تفاصيل طريقة الدفع عند الضغط عليها --}}
-                                        <div id="selectedMethodDetailsBox" class="selected-method-details-card d-none">
-                                            <div class="text-muted small mb-2">
-                                                <i class="bi bi-info-circle text-primary me-1"></i>انسخ رقم الحساب المعتمد للجامعة أدناه بحسب البنك أو المحفظة المتاحة لديك:
+                                    {{-- =========================================================
+                                         التعليمة 1: اختيار الحساب البنكي أو المحفظة المناسبة لك
+                                         ========================================================= --}}
+                                    <div class="pay-instruction-card mb-3" id="payInstructionStep1">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="instruction-step-num" id="instBadge1">١</span>
+                                                <strong class="text-dark" style="font-size:0.92rem;">اختر الحساب البنكي أو المحفظة المناسبة لك:</strong>
                                             </div>
-                                            <div class="account-card-box p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                                <div>
-                                                    <span class="badge bg-light text-primary border mb-1" id="detailMethodName">بنك الكريمي</span>
-                                                    <div class="fs-5 fw-bold font-monospace text-primary" id="detailAccountNum" dir="ltr">00000000</div>
-                                                    <small class="text-muted d-block" id="detailAccountName">باسم: جامعة ...</small>
+                                            <span class="badge bg-light text-muted border small py-1 px-2.5 rounded-pill" id="instStatus1" style="font-size:0.75rem;">
+                                                الخطوة الأولى
+                                            </span>
+                                        </div>
+
+                                        {{-- مساحة التعليمة الأولى: التبديل في نفس المكان بين قائمة الأشكال وتفاصيل المحفظة --}}
+                                        <div class="pay-instruction-body">
+                                            {{-- تنبيه مختصر وواضح عند عرض وسائل الدفع --}}
+                                            <div class="alert alert-primary-subtle border border-primary-subtle py-1.5 px-3 small rounded-2 mb-2.5 d-flex align-items-center gap-2">
+                                                <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
+                                                <span class="text-dark small"><strong>تنبيه:</strong> حوّل الرسوم حصراً إلى أحد الحسابات المعتمدة أدناه وبنفس المبلغ المحدد دون زيادة أو نقصان.</span>
+                                            </div>
+
+                                            {{-- العرض 1: الأشكال البيضاوية لطرق الدفع المتاحة لدى الجامعة --}}
+                                            <div id="univPayMethodsWrap">
+                                                <div class="text-muted small mb-2.5">
+                                                    <i class="bi bi-hand-index-thumb text-primary me-1"></i>انقر على وسيلة الدفع التي تود السداد عبرها:
                                                 </div>
-                                                <div>
-                                                    <button type="button" class="btn btn-outline-primary btn-sm px-3 fw-bold" id="btnCopyAccount" onclick="copyActiveAccount()">
-                                                        <i class="bi bi-clipboard me-1"></i>نسخ رقم الحساب
-                                                    </button>
+                                                <div class="pay-methods-pills-wrap" id="univPayMethodsContainer">
+                                                    {{-- تُحقن كبسولات بيضاوية ديناميكياً بواسطة JavaScript --}}
+                                                </div>
+                                            </div>
+
+                                            {{-- العرض 2: تفاصيل طريقة الدفع عند الضغط على الشكل (في نفس المكان تماماً) --}}
+                                            <div id="selectedMethodDetailsBox" class="selected-method-details-card d-none">
+                                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5 pb-2 border-bottom">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1.5 rounded-pill fw-bold" id="detailMethodName">محفظة جيب</span>
+                                                        <span class="text-muted small fw-medium" id="detailAccountName">باسم: جامعة ...</span>
+                                                    </div>
+                                                    <div>
+                                                        {{-- خيار التغيير أو الرجوع للخطوة السابقة --}}
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm px-3 py-1 rounded-pill fw-bold" onclick="backToMethodSelection()" title="تغيير الطريقة أو الرجوع لاختيار وسيلة أخرى">
+                                                            <i class="bi bi-arrow-right me-1"></i>تغيير الطريقة / اختيار طريقة أخرى
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div class="account-card-box p-3 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                                                    <div>
+                                                        <span class="text-muted d-block small mb-1" id="detailAccountTypeLabel">رقم المحفظة / الحساب للتحويل:</span>
+                                                        <div class="fs-4 fw-bold font-monospace text-primary" id="detailAccountNum" dir="ltr">00000000</div>
+                                                    </div>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <button type="button" class="btn btn-primary btn-sm px-3.5 py-2 rounded-pill fw-bold shadow-sm" id="btnCopyAccount" onclick="copyActiveAccountAndAdvance()">
+                                                            <i class="bi bi-clipboard me-1"></i><span id="btnCopyText">نسخ رقم المحفظة</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                {{-- تنبيه تأكيدي فوري ومختصر عند اختيار وسيلة الدفع --}}
+                                                <div class="alert alert-warning-subtle border border-warning-subtle py-1.5 px-3 small rounded-2 mt-2 mb-0 d-flex align-items-center gap-2" id="methodSelectedNotice">
+                                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6 flex-shrink-0"></i>
+                                                    <span class="text-dark small"><strong>تأكيد:</strong> يُعتمد السند فقط إذا حُوّل إلى نفس هذا الحساب المحدد.</span>
+                                                </div>
+
+                                                {{-- تنبيه نجاح النسخ والانتقال للتعليمة التالية --}}
+                                                <div class="alert alert-success py-2 px-3 small d-none mt-2 mb-0 rounded-3 border-success-subtle d-flex align-items-center gap-2" id="copySuccessMsg">
+                                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                                    <span><strong>تم النسخ بنجاح!</strong> يمكنك الآن الانتقال للتعليمة الثانية لإتمام التحويل وتوثيق العملية.</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {{-- التعليمة 2: التحويل المالي --}}
-                                    <div class="mb-3">
-                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                            <span class="step-circle-badge">٢</span>
-                                            <strong class="text-dark" style="font-size:0.92rem;">قم بالتحويل المالي بقيمة رسوم التسجيل (<span class="text-success font-monospace" id="guideFeeAmount">5,000 ر.ي</span>):</strong>
+                                    {{-- =========================================================
+                                         التعليمة 2: قم بتحويل الرسوم الموضحة أعلاه
+                                         ========================================================= --}}
+                                    <div class="pay-instruction-card mb-3 d-none" id="payInstructionStep2">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="instruction-step-num" id="instBadge2">٢</span>
+                                                <strong class="text-dark" style="font-size:0.92rem;">قم بتحويل الرسوم الموضحة أعلاه:</strong>
+                                            </div>
+                                            <div>
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace px-2.5 py-1 fw-bold fs-6" id="guideFeeAmount">5,000 ر.ي</span>
+                                            </div>
                                         </div>
-                                        <small class="text-muted d-block ps-4 pe-1" style="font-size:0.8rem;">
-                                            * اكتب اسمك ورقم هاتفك في خانة بيان الحوالة لتسهيل مطابقة السداد.
-                                        </small>
+
+                                        {{-- الملاحظة المعتمدة تحت التعليمة --}}
+                                        <div class="alert alert-light border small text-muted py-2 px-3 rounded-3 mt-1 mb-0 d-flex align-items-start gap-2">
+                                            <i class="bi bi-info-circle text-primary fs-5 mt-0.5 flex-shrink-0"></i>
+                                            <div class="text-dark">
+                                                يفضل كتابة اسم الطالب في خانة غرض/بيان العملية لتسهيل مطابقة السداد.
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {{-- التعليمة 3: توثيق العملية ورفع السند --}}
-                                    <div class="mb-3">
-                                        <div class="d-flex align-items-center gap-2 mb-2">
-                                            <span class="step-circle-badge">٣</span>
-                                            <strong class="text-dark" style="font-size:0.92rem;">وثّق بيانات العملية وارفع سند السداد:</strong>
+                                    {{-- =========================================================
+                                         التعليمة 3: وثق بيانات إتمام العملية
+                                         ========================================================= --}}
+                                    <div class="pay-instruction-card mb-3 d-none" id="payInstructionStep3">
+                                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2.5">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="instruction-step-num" id="instBadge3">٣</span>
+                                                <strong class="text-dark" style="font-size:0.92rem;">وثّق بيانات إتمام العملية:</strong>
+                                            </div>
+                                            <span class="badge bg-light text-muted border small py-1 px-2.5 rounded-pill" id="instStatus3" style="font-size:0.75rem;">
+                                                بيانات السند المعتمد
+                                            </span>
                                         </div>
 
-                                        {{-- حاوية تسجيل وتوثيق بيانات سند التحويل المالي --}}
-                                        <div class="voucher-form-card p-3 shadow-sm">
+                                        {{-- نموذج توثيق السند والبيانات المطلوبة حسب الترتيب المحدد --}}
+                                        <div class="voucher-form-card p-3 shadow-sm rounded-3">
+                                            {{-- حقل المبلغ مخفي تماماً من قسم إثبات الدفع وفق المطلوب --}}
+                                            <input type="hidden" name="payment_amount" id="payment_amount" value="5000">
+
                                             <div class="row g-2.5">
+                                                {{-- 1. وسيلة التحويل المعتمدة (مربوطة تلقائياً بالوسيلة المختارة في التعليمة 1 مع زر تغيير منظم) --}}
                                                 <div class="col-md-6 col-12">
-                                                    <label class="form-label small fw-bold text-dark mb-1">وسيلة / بنك التحويل <span class="text-danger">*</span></label>
-                                                    <select name="payment_method_id" id="payment_method_id" class="form-select form-select-sm" onchange="syncSelectedMethodFromDropdown(this.value)">
-                                                        <option value="">-- اختر طريقة الدفع --</option>
-                                                    </select>
+                                                    <label class="form-label small fw-bold text-dark mb-1">وسيلة التحويل المعتمدة <span class="text-danger">*</span></label>
+                                                    <div class="p-2 border rounded-2 bg-light d-flex align-items-center justify-content-between" style="min-height: 38px;">
+                                                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                                            <i class="bi bi-shield-check text-success fs-5 flex-shrink-0"></i>
+                                                            <div class="text-truncate">
+                                                                <strong class="d-block text-dark small text-truncate" id="proofMethodDisplay">لم يتم اختيار وسيلة بعد</strong>
+                                                                <span class="text-muted text-truncate d-block" style="font-size:0.75rem;" id="proofAccountDisplay">اختر الوسيلة من التعليمة الأولى</span>
+                                                            </div>
+                                                        </div>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm px-2.5 py-0.5 rounded-pill fw-bold flex-shrink-0" onclick="backToMethodSelection()" title="تغيير وسيلة الدفع">
+                                                            <i class="bi bi-pencil-square me-1"></i>تغيير
+                                                        </button>
+                                                    </div>
+                                                    <input type="hidden" name="payment_method_id" id="payment_method_id" value="">
                                                 </div>
 
+                                                {{-- 2. رقم العملية / الحوالة / السند --}}
                                                 <div class="col-md-6 col-12">
                                                     <label class="form-label small fw-bold text-dark mb-1">رقم العملية / الحوالة / السند <span class="text-danger">*</span></label>
                                                     <input type="text" name="payment_reference" id="payment_reference" class="form-control form-control-sm font-monospace" placeholder="أدخل رقم العملية أو الإشعار" dir="ltr">
                                                 </div>
 
-                                                <div class="col-md-6 col-12">
-                                                    <label class="form-label small fw-bold text-dark mb-1">المبلغ المسدد (ر.ي) <span class="text-danger">*</span></label>
-                                                    <input type="number" name="payment_amount" id="payment_amount" class="form-control form-control-sm font-monospace fw-bold" value="5000">
-                                                </div>
-
+                                                {{-- 3. تاريخ التحويل (تاريخ اليوم الحالي تلقائياً مع تقييد المستقبل) --}}
                                                 <div class="col-md-6 col-12">
                                                     <label class="form-label small fw-bold text-dark mb-1">تاريخ التحويل <span class="text-danger">*</span></label>
-                                                    <input type="date" name="payment_date" id="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                                                    <input type="date" name="payment_date" id="payment_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}">
                                                 </div>
 
+                                                {{-- 4. ملاحظات إضافية (اختياري) --}}
+                                                <div class="col-md-6 col-12">
+                                                    <label class="form-label small text-muted mb-1">ملاحظات إضافية (اختياري)</label>
+                                                    <input type="text" name="payment_notes" id="payment_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
+                                                </div>
+
+                                                {{-- 5. صورة إشعار أو سند السداد --}}
                                                 <div class="col-12">
                                                     <label class="form-label small fw-bold text-dark mb-1">صورة إشعار أو سند السداد <span class="text-danger">*</span></label>
                                                     <div class="upload-voucher-box p-2.5 d-flex align-items-center justify-content-between flex-wrap gap-2" id="card_payment_proof">
@@ -746,15 +867,10 @@
                                                             <i class="bi bi-file-earmark-arrow-up text-primary fs-5"></i>
                                                             <span class="small text-muted" id="status_payment_proof">لم يتم اختيار صورة السند</span>
                                                         </div>
-                                                        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-3" onclick="document.getElementById('file_payment_proof').click();">
+                                                        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-3 fw-bold rounded-pill" onclick="document.getElementById('file_payment_proof').click();">
                                                             <i class="bi bi-upload me-1"></i>اختيار الملف
                                                         </button>
                                                     </div>
-                                                </div>
-
-                                                <div class="col-12">
-                                                    <label class="form-label small text-muted mb-1">ملاحظات إضافية (اختياري)</label>
-                                                    <input type="text" name="payment_notes" id="payment_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
                                                 </div>
                                             </div>
                                         </div>
@@ -1690,6 +1806,47 @@
 }
 
 
+/* كرت وبنود التخصصات المناسبة لمعدل الطالب في الخطوة 3 */
+.suitable-specs-card {
+    background: #ffffff;
+    border: 1.5px solid #bfdbfe;
+    animation: fadeInSpecs 0.25s ease-out;
+}
+
+@keyframes fadeInSpecs {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.suitable-spec-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: all 0.2s ease;
+    gap: 10px;
+}
+
+.suitable-spec-item:hover {
+    border-color: #2563eb;
+    background: #f0f7ff;
+    transform: translateX(-2px);
+}
+
+.suitable-spec-item:last-child {
+    margin-bottom: 0;
+}
+
 /* ========================================================
    الخط الرسمي وتنسيقات الخطوة 5 (دفع الرسوم)
    ======================================================== */
@@ -1736,53 +1893,103 @@
     display: none;
 }
 
+/* بطاقات تعليمات إتمام السداد */
+.pay-instruction-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    transition: all 0.25s ease;
+}
+
+.pay-instruction-card.highlight {
+    border-color: #93c5fd;
+    background: #fbfdff;
+}
+
+.instruction-step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.88rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(37,99,235,0.22);
+}
+
+.instruction-step-num.completed {
+    background: #16a34a !important;
+    box-shadow: 0 2px 4px rgba(22,163,74,0.22);
+}
+
 /* كبسولات طرق الدفع البيضاوية */
 .pay-methods-pills-wrap {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 10px;
 }
 
 .pay-method-pill {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 7px 15px;
-    background: #ffffff;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 22px;
+    background: #f8fafc;
     border: 1.5px solid #cbd5e1;
-    border-radius: 50px;
+    border-radius: 50px; /* شكل بيضاوي أنيق */
     color: #1e293b;
-    font-size: 0.83rem;
-    font-weight: 600;
+    font-size: 0.9rem;
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     outline: none;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
 }
 
 .pay-method-pill:hover {
     border-color: #2563eb;
-    background: #f0f7ff;
+    background: #eff6ff;
     color: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(37,99,235,0.15);
 }
 
 .pay-method-pill.active {
     background: #2563eb;
     border-color: #2563eb;
     color: #ffffff;
-    box-shadow: 0 2px 6px rgba(37,99,235,0.25);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.28);
 }
 
 .pay-method-pill-icon {
-    font-size: 0.85rem;
+    font-size: 1rem;
 }
 
-/* بطاقة تفاصيل الحساب المعتمد عند الضغط على الكبسولة */
+/* بطاقة تفاصيل الحساب المعتمد في نفس المكان عند الضغط على الكبسولة */
 .selected-method-details-card {
     background: #f8fafc;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    padding: 12px 14px;
-    margin-top: 8px;
+    border: 1.5px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 14px 16px;
+    animation: fadeInDetails 0.24s ease-out;
+}
+
+@keyframes fadeInDetails {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .account-card-box {
@@ -1831,6 +2038,17 @@
 // كائن بيانات الجامعات المعتمدة
 window.universitiesDatabase = @json($universities);
 
+// دالة لتأمين النصوص ومنع أخطاء ReferenceError
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 let currentStep = 1;
 const totalSteps = 5;
 let currentUnivId = "{{ $selectedUniversityId ?? '' }}";
@@ -1857,6 +2075,25 @@ document.addEventListener('DOMContentLoaded', function() {
         el.addEventListener('input', updateApplicationSummary);
         el.addEventListener('change', updateApplicationSummary);
     });
+
+    // مراقبة تحديث المعدل للتحقق التلقائي من التخصص المختار
+    const secAvgInput = document.getElementById('sec_avg');
+    if (secAvgInput) {
+        secAvgInput.addEventListener('input', () => {
+            if (currentDesiredSpec && typeof checkSpecializationGpaRequirement === 'function') {
+                checkSpecializationGpaRequirement(currentDesiredSpec);
+            }
+        });
+        secAvgInput.addEventListener('change', () => {
+            if (currentDesiredSpec && typeof checkSpecializationGpaRequirement === 'function') {
+                checkSpecializationGpaRequirement(currentDesiredSpec);
+            }
+        });
+    }
+
+    if (currentDesiredSpec && typeof checkSpecializationGpaRequirement === 'function') {
+        checkSpecializationGpaRequirement(currentDesiredSpec);
+    }
 });
 
 // ميزة التنقل السلس عند الضغط على مفتاح Enter
@@ -1988,6 +2225,9 @@ async function queryMinistryData() {
                 avgInput.value = d.percentage;
                 avgInput.readOnly = true;
                 avgInput.classList.add('apply-input-locked');
+                if (currentDesiredSpec && typeof checkSpecializationGpaRequirement === 'function') {
+                    checkSpecializationGpaRequirement(currentDesiredSpec);
+                }
             }
 
             const totalInput = document.getElementById('total_score');
@@ -2093,6 +2333,16 @@ function validateStep(step) {
             return false;
         }
         currentDesiredSpec = specVal;
+
+        // فحص ومطابقة المعدل المطلوب للتخصص (التعديل الثالث)
+        if (typeof checkSpecializationGpaRequirement === 'function' && !checkSpecializationGpaRequirement(specVal)) {
+            const errorAlert = document.getElementById('specGpaErrorAlert');
+            if (errorAlert) {
+                errorAlert.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return false;
+        }
+
         return true;
     }
 
@@ -2112,8 +2362,9 @@ function validateStep(step) {
             const proof = document.getElementById('file_payment_proof');
 
             if (method && !method.value) {
-                alert('يرجى تحديد وسيلة أو بنك التحويل المالي المستخدم.');
-                method.focus();
+                alert('يرجى اختيار وسيلة التحويل المعتمدة أولاً من الخطوة رقم 1.');
+                const step1 = document.getElementById('payInstructionStep1');
+                if (step1) step1.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return false;
             }
             if (ref && !ref.value.trim()) {
@@ -2238,6 +2489,17 @@ function updateStepUI() {
         if (firstInput) setTimeout(() => firstInput.focus(), 150);
     }
 
+    // إذا وصل الطالب للخطوة 5 وهو مختار للسداد الفوري، التحقق من جاهزية الكبسولات
+    if (currentStep === 5) {
+        const payTiming = document.querySelector('input[name="payment_timing"]:checked')?.value;
+        if (payTiming === 'now' && typeof renderUniversityPaymentMethods === 'function') {
+            const pillsContainer = document.getElementById('univPayMethodsContainer');
+            if (!pillsContainer || pillsContainer.children.length === 0 || !currentSelectedMethodId) {
+                renderUniversityPaymentMethods(currentUnivId);
+            }
+        }
+    }
+
     updateProgressState();
     updateApplicationSummary();
 }
@@ -2320,6 +2582,12 @@ function onUniversitySelectChange() {
     currentUnivId = univSelect.value;
     updateHeaderAndSideUniv();
     renderUniversitySpecialties(currentUnivId, '');
+
+    // التعديل الثاني: إعادة ضبط اختيارات السداد في الخطوة 5 بالكامل عند تغيير الجامعة
+    if (typeof resetStep5Payment === 'function') {
+        resetStep5Payment();
+    }
+
     renderUniversityPaymentMethods(currentUnivId);
     updateFeeDetails();
     updateApplicationSummary();
@@ -2441,6 +2709,7 @@ function renderUniversityColleges(univId, preferredSpecName) {
 function onSpecialtySelectChange(selectEl) {
     const val = selectEl ? selectEl.value : '';
     setChosenSpecialization(val);
+    checkSpecializationGpaRequirement(val);
 }
 
 // ضبط التخصص المختار وتحديث الواجهات التابعة
@@ -2454,6 +2723,184 @@ function setChosenSpecialization(name) {
     if (sideSpecEl) sideSpecEl.textContent = name || 'حدد التخصص في الخطوة 3';
     updateFeeDetails();
     updateApplicationSummary();
+}
+
+// جلب بيانات التخصص الكاملة من قاعدة بيانات الجامعات المعتمدة
+function getSpecializationData(specName, univId) {
+    const uId = univId || currentUnivId || document.getElementById('university_id')?.value;
+    if (!uId || !window.universitiesDatabase || !specName) return null;
+
+    const univ = window.universitiesDatabase.find(u => String(u.university_id) === String(uId));
+    if (!univ || !univ.colleges) return null;
+
+    for (const col of univ.colleges) {
+        if (col.specializations) {
+            const sp = col.specializations.find(s => s.specialization_name === specName);
+            if (sp) {
+                return {
+                    specialization: sp,
+                    college: col,
+                    university: univ
+                };
+            }
+        }
+    }
+    return null;
+}
+
+// التعديل الثالث: التحقق من استيفاء معدل الطالب للحد الأدنى للقبول في التخصص المختار
+function checkSpecializationGpaRequirement(specName) {
+    const errorAlert = document.getElementById('specGpaErrorAlert');
+    const errorMsg = document.getElementById('specGpaErrorMsg');
+    const specSelect = document.getElementById('desired_spec_select');
+
+    if (!specName) {
+        if (errorAlert) errorAlert.classList.add('d-none');
+        if (specSelect) specSelect.classList.remove('is-invalid');
+        return true;
+    }
+
+    const avgInput = document.getElementById('sec_avg');
+    const studentAvg = avgInput ? parseFloat(avgInput.value) : 0;
+
+    const specData = getSpecializationData(specName);
+    if (!specData || !specData.specialization) {
+        if (errorAlert) errorAlert.classList.add('d-none');
+        if (specSelect) specSelect.classList.remove('is-invalid');
+        return true;
+    }
+
+    const adm = specData.specialization.admission_data || specData.specialization.admissionData;
+    const minAvg = (adm && adm.minimum_average) ? parseFloat(adm.minimum_average) : 0;
+
+    // إذا كان معدل الطالب أقل من المعدل المطلوب للقبول في التخصص
+    if (minAvg > 0 && studentAvg > 0 && studentAvg < minAvg) {
+        if (errorMsg) {
+            errorMsg.innerHTML = `معدلك الحالي (<strong>${studentAvg}%</strong>) غير كافٍ للتسجيل بتخصص «<strong>${escapeHtml(specName)}</strong>»؛ حيث أن الحد الأدنى المطلوب للقبول في هذا التخصص هو (<strong>${minAvg}%</strong>).`;
+        }
+        if (errorAlert) {
+            errorAlert.classList.remove('d-none');
+        }
+        if (specSelect) {
+            specSelect.classList.add('is-invalid');
+        }
+        return false;
+    }
+
+    // إذا كان المعدل كافياً للقبول
+    if (errorAlert) errorAlert.classList.add('d-none');
+    const suitableContainer = document.getElementById('suitableSpecsContainer');
+    if (suitableContainer) suitableContainer.classList.add('d-none');
+    if (specSelect) specSelect.classList.remove('is-invalid');
+    return true;
+}
+
+// التعديل الثالث: إظهار أو إخفاء قائمة التخصصات التي تناسب معدل الطالب
+function toggleSuitableSpecialtiesList(show) {
+    const container = document.getElementById('suitableSpecsContainer');
+    const body = document.getElementById('suitableSpecsListBody');
+    const title = document.getElementById('suitableSpecsHeaderTitle');
+    if (!container || !body) return;
+
+    if (show === false) {
+        container.classList.add('d-none');
+        return;
+    }
+
+    // إذا كانت القائمة ظاهرة بالفعل ونقر الزر مرة أخرى
+    if (!container.classList.contains('d-none') && show === undefined) {
+        container.classList.add('d-none');
+        return;
+    }
+
+    const avgInput = document.getElementById('sec_avg');
+    const studentAvg = avgInput ? parseFloat(avgInput.value) : 0;
+    const uId = currentUnivId || document.getElementById('university_id')?.value;
+
+    const univ = window.universitiesDatabase ? window.universitiesDatabase.find(u => String(u.university_id) === String(uId)) : null;
+    const univName = univ ? univ.university_name : 'الجامعة المعتمدة';
+
+    if (title) {
+        title.textContent = `التخصصات المتاحة التي تقبل معدلك (${studentAvg || '—'}%) لدى ${univName}:`;
+    }
+
+    body.innerHTML = '';
+
+    // تجميع التخصصات التي تقبل معدل الطالب في هذه الجامعة
+    let suitableSpecs = [];
+
+    if (univ && univ.colleges) {
+        univ.colleges.forEach(col => {
+            if (col.specializations) {
+                col.specializations.forEach(sp => {
+                    const adm = sp.admission_data || sp.admissionData;
+                    const minAvg = (adm && adm.minimum_average) ? parseFloat(adm.minimum_average) : 0;
+                    // التخصص يناسب معدل الطالب إذا كان معدل الطالب أكبر أو يساوي الحد الأدنى
+                    if (studentAvg <= 0 || minAvg <= 0 || studentAvg >= minAvg) {
+                        suitableSpecs.push({
+                            specialization: sp,
+                            college: col,
+                            minAvg: minAvg
+                        });
+                    }
+                });
+            }
+        });
+    }
+
+    if (suitableSpecs.length === 0) {
+        body.innerHTML = `
+            <div class="alert alert-light text-center py-3 mb-0 text-muted small">
+                <i class="bi bi-info-circle fs-5 d-block text-warning mb-1"></i>
+                لا توجد تخصصات مسجلة بهذه الجامعة تقبل معدل (${studentAvg}%). يمكنك اختيار جامعة أخرى من القائمة أو الاستعانة بـ 
+                <a href="{{ route('ai.advisor') }}" target="_blank" class="fw-bold text-primary">المستشار الذكي</a> لمقترحات تناسب معدلك.
+            </div>
+        `;
+    } else {
+        // ترتيب التخصصات تنازلياً حسب النسبة
+        suitableSpecs.sort((a, b) => b.minAvg - a.minAvg);
+
+        suitableSpecs.forEach(item => {
+            const sp = item.specialization;
+            const col = item.college;
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'suitable-spec-item';
+
+            const minAvgBadge = item.minAvg > 0 
+                ? `<span class="badge bg-success-subtle text-success border border-success-subtle font-monospace py-1 px-2.5">الحد الأدنى: ${item.minAvg}%</span>`
+                : `<span class="badge bg-light text-muted border py-1 px-2.5">متاح بدون قيد نسبة</span>`;
+
+            itemDiv.innerHTML = `
+                <div>
+                    <strong class="d-block text-dark" style="font-size:0.92rem;">${escapeHtml(sp.specialization_name)}</strong>
+                    <div class="d-flex align-items-center gap-2 mt-1 flex-wrap">
+                        <small class="text-muted"><i class="bi bi-building me-1"></i>${escapeHtml(col.college_name)}</small>
+                        ${minAvgBadge}
+                    </div>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-success btn-sm px-3 py-1 rounded-pill fw-bold" onclick="pickSuitableSpecialization('${escapeHtml(sp.specialization_name)}')">
+                        <i class="bi bi-check2 me-1"></i>اختيار هذا التخصص
+                    </button>
+                </div>
+            `;
+            body.appendChild(itemDiv);
+        });
+    }
+
+    container.classList.remove('d-none');
+    container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// اختيار التخصص المناسب مباشرة من قائمة التخصصات
+function pickSuitableSpecialization(specName) {
+    const selectEl = document.getElementById('desired_spec_select');
+    if (selectEl) {
+        selectEl.value = specName;
+    }
+    setChosenSpecialization(specName);
+    checkSpecializationGpaRequirement(specName);
+    toggleSuitableSpecialtiesList(false);
 }
 
 // معالجة اختيار ملف للوثائق
@@ -2606,23 +3053,41 @@ function handleApplySubmit(e) {
     });
 }
 
-// توليد وسائل الدفع المعتمدة لدى الجامعة
+// توليد وسائل الدفع المعتمدة لدى الجامعة والتحكم بتعليمات السداد
 let currentUnivMethods = [];
 let currentActiveAccountNum = '';
+let currentSelectedMethodId = null;
 
+// استخراج اسم أنيق ومختصر للكبسولات البيضاوية (مثلاً "محفظة جيب" -> "جيب")
+function getShortMethodName(name) {
+    if (!name) return 'طريقة الدفع';
+    let clean = name.trim();
+    if (/^محفظة\s+/i.test(clean)) {
+        clean = clean.replace(/^محفظة\s+/i, '').trim();
+    }
+    return clean;
+}
+
+// توليد الكبسولات البيضاوية والقائمة المنسدلة لوسائل الدفع
 function renderUniversityPaymentMethods(univId) {
     const container = document.getElementById('univPayMethodsContainer');
     const selectEl = document.getElementById('payment_method_id');
+    const pillsWrap = document.getElementById('univPayMethodsWrap');
     const detailsBox = document.getElementById('selectedMethodDetailsBox');
 
     if (!container) return;
     container.innerHTML = '';
-    if (detailsBox) detailsBox.classList.add('d-none');
     currentUnivMethods = [];
     currentActiveAccountNum = '';
+    currentSelectedMethodId = null;
 
-    if (selectEl) {
+    if (pillsWrap) pillsWrap.classList.remove('d-none');
+    if (detailsBox) detailsBox.classList.add('d-none');
+
+    if (selectEl && selectEl.tagName === 'SELECT') {
         selectEl.innerHTML = '<option value="">-- اختر طريقة الدفع --</option>';
+    } else if (selectEl) {
+        selectEl.value = '';
     }
 
     // تحديد الجامعة المختارة
@@ -2631,8 +3096,11 @@ function renderUniversityPaymentMethods(univId) {
 
     if (uId && window.universitiesDatabase) {
         const univ = window.universitiesDatabase.find(u => String(u.university_id) === String(uId));
-        if (univ && univ.payment_methods && univ.payment_methods.length > 0) {
-            methods = univ.payment_methods.filter(m => m.account_number && m.account_number.trim() !== '');
+        if (univ) {
+            const list = univ.payment_methods || univ.paymentMethods || [];
+            if (list.length > 0) {
+                methods = list.filter(m => m.account_number && String(m.account_number).trim() !== '');
+            }
         }
     }
 
@@ -2649,19 +3117,20 @@ function renderUniversityPaymentMethods(univId) {
 
     currentUnivMethods = methods;
 
-    // بناء الكبسولات البيضاوية لجميع الطرق
-    currentUnivMethods.forEach((pm, idx) => {
-        const displayName = (pm.method_name && pm.method_name.trim()) ? pm.method_name : (pm.method_type || 'حساب بنكي');
-        
-        if (selectEl) {
+    // بناء الأشكال البيضاوية لجميع الطرق
+    currentUnivMethods.forEach((pm) => {
+        const fullName = (pm.method_name && pm.method_name.trim()) ? pm.method_name : (pm.method_type || 'حساب بنكي');
+        const shortName = getShortMethodName(fullName);
+
+        if (selectEl && selectEl.tagName === 'SELECT') {
             const opt = document.createElement('option');
             opt.value = pm.method_id;
-            opt.textContent = displayName + ' (' + pm.account_number + ')';
+            opt.textContent = fullName + ' (' + pm.account_number + ')';
             selectEl.appendChild(opt);
         }
 
         let iconClass = 'bi-bank';
-        const nameLower = displayName.toLowerCase();
+        const nameLower = fullName.toLowerCase();
         if (nameLower.includes('محفظ') || nameLower.includes('كاش') || nameLower.includes('جوالي') || nameLower.includes('جيب') || nameLower.includes('موبايل')) {
             iconClass = 'bi-wallet2';
         }
@@ -2670,69 +3139,125 @@ function renderUniversityPaymentMethods(univId) {
         pill.type = 'button';
         pill.className = 'pay-method-pill';
         pill.id = 'payMethodPill_' + pm.method_id;
-        pill.innerHTML = '<i class="bi ' + iconClass + ' pay-method-pill-icon"></i><span>' + escapeHtml(displayName) + '</span>';
+        pill.innerHTML = '<i class="bi ' + iconClass + ' pay-method-pill-icon"></i><span>' + escapeHtml(shortName) + '</span>';
         pill.onclick = function() {
             selectPaymentMethod(pm.method_id);
         };
         container.appendChild(pill);
     });
-
-    // اختيار أول طريقة تلقائياً لإبراز البيانات والنسخ مباشرة
-    if (currentUnivMethods.length > 0) {
-        selectPaymentMethod(currentUnivMethods[0].method_id);
-    }
 }
 
-// عند الضغط على طريقة الدفع
+// عند الضغط على الشكل البيضاوي لطريقة الدفع (التعليمة 1)
 function selectPaymentMethod(methodId) {
     const pm = currentUnivMethods.find(m => String(m.method_id) === String(methodId));
     if (!pm) return;
 
+    currentSelectedMethodId = pm.method_id;
+    currentActiveAccountNum = pm.account_number || '';
+
+    // تفعيل الكبسولة وتحديدها
     document.querySelectorAll('.pay-method-pill').forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.getElementById('payMethodPill_' + methodId);
     if (activeBtn) activeBtn.classList.add('active');
 
-    const selectEl = document.getElementById('payment_method_id');
-    if (selectEl) selectEl.value = pm.method_id;
-
+    // إخفاء أشكال الطرق وعرض بطاقة تفاصيل الحساب في نفس المكان
+    const pillsWrap = document.getElementById('univPayMethodsWrap');
     const detailsBox = document.getElementById('selectedMethodDetailsBox');
+    if (pillsWrap) pillsWrap.classList.add('d-none');
+    if (detailsBox) detailsBox.classList.remove('d-none');
+
+    // ملء بيانات الحساب في بطاقة التفاصيل
     const nameEl = document.getElementById('detailMethodName');
     const numEl = document.getElementById('detailAccountNum');
     const accNameEl = document.getElementById('detailAccountName');
+    const labelEl = document.getElementById('detailAccountTypeLabel');
+    const copyBtnText = document.getElementById('btnCopyText');
 
-    currentActiveAccountNum = pm.account_number || '';
+    const fullName = (pm.method_name && pm.method_name.trim()) ? pm.method_name : (pm.method_type || 'حساب بنكي معتمد');
+    const isWallet = fullName.toLowerCase().includes('محفظ') || fullName.toLowerCase().includes('كاش') || fullName.toLowerCase().includes('جيب') || fullName.toLowerCase().includes('جوالي');
 
-    const displayName = (pm.method_name && pm.method_name.trim()) ? pm.method_name : 'حساب بنكي معتمد';
-    if (nameEl) nameEl.textContent = displayName;
+    if (nameEl) nameEl.textContent = fullName;
     if (numEl) numEl.textContent = pm.account_number;
     if (accNameEl) accNameEl.textContent = 'باسم: ' + (pm.account_name || 'الجامعة');
 
-    if (detailsBox) detailsBox.classList.remove('d-none');
+    if (labelEl) {
+        labelEl.textContent = isWallet ? 'رقم المحفظة المعتمد للتحويل:' : 'رقم الحساب البنكي المعتمد للتحويل:';
+    }
+    if (copyBtnText) {
+        copyBtnText.textContent = isWallet ? 'نسخ رقم المحفظة' : 'نسخ رقم الحساب';
+    }
+
+    // إبقاء الوسيلة محددة تلقائياً في حقل التعليمة 3 وتحديث بطاقة العرض الرسمية
+    const selectEl = document.getElementById('payment_method_id');
+    if (selectEl) selectEl.value = pm.method_id;
+    const proofDisplay = document.getElementById('proofMethodDisplay');
+    const proofAccDisplay = document.getElementById('proofAccountDisplay');
+    if (proofDisplay) proofDisplay.textContent = fullName;
+    if (proofAccDisplay) proofAccDisplay.textContent = `رقم الحساب: ${pm.account_number} (${pm.account_name || 'حساب رسمي معتمد'})`;
+
+    // إعادة ضبط تنبيه النسخ إن كان ظاهراً
+    const copyMsg = document.getElementById('copySuccessMsg');
+    if (copyMsg) copyMsg.classList.add('d-none');
 }
 
-// مزامنة عند التغيير من القائمة المنسدلة
-function syncSelectedMethodFromDropdown(methodId) {
-    if (methodId) {
-        selectPaymentMethod(methodId);
+// الرجوع من تفاصيل الحساب إلى عرض قائمة أشكال طرق الدفع (في نفس المكان)
+function backToMethodSelection() {
+    const pillsWrap = document.getElementById('univPayMethodsWrap');
+    const detailsBox = document.getElementById('selectedMethodDetailsBox');
+    if (detailsBox) detailsBox.classList.add('d-none');
+    if (pillsWrap) {
+        pillsWrap.classList.remove('d-none');
+        pillsWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
-// نسخ رقم الحساب
-function copyActiveAccount() {
+// نسخ رقم الحساب/المحفظة والانتقال للتعليمة الثانية والثالثة
+function copyActiveAccountAndAdvance() {
     if (!currentActiveAccountNum) return;
+
     const btn = document.getElementById('btnCopyAccount');
-    const origHtml = btn ? btn.innerHTML : '';
+    const btnText = document.getElementById('btnCopyText');
+    const origText = btnText ? btnText.textContent : 'نسخ الرقم';
 
     const notifySuccess = () => {
-        if (!btn) return;
-        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>تم النسخ!';
-        btn.classList.add('btn-success', 'text-white');
-        btn.classList.remove('btn-outline-primary');
+        if (btn) {
+            btn.classList.add('btn-success', 'text-white');
+            btn.classList.remove('btn-primary');
+            if (btnText) btnText.textContent = 'تم النسخ بنجاح!';
+            setTimeout(() => {
+                btn.classList.remove('btn-success', 'text-white');
+                btn.classList.add('btn-primary');
+                if (btnText) btnText.textContent = origText;
+            }, 2500);
+        }
+
+        const copyMsg = document.getElementById('copySuccessMsg');
+        if (copyMsg) copyMsg.classList.remove('d-none');
+
+        // تمييز التعليمة 1 كمكتملة
+        const instBadge1 = document.getElementById('instBadge1');
+        const instStatus1 = document.getElementById('instStatus1');
+        if (instBadge1) {
+            instBadge1.innerHTML = '<i class="bi bi-check-lg"></i>';
+            instBadge1.classList.add('completed');
+        }
+        if (instStatus1) {
+            instStatus1.textContent = 'تم تحديد الحساب والنسخ';
+            instStatus1.className = 'badge bg-success-subtle text-success border border-success-subtle small py-1 px-2.5 rounded-pill';
+        }
+
+        // إظهار التعليمة 2 والتعليمة 3 بسلاسة
+        const inst2 = document.getElementById('payInstructionStep2');
+        const inst3 = document.getElementById('payInstructionStep3');
+        if (inst2) inst2.classList.remove('d-none');
+        if (inst3) inst3.classList.remove('d-none');
+
+        // التمرير السلس إلى التعليمة الثانية
         setTimeout(() => {
-            btn.innerHTML = origHtml;
-            btn.classList.remove('btn-success', 'text-white');
-            btn.classList.add('btn-outline-primary');
-        }, 2000);
+            if (inst2) {
+                inst2.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 150);
     };
 
     if (navigator.clipboard && window.isSecureContext) {
@@ -2753,9 +3278,93 @@ function fallbackCopy(text, cb) {
         document.execCommand('copy');
         if (cb) cb();
     } catch (e) {
-        alert('رقم الحساب: ' + text);
+        alert('رقم الحساب/المحفظة: ' + text);
+        if (cb) cb();
     }
     document.body.removeChild(textarea);
+}
+
+// مزامنة عند التغيير من القائمة المنسدلة في التعليمة 3
+function syncSelectedMethodFromDropdown(methodId) {
+    if (methodId) {
+        selectPaymentMethod(methodId);
+    }
+}
+
+// التعديل الثاني: إعادة ضبط كامل خيارات الخطوة 5 عند تغيير الجامعة في الخطوة 3
+function resetStep5Payment() {
+    // 1. إلغاء تحديد خياري السداد (سداد الآن / لاحقاً)
+    const radioNow = document.getElementById('payTimingNow');
+    const radioLater = document.getElementById('payTimingLater');
+    const cardNow = document.getElementById('payChoiceNowLabel');
+    const cardLater = document.getElementById('payChoiceLaterLabel');
+    if (radioNow) radioNow.checked = false;
+    if (radioLater) radioLater.checked = false;
+    if (cardNow) cardNow.classList.remove('active');
+    if (cardLater) cardLater.classList.remove('active');
+
+    // 2. إخفاء حاوية السداد الفوري وتنبيه السداد لاحقاً
+    const payNowContainer = document.getElementById('payNowContainer');
+    const payLaterNotice = document.getElementById('payLaterNotice');
+    if (payNowContainer) payNowContainer.classList.add('d-none');
+    if (payLaterNotice) payLaterNotice.classList.add('d-none');
+
+    // 3. تصفير بيانات وذاكرة وسيلة الدفع المحددة
+    currentActiveAccountNum = '';
+    currentSelectedMethodId = null;
+
+    // 4. إعادة التعليمات 1 و 2 و 3 إلى حالتها الأولية
+    const pillsWrap = document.getElementById('univPayMethodsWrap');
+    const detailsBox = document.getElementById('selectedMethodDetailsBox');
+    const inst2 = document.getElementById('payInstructionStep2');
+    const inst3 = document.getElementById('payInstructionStep3');
+    const copyMsg = document.getElementById('copySuccessMsg');
+    const instBadge1 = document.getElementById('instBadge1');
+    const instStatus1 = document.getElementById('instStatus1');
+
+    if (pillsWrap) pillsWrap.classList.remove('d-none');
+    if (detailsBox) detailsBox.classList.add('d-none');
+    if (inst2) inst2.classList.add('d-none');
+    if (inst3) inst3.classList.add('d-none');
+    if (copyMsg) copyMsg.classList.add('d-none');
+
+    if (instBadge1) {
+        instBadge1.textContent = '١';
+        instBadge1.classList.remove('completed');
+    }
+    if (instStatus1) {
+        instStatus1.textContent = 'الخطوة الأولى';
+        instStatus1.className = 'badge bg-light text-muted border small py-1 px-2.5 rounded-pill';
+    }
+
+    // إزالة التحديد عن أي كبسولة
+    document.querySelectorAll('.pay-method-pill').forEach(btn => btn.classList.remove('active'));
+
+    // 5. تصفير بيانات السند والتوثيق
+    const selectMethod = document.getElementById('payment_method_id');
+    const proofDisplay = document.getElementById('proofMethodDisplay');
+    const proofAccDisplay = document.getElementById('proofAccountDisplay');
+    const inputRef = document.getElementById('payment_reference');
+    const inputProof = document.getElementById('file_payment_proof');
+    const inputNotes = document.getElementById('payment_notes');
+    const proofStatus = document.getElementById('status_payment_proof');
+    const pledgeCheck = document.getElementById('pledge_check');
+
+    if (selectMethod) selectMethod.value = '';
+    if (proofDisplay) proofDisplay.textContent = 'لم يتم اختيار وسيلة بعد';
+    if (proofAccDisplay) proofAccDisplay.textContent = 'اختر الوسيلة من التعليمة الأولى';
+    if (inputRef) inputRef.value = '';
+    if (inputProof) inputProof.value = '';
+    if (inputNotes) inputNotes.value = '';
+    if (proofStatus) {
+        proofStatus.textContent = 'لم يتم اختيار صورة السند';
+        proofStatus.classList.remove('text-success', 'fw-bold');
+        proofStatus.classList.add('text-muted');
+    }
+    const cardProof = document.getElementById('card_payment_proof');
+    if (cardProof) cardProof.classList.remove('border-success', 'bg-success-subtle');
+
+    if (pledgeCheck) pledgeCheck.checked = false;
 }
 
 // التبديل بين السداد الفوري والسداد لاحقاً
@@ -2775,8 +3384,18 @@ function togglePaymentTiming(mode) {
         if (payNowContainer) payNowContainer.classList.remove('d-none');
         if (payLaterNotice) payLaterNotice.classList.add('d-none');
 
-        // توليد الحسابات البنكية فوراً عند فتح السداد الآن
-        renderUniversityPaymentMethods(currentUnivId);
+        // دائماً التأكد من بناء وعرض أشكال وسائل الدفع في التعليمة الأولى إذا لم تكن محددة أو معروضة
+        const pillsContainer = document.getElementById('univPayMethodsContainer');
+        if (!pillsContainer || pillsContainer.children.length === 0 || !currentSelectedMethodId) {
+            renderUniversityPaymentMethods(currentUnivId);
+        }
+
+        // التمرير السلس إلى بداية خطوات السداد
+        setTimeout(() => {
+            if (payNowContainer) {
+                payNowContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }, 100);
     } else if (mode === 'later') {
         if (radioLater) radioLater.checked = true;
         if (cardNow) cardNow.classList.remove('active');
@@ -2784,11 +3403,14 @@ function togglePaymentTiming(mode) {
         if (payNowContainer) payNowContainer.classList.add('d-none');
         if (payLaterNotice) payLaterNotice.classList.remove('d-none');
 
+        // نقل الطالب بسلاسة إلى زر الموافقة والإقرار على البيانات
         setTimeout(() => {
             if (pledgeCard) {
                 pledgeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                pledgeCard.classList.add('pulse-focus');
+                setTimeout(() => pledgeCard.classList.remove('pulse-focus'), 1500);
             }
-        }, 100);
+        }, 150);
     }
 }
 
@@ -2801,7 +3423,7 @@ function updateFeeDetails() {
     let fee = 5000;
     let specName = currentDesiredSpec || 'تخصص عام';
 
-    if (currentUnivId && currentDesiredSpec) {
+    if (currentUnivId && currentDesiredSpec && window.universitiesDatabase) {
         const univ = window.universitiesDatabase.find(u => String(u.university_id) === String(currentUnivId));
         if (univ && univ.colleges) {
             for (const col of univ.colleges) {
@@ -2821,47 +3443,6 @@ function updateFeeDetails() {
     const guideFee = document.getElementById('guideFeeAmount');
     if (guideFee) guideFee.textContent = Number(fee).toLocaleString() + ' ر.ي';
     if (feeAmountInput) feeAmountInput.value = fee;
-}
-
-// التبديل بين السداد الفوري والسداد لاحقاً
-function togglePaymentTiming(mode) {
-    const payNowContainer = document.getElementById('payNowContainer');
-    const payLaterNotice = document.getElementById('payLaterNotice');
-    const cardNow = document.getElementById('payChoiceNowLabel');
-    const cardLater = document.getElementById('payChoiceLaterLabel');
-    const radioNow = document.getElementById('payTimingNow');
-    const radioLater = document.getElementById('payTimingLater');
-    const pledgeCard = document.getElementById('applyPledgeCard');
-
-    if (mode === 'now') {
-        if (radioNow) radioNow.checked = true;
-        if (cardNow) cardNow.classList.add('active');
-        if (cardLater) cardLater.classList.remove('active');
-        if (payNowContainer) payNowContainer.classList.remove('d-none');
-        if (payLaterNotice) payLaterNotice.classList.add('d-none');
-
-        // التمرير السلس إلى بداية خطوات السداد
-        setTimeout(() => {
-            if (payNowContainer) {
-                payNowContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }, 100);
-    } else if (mode === 'later') {
-        if (radioLater) radioLater.checked = true;
-        if (cardNow) cardNow.classList.remove('active');
-        if (cardLater) cardLater.classList.add('active');
-        if (payNowContainer) payNowContainer.classList.add('d-none');
-        if (payLaterNotice) payLaterNotice.classList.remove('d-none');
-
-        // نقل الطالب بسلاسة إلى زر الموافقة والإقرار على البيانات وأزرار الإجراءات الأخيرة
-        setTimeout(() => {
-            if (pledgeCard) {
-                pledgeCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                pledgeCard.classList.add('pulse-focus');
-                setTimeout(() => pledgeCard.classList.remove('pulse-focus'), 1500);
-            }
-        }, 150);
-    }
 }
 
 </script>

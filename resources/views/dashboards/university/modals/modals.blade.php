@@ -532,3 +532,116 @@
         </form>
     </div>
 </div>
+
+<!-- 11. نافذة منبثقة: تأمين وتغيير بيانات الدخول الأولية لحساب الجامعة -->
+<div class="modal-overlay" id="firstLoginCredentialsModal" role="dialog" aria-modal="true" 
+     @if(Auth::check() && Auth::user()->must_change_password) style="display: flex; z-index: 99999;" data-mandatory="true" @else style="display: none;" @endif>
+    <div class="modal-container modal-md" style="max-width: 490px; width: 94%; border: 1px solid #e4b75b; border-radius: 14px; box-shadow: 0 20px 40px rgba(10,27,42,0.35); overflow: hidden;">
+        <div class="modal-header" style="background: linear-gradient(135deg, #102a43, #163d5a); color: #fff; padding: 18px 22px; border-bottom: 2px solid #e4b75b; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="background: rgba(228, 183, 91, 0.2); color: #e4b75b; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0;">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div>
+                    <h3 class="modal-title" style="color: #fff; font-size: 16px; font-weight: 800; margin: 0;">تأمين بيانات الدخول للحساب</h3>
+                    <p class="modal-subtitle" style="color: #cbd5e1; font-size: 11.5px; margin: 2px 0 0;">خطوة أمان مطلوبة لتحديث بيانات الحساب المؤقتة</p>
+                </div>
+            </div>
+            @if(Auth::check() && !Auth::user()->must_change_password)
+                <button type="button" class="btn-close-modal" style="color: #cbd5e1; background: none; border: none; font-size: 22px; cursor: pointer;" onclick="closeModal('firstLoginCredentialsModal')">&times;</button>
+            @endif
+        </div>
+
+        <form id="firstLoginCredentialsForm" action="{{ route('university.first_login.save') }}" method="POST" onsubmit="handleFirstLoginSubmit(event)">
+            @csrf
+            <div class="modal-body" style="padding: 22px; max-height: calc(85vh - 130px); overflow-y: auto;">
+                
+                {{-- تنبيه أمني مباشر ومختصر بدون حشو --}}
+                <div style="background: #fdf8eb; border: 1px solid #fde68a; border-right: 4px solid #d97706; padding: 10px 14px; border-radius: 8px; margin-bottom: 18px; font-size: 12.5px; color: #92400e; display: flex; align-items: flex-start; gap: 10px; line-height: 1.5;">
+                    <i class="fas fa-lock" style="font-size: 15px; margin-top: 2px; color: #d97706; flex-shrink: 0;"></i>
+                    <span>حفاظاً على أمان وسرية الحساب، يرجى تعيين اسم مستخدم خاص وتغيير كلمة المرور المؤقتة لمتابعة استخدام المنصة.</span>
+                </div>
+
+                {{-- صندوق التنبيهات والأخطاء الديناميكي --}}
+                <div id="firstLoginAlertBox" style="display: none; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 12.5px; line-height: 1.5;"></div>
+
+                {{-- 1. اسم المستخدم --}}
+                <div class="form-group mb-3">
+                    <label for="fl_username" class="form-label" style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 5px; display: block;">
+                        اسم المستخدم (Username) <span class="text-danger">*</span>
+                    </label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none;"><i class="fas fa-user"></i></span>
+                        <input type="text" id="fl_username" name="username" class="form-control" value="{{ Auth::check() ? Auth::user()->username : '' }}" required placeholder="اسم المستخدم" style="padding-right: 36px; font-family: monospace; font-size: 13px;" dir="ltr">
+                    </div>
+                    <small style="font-size: 11px; color: #64748b; margin-top: 3px; display: block;">يمكنك الإبقاء عليه أو كتابة اسم مستخدم دائم يسهل تذكره.</small>
+                </div>
+
+                {{-- 2. كلمة المرور الحالية (المؤقتة) --}}
+                <div class="form-group mb-3">
+                    <label for="fl_current_password" class="form-label" style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 5px; display: block;">
+                        كلمة المرور الحالية (المؤقتة) <span class="text-danger">*</span>
+                    </label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none;"><i class="fas fa-key"></i></span>
+                        <input type="password" id="fl_current_password" name="current_password" class="form-control" required placeholder="أدخل كلمة المرور الحالية/المؤقتة" style="padding-right: 36px; padding-left: 38px; font-size: 13px;" dir="ltr">
+                        <button type="button" onclick="toggleCredentialEye('fl_current_password', this)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- 3. كلمة المرور الجديدة --}}
+                <div class="form-group mb-3">
+                    <label for="fl_new_password" class="form-label" style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 5px; display: block;">
+                        كلمة المرور الجديدة <span class="text-danger">*</span>
+                    </label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none;"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="fl_new_password" name="password" class="form-control" required minlength="6" placeholder="اختر كلمة مرور جديدة (6 خانات على الأقل)" style="padding-right: 36px; padding-left: 38px; font-size: 13px;" dir="ltr" oninput="checkModalPwdStrength(this.value)">
+                        <button type="button" onclick="toggleCredentialEye('fl_new_password', this)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <!-- شريط مقياس القوة المصغر -->
+                    <div style="height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; margin-top: 6px;">
+                        <div id="modalPwdStrengthBar" style="height: 100%; width: 0%; transition: width 0.3s, background-color 0.3s;"></div>
+                    </div>
+                    <div id="modalPwdStrengthText" style="font-size: 11px; margin-top: 3px; color: #64748b;"></div>
+                </div>
+
+                {{-- 4. تأكيد كلمة المرور الجديدة --}}
+                <div class="form-group mb-3">
+                    <label for="fl_password_confirmation" class="form-label" style="font-weight: 700; font-size: 13px; color: #1e293b; margin-bottom: 5px; display: block;">
+                        تأكيد كلمة المرور الجديدة <span class="text-danger">*</span>
+                    </label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none;"><i class="fas fa-check-circle"></i></span>
+                        <input type="password" id="fl_password_confirmation" name="password_confirmation" class="form-control" required minlength="6" placeholder="أعد إدخال كلمة المرور الجديدة" style="padding-right: 36px; padding-left: 38px; font-size: 13px;" dir="ltr" oninput="checkModalPwdMatch()">
+                        <button type="button" onclick="toggleCredentialEye('fl_password_confirmation', this)" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="modalPwdMatchText" style="font-size: 11px; margin-top: 3px;"></div>
+                </div>
+
+                {{-- 5. خيار اختياري غير إجباري للانتقال إلى بيانات الجامعة --}}
+                <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px 14px; margin-top: 14px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0; user-select: none;">
+                        <input type="checkbox" name="redirect_to_profile" value="1" id="redirectToProfileCheck" style="accent-color: #d97706; width: 17px; height: 17px; cursor: pointer;">
+                        <span style="font-size: 12.5px; font-weight: 700; color: #0f172a;">الانتقال مباشرة لمراجعة وتحديث بيانات ملف الجامعة بعد الحفظ</span>
+                    </label>
+                    <p style="font-size: 11px; color: #64748b; margin: 4px 25px 0 0; line-height: 1.4;">(اختياري) يمكنك تخطي ذلك والدخول فوراً للرئيسية، كما يمكنك مراجعة وتعديل بيانات الجامعة والكليات في أي وقت لاحقاً من القائمة الجانبية.</p>
+                </div>
+
+            </div>
+
+            <div class="modal-footer" style="padding: 14px 22px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
+                <button type="submit" id="btnSubmitFirstLogin" class="btn" style="background: linear-gradient(135deg, #102a43, #163d5a); color: #fff; border: 1px solid #e4b75b; font-weight: 700; border-radius: 8px; padding: 9px 26px; display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; box-shadow: 0 4px 12px rgba(16,42,67,0.15); cursor: pointer;">
+                    <i class="fas fa-lock"></i>
+                    <span>حفظ وتأمين الحساب</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

@@ -33,4 +33,11 @@ class College extends Model
     {
         return $this->hasMany(Specialization::class, 'college_id', 'college_id');
     }
+
+    public function activeModeration()
+    {
+        return $this->hasOne(ContentModeration::class, 'item_id', 'college_id')
+                    ->where('item_type', 'college')
+                    ->activeQuarantine();
+    }
 }

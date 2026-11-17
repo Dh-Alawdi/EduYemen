@@ -92,11 +92,94 @@ class University extends Model
         return $this->hasMany(Advertisement::class, 'university_id', 'university_id');
     }
 
+    public function contentModerations(): HasMany
+    {
+        return $this->hasMany(ContentModeration::class, 'university_id', 'university_id');
+    }
+
+    public function activeModerations(): HasMany
+    {
+        return $this->hasMany(ContentModeration::class, 'university_id', 'university_id')
+                    ->whereIn('status', ['محجوب', 'قيد_المراجعة']);
+    }
+
+    public function isItemQuarantined(string $itemType, $itemId = null): bool
+    {
+        $targetId = $itemId !== null ? (int)$itemId : (int)$this->university_id;
+
+        $checkCollection = function($collection) use ($itemType, $targetId) {
+            return $collection->filter(function($m) use ($itemType, $targetId) {
+                if ($m->item_type !== $itemType) return false;
+                if (!in_array($m->status, ['محجوب', 'قيد_المراجعة'])) return false;
+                if (in_array($itemType, ['logo', 'campus_image', 'description', 'contact_info'])) {
+                    return (int)$m->item_id === $targetId || (int)$m->university_id === (int)$this->university_id;
+                }
+                return (int)$m->item_id === $targetId;
+            })->isNotEmpty();
+        };
+
+        if ($this->relationLoaded('activeModerations')) {
+            return $checkCollection($this->activeModerations);
+        }
+        if ($this->relationLoaded('contentModerations')) {
+            return $checkCollection($this->contentModerations);
+        }
+
+        $query = $this->contentModerations()->where('item_type', $itemType)->activeQuarantine();
+        if (in_array($itemType, ['logo', 'campus_image', 'description', 'contact_info'])) {
+            $query->where(function($q) use ($targetId) {
+                $q->where('item_id', $targetId)->orWhere('university_id', $this->university_id);
+            });
+        } else {
+            $query->where('item_id', $targetId);
+        }
+
+        return $query->exists();
+    }
+
+    public function getActiveModeration(string $itemType, $itemId = null)
+    {
+        $targetId = $itemId !== null ? (int)$itemId : (int)$this->university_id;
+
+        $filterCollection = function($collection) use ($itemType, $targetId) {
+            return $collection->first(function($m) use ($itemType, $targetId) {
+                if ($m->item_type !== $itemType) return false;
+                if (!in_array($m->status, ['محجوب', 'قيد_المراجعة'])) return false;
+                if (in_array($itemType, ['logo', 'campus_image', 'description', 'contact_info'])) {
+                    return (int)$m->item_id === $targetId || (int)$m->university_id === (int)$this->university_id;
+                }
+                return (int)$m->item_id === $targetId;
+            });
+        };
+
+        if ($this->relationLoaded('activeModerations')) {
+            return $filterCollection($this->activeModerations);
+        }
+        if ($this->relationLoaded('contentModerations')) {
+            return $filterCollection($this->contentModerations);
+        }
+
+        $query = $this->contentModerations()->where('item_type', $itemType)->activeQuarantine();
+        if (in_array($itemType, ['logo', 'campus_image', 'description', 'contact_info'])) {
+            $query->where(function($q) use ($targetId) {
+                $q->where('item_id', $targetId)->orWhere('university_id', $this->university_id);
+            });
+        } else {
+            $query->where('item_id', $targetId);
+        }
+
+        return $query->first();
+    }
+
     /**
-     * رابط الشعار الرسمي للجامعة
+     * رابط الشعار الرسمي للجامعة (مع استبداله برمز الحجب إذا كان هناك قرار رقابي نشط)
      */
     public function getLogoUrlAttribute(): string
     {
+        if ($this->isItemQuarantined('logo')) {
+            return asset('images/quarantined-logo.svg');
+        }
+
         if (!empty($this->logo)) {
             $path = ltrim($this->logo, '/');
             if (file_exists(public_path($path))) {
@@ -118,10 +201,14 @@ class University extends Model
     }
 
     /**
-     * رابط صورة الحرم الجامعي
+     * رابط صورة الحرم الجامعي (مع استبدالها بصورة الحجب إذا كانت تخضع لحجر رقابي)
      */
     public function getCampusImageUrlAttribute(): ?string
     {
+        if ($this->isItemQuarantined('campus_image')) {
+            return asset('images/quarantined-campus.svg');
+        }
+
         if (!empty($this->campus_image)) {
             $path = ltrim($this->campus_image, '/');
             if (file_exists(public_path($path))) {
@@ -141,5 +228,16 @@ class University extends Model
         }
 
         return null;
+    }
+
+    /**
+     * النبذة التعريفية الآمنة مع استبعاد المحتوى المحجوب رقابياً
+     */
+    public function getSafeDescriptionAttribute(): ?string
+    {
+        if ($this->isItemQuarantined('description')) {
+            return 'تنبيه رقابي: تم إيقاف عرض النبذة والتعريف الخاص بالجامعة مؤقتاً بقرار إشرافي صادر من إدارة المنظومة لمراجعتها وتصحيحها وفق المعايير واللوائح الرسمية المعتمدة.';
+        }
+        return $this->description;
     }
 }

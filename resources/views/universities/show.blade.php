@@ -1055,10 +1055,17 @@
             <div class="uni-hero-info-col">
                 <div class="uni-brand-identity">
                     <div class="uni-emblem-badge">
-                        <img src="{{ $university->logo_url }}" 
-                             alt="شعار {{ $university->university_name }}" 
-                             id="uniHeroLogo"
-                             onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23ffffff\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%230b3d6b\' font-size=\'40\'%3E🏛%3C/text%3E%3C/svg%3E'">
+                        @if($university->isItemQuarantined('logo'))
+                            <div class="uni-emblem-quarantined" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#fef2f2; border:2px dashed #f87171; border-radius:14px; color:#dc2626; text-align:center; padding:4px;" title="تم إيقاف ظهور شعار الجامعة بقرار رقابي إداري">
+                                <i class="fa-solid fa-shield-virus" style="font-size:24px; margin-bottom:3px;"></i>
+                                <span style="font-size:9.5px; font-weight:800; line-height:1.2;">محجوب رقابياً</span>
+                            </div>
+                        @else
+                            <img src="{{ $university->logo_url }}" 
+                                 alt="شعار {{ $university->university_name }}" 
+                                 id="uniHeroLogo"
+                                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'100\' height=\'100\'%3E%3Crect width=\'100\' height=\'100\' fill=\'%23ffffff\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%230b3d6b\' font-size=\'40\'%3E🏛%3C/text%3E%3C/svg%3E'">
+                        @endif
                     </div>
 
                     <div class="uni-brand-meta">
@@ -1095,7 +1102,12 @@
                     </div>
                 </div>
 
-                @if($university->description)
+                @if($university->isItemQuarantined('description'))
+                <div class="alert" style="background:rgba(239,68,68,0.18); border:1px solid rgba(239,68,68,0.35); border-radius:10px; padding:8px 14px; color:#fca5a5; font-size:0.8rem; margin-top:8px; display:inline-flex; align-items:center; gap:8px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i>
+                    <span>النبذة والوصف التعريفي للجامعة محجوب رقابياً بقرار إشرافي لمخالفته المعايير.</span>
+                </div>
+                @elseif($university->description)
                 <p class="uni-hero-desc">
                     {{ Str::limit($university->description, 200) }}
                 </p>
@@ -1140,17 +1152,25 @@
 
             {{-- الجهة المقابلة (اليسار): صورة الحرم الجامعي نظيفة ومستقلة بدون أي تداخل نصوص أو أزرار --}}
             <div class="uni-hero-campus-col">
-                <div class="uni-campus-frame">
-                    <span class="campus-tag-badge">
-                        <i class="bi bi-buildings-fill text-warning"></i>
-                        <span>الحرم الجامعي</span>
-                    </span>
-                    <img src="{{ $university->campus_image_url ?: asset('images/campus-default.svg') }}" 
-                         alt="صورة الحرم الجامعي لـ {{ $university->university_name }}" 
-                         class="uni-campus-photo"
-                         id="campusCoverImg"
-                         onerror="this.onerror=null; this.src='/images/campus-default.svg';">
-                </div>
+                @if($university->isItemQuarantined('campus_image'))
+                    <div class="uni-campus-frame is-quarantined" style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border:2px dashed #fca5a5; border-radius:16px; padding:24px; text-align:center; color:#991b1b; min-height:220px;">
+                        <i class="fa-solid fa-shield-halved" style="font-size:38px; color:#ef4444; margin-bottom:10px;"></i>
+                        <h4 style="font-size:15px; font-weight:800; margin-bottom:6px; color:#991b1b;">صورة الحرم الجامعي محجوبة رقابياً</h4>
+                        <p style="font-size:12px; color:#b91c1c; max-width:280px; margin:0; line-height:1.5;">تم إيقاف ظهور صورة الحرم الجامعي مؤقتاً بقرار من إدارة الرقابة لمراجعتها وتصحيحها وفق المعايير المعتمدة.</p>
+                    </div>
+                @else
+                    <div class="uni-campus-frame">
+                        <span class="campus-tag-badge">
+                            <i class="bi bi-buildings-fill text-warning"></i>
+                            <span>الحرم الجامعي</span>
+                        </span>
+                        <img src="{{ $university->campus_image_url ?: asset('images/campus-default.svg') }}" 
+                             alt="صورة الحرم الجامعي لـ {{ $university->university_name }}" 
+                             class="uni-campus-photo"
+                             id="campusCoverImg"
+                             onerror="this.onerror=null; this.src='/images/campus-default.svg';">
+                    </div>
+                @endif
             </div>
 
         </div>
@@ -1425,9 +1445,19 @@
                     </span>
                 </div>
                 
+                @if($university->isItemQuarantined('description'))
+                <div class="alert" style="background:#fef2f2; border:1px solid #fecaca; border-radius:12px; padding:18px 22px; color:#991b1b; display:flex; align-items:flex-start; gap:14px; margin-bottom:20px;">
+                    <i class="fa-solid fa-shield-virus" style="font-size:24px; color:#dc2626; margin-top:2px;"></i>
+                    <div>
+                        <strong style="display:block; font-size:14.5px; margin-bottom:4px; color:#991b1b;">تنبيه رقابي: النبذة والبيانات التعريفية محجوبة مؤقتاً</strong>
+                        <p style="font-size:13px; color:#b91c1c; margin:0; line-height:1.6;">تم إيقاف عرض النبذة والتعريف الخاص بالجامعة بقرار إشرافي صادر من إدارة الرقابة والحوكمة لإلزام الجامعة بتصحيح وتحديث بياناتها بما يتوافق مع المعايير واللوائح الرسمية المقرة من وزارة التعليم العالي والبحث العلمي.</p>
+                    </div>
+                </div>
+                @else
                 <p style="font-size: 0.94rem; color: var(--uni-text-dark); line-height: 1.85; margin-bottom: 16px;">
                     {{ $university->description ?? 'تعتبر الجامعة إحدى أبرز المؤسسات الأكاديمية الرائدة في الجمهورية اليمنية، وتلتزم بتقديم تعليم جامعي نوعي يجمع بين التأصيل العلمي والتطبيق العملي. تمتلك الجامعة كادراً تدريسياً متميزاً، وبنية تحتية متطورة تشمل قاعات دراسية مجهزة، ومختبرات تخصصية ومستشفيات تدريبية، وتخضع جميع برامجها لمعايير مجلس الاعتماد الأكاديمي وضمان جودة التعليم العالي.' }}
                 </p>
+                @endif
 
                 <div class="row g-3 mt-2">
                     <div class="col-sm-6">

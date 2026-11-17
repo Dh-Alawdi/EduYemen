@@ -2551,10 +2551,207 @@ function closeModal(modalId) {
 
 window.addEventListener('click', function(e) {
     if (e.target.classList.contains('modal-overlay')) {
+        if (e.target.getAttribute('data-mandatory') === 'true') {
+            return; // منع الإغلاق بالنقر الخارجي إذا كانت النافذة إلزامية
+        }
         e.target.style.display = 'none';
         document.body.style.overflow = '';
     }
 });
+
+// منع الإغلاق بزر الهروب Escape للنافذة الإلزامية
+window.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const mandatoryModal = document.querySelector('.modal-overlay[data-mandatory="true"]');
+        if (mandatoryModal && mandatoryModal.style.display !== 'none') {
+            e.preventDefault();
+            return;
+        }
+    }
+});
+
+// ==========================================
+// وظائف نافذة تأمين بيانات الدخول عند أول تسجيل دخول
+// ==========================================
+function toggleCredentialEye(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        if (icon) {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    } else {
+        input.type = 'password';
+        if (icon) {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+}
+
+function checkModalPwdStrength(val) {
+    const bar = document.getElementById('modalPwdStrengthBar');
+    const text = document.getElementById('modalPwdStrengthText');
+    if (!bar || !text) return;
+
+    if (!val) {
+        bar.style.width = '0%';
+        text.textContent = '';
+        return;
+    }
+
+    let score = 0;
+    if (val.length >= 6) score += 25;
+    if (val.length >= 8) score += 25;
+    if (/[A-Z]/.test(val) || /[0-9]/.test(val)) score += 25;
+    if (/[^A-Za-z0-9]/.test(val)) score += 25;
+
+    if (score <= 25) {
+        bar.style.width = '25%';
+        bar.style.backgroundColor = '#ef4444';
+        text.textContent = 'ضعيفة (يُفضل استخدام أرقام أو رموز إضافية)';
+        text.style.color = '#ef4444';
+    } else if (score <= 50) {
+        bar.style.width = '50%';
+        bar.style.backgroundColor = '#f59e0b';
+        text.textContent = 'متوسطة ومقبولة';
+        text.style.color = '#d97706';
+    } else if (score <= 75) {
+        bar.style.width = '75%';
+        bar.style.backgroundColor = '#3b82f6';
+        text.textContent = 'جيدة وقوية';
+        text.style.color = '#2563eb';
+    } else {
+        bar.style.width = '100%';
+        bar.style.backgroundColor = '#10b981';
+        text.textContent = 'ممتازة وفائقة الأمان';
+        text.style.color = '#059669';
+    }
+}
+
+function checkModalPwdMatch() {
+    const p1 = document.getElementById('fl_new_password')?.value || '';
+    const p2 = document.getElementById('fl_password_confirmation')?.value || '';
+    const matchText = document.getElementById('modalPwdMatchText');
+    if (!matchText) return;
+
+    if (!p2) {
+        matchText.textContent = '';
+        return;
+    }
+
+    if (p1 === p2) {
+        matchText.textContent = '✓ كلمة المرور متطابقة';
+        matchText.style.color = '#10b981';
+    } else {
+        matchText.textContent = '✗ كلمتا المرور غير متطابقتين';
+        matchText.style.color = '#ef4444';
+    }
+}
+
+async function handleFirstLoginSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const btn = document.getElementById('btnSubmitFirstLogin');
+    const alertBox = document.getElementById('firstLoginAlertBox');
+    const p1 = document.getElementById('fl_new_password')?.value || '';
+    const p2 = document.getElementById('fl_password_confirmation')?.value || '';
+
+    if (p1.length < 6) {
+        if (alertBox) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#fef2f2';
+            alertBox.style.color = '#b91c1c';
+            alertBox.style.border = '1px solid #fecaca';
+            alertBox.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> يجب ألا تقل كلمة المرور الجديدة عن 6 أحرف أو أرقام.';
+        }
+        return;
+    }
+
+    if (p1 !== p2) {
+        if (alertBox) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#fef2f2';
+            alertBox.style.color = '#b91c1c';
+            alertBox.style.border = '1px solid #fecaca';
+            alertBox.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> تأكيد كلمة المرور غير متطابق مع كلمة المرور الجديدة.';
+        }
+        return;
+    }
+
+    if (alertBox) alertBox.style.display = 'none';
+
+    const originalBtnHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>جاري الحفظ والتأمين...</span>';
+
+    try {
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            showToast(data.message || 'تم تأمين وتحديث بيانات الدخول بنجاح!', 'success');
+            
+            // إغلاق النافذة المنبثقة وفك الحظر الإلزامي
+            const modal = document.getElementById('firstLoginCredentialsModal');
+            if (modal) {
+                modal.removeAttribute('data-mandatory');
+                modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+
+            // التحقق مما إذا اختار الانتقال لبيانات الجامعة
+            if (data.redirect_to_profile) {
+                if (typeof switchTab === 'function') {
+                    switchTab('profile');
+                } else {
+                    window.location.hash = '#profile';
+                    window.location.reload();
+                }
+            }
+        } else {
+            let errorMsg = data.message || 'حدث خطأ أثناء حفظ البيانات، يرجى مراجعة الحقول.';
+            if (data.errors) {
+                const firstErr = Object.values(data.errors)[0];
+                if (Array.isArray(firstErr) && firstErr.length > 0) {
+                    errorMsg = firstErr[0];
+                }
+            }
+            if (alertBox) {
+                alertBox.style.display = 'block';
+                alertBox.style.background = '#fef2f2';
+                alertBox.style.color = '#b91c1c';
+                alertBox.style.border = '1px solid #fecaca';
+                alertBox.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${escapeHtml(errorMsg)}`;
+            }
+            showToast(errorMsg, 'error');
+        }
+    } catch (err) {
+        if (alertBox) {
+            alertBox.style.display = 'block';
+            alertBox.style.background = '#fef2f2';
+            alertBox.style.color = '#b91c1c';
+            alertBox.style.border = '1px solid #fecaca';
+            alertBox.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> تعذر الاتصال بالخادم، يرجى المحاولة مرة أخرى.';
+        }
+        showToast('تعذر الاتصال بالخادم', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHtml;
+    }
+}
 
 function showToast(message, type = 'success') {
     let container = document.getElementById('toastContainer');

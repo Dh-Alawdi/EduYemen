@@ -24,6 +24,8 @@ class StudentReferral extends Model
         'ref_status',
         'status',
         'notes',
+        'commission_paid_at',
+        'used_at',
     ];
 
     protected static function booted()
@@ -53,7 +55,9 @@ class StudentReferral extends Model
     protected function casts(): array
     {
         return [
-            'ref_date' => 'date',
+            'ref_date'           => 'date',
+            'commission_paid_at' => 'datetime',
+            'used_at'            => 'datetime',
         ];
     }
 

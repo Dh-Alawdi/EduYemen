@@ -382,102 +382,6 @@
         }
     }
 </style>
-
-{{-- Modal: سداد رسوم التنسيق ورفع السند للطالب --}}
-<div class="modal fade" id="studentPaymentModal" tabindex="-1" aria-labelledby="studentPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px; overflow:hidden;">
-            <div class="modal-header bg-primary text-white py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); display:grid; place-items:center;">
-                        <i class="bi bi-wallet2 fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0" id="studentPaymentModalLabel">سداد رسوم التنسيق ورفع السند</h5>
-                        <small class="text-white-50" id="spModalSubtitle">طلب #...</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <form id="studentPaymentForm" onsubmit="submitStudentPaymentProof(event)" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" id="spModalReqId" value="">
-
-                <div class="modal-body p-4">
-                    {{-- بطاقة الحسابات المعتمدة للجامعة --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark mb-1">
-                            <i class="bi bi-bank2 text-primary me-1"></i>حسابات الدفع المعتمدة لدى الجامعة:
-                        </label>
-                        <div class="p-2.5 bg-light rounded border" id="spModalMethodsList" style="max-height:160px; overflow-y:auto;">
-                            <div class="text-center py-2 text-muted small">جارٍ تحميل حسابات الدفع...</div>
-                        </div>
-                    </div>
-
-                    {{-- حقول إدخال بيانات السند --}}
-                    <div class="row g-2">
-                        <div class="col-md-6 col-12">
-                            <label for="sp_method_id" class="form-label small fw-bold">وسيلة الدفع المستخدمة <span class="text-danger">*</span></label>
-                            <select name="method_id" id="sp_method_id" class="form-select form-select-sm" required>
-                                <option value="">-- اختر وسيلة التحويل --</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_reference" class="form-label small fw-bold">رقم الإشعار / الحوالة / السند <span class="text-danger">*</span></label>
-                            <input type="text" name="reference" id="sp_reference" class="form-control form-control-sm font-monospace" placeholder="مثال: REF-8874125" dir="ltr" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_amount" class="form-label small fw-bold">المبلغ المسدد (ر.ي) <span class="text-danger">*</span></label>
-                            <input type="number" name="amount" id="sp_amount" class="form-control form-control-sm font-monospace" value="5000" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_pay_date" class="form-label small fw-bold">تاريخ السداد / التحويل</label>
-                            <input type="date" name="pay_date" id="sp_pay_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-                        </div>
-                        <div class="col-12">
-                            <label for="sp_proof_file" class="form-label small fw-bold">صورة أو ملف إشعار/سند السداد <span class="text-danger">*</span></label>
-                            <input type="file" name="proof_file" id="sp_proof_file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <small class="text-muted d-block mt-0.5" style="font-size:0.72rem;">الصيغ المقبولة: JPG, PNG, PDF (الحد الأقصى 5MB)</small>
-                        </div>
-                        <div class="col-12">
-                            <label for="sp_notes" class="form-label small text-muted">ملاحظات إضافية (اختياري)</label>
-                            <input type="text" name="notes" id="sp_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-success btn-sm px-4 fw-bold" id="btnSubmitPaymentModal">
-                        <i class="bi bi-cloud-arrow-up-fill me-1"></i>رفع وتأكيد السند
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- Modal: معاينة سند السداد --}}
-<div class="modal fade" id="receiptPreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px; overflow:hidden;">
-            <div class="modal-header bg-dark text-white py-2 px-3">
-                <h6 class="modal-title mb-0 small"><i class="bi bi-file-earmark-image me-1"></i>معاينة سند السداد: <span id="rpReferenceText" class="font-monospace"></span></h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-2 text-center bg-light" id="rpModalBody" style="min-height:300px; max-height:80vh; overflow:auto;">
-            </div>
-            <div class="modal-footer py-1.5 px-3 bg-white justify-content-between">
-                <a href="#" id="rpDownloadBtn" download class="btn btn-sm btn-primary py-1 px-3">
-                    <i class="bi bi-download me-1"></i>تنزيل الملف
-                </a>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-3" data-bs-dismiss="modal">إغلاق</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @endsection
 
 @section('content')
@@ -1435,6 +1339,8 @@
             <form id="studentPaymentForm" onsubmit="submitStudentPaymentProof(event)" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" id="spModalReqId" value="">
+                {{-- حقل المبلغ مخفي تماماً من قسم إثبات الدفع --}}
+                <input type="hidden" name="amount" id="sp_amount" value="5000">
 
                 <div class="modal-body p-4">
                     {{-- بطاقة الحسابات المعتمدة للجامعة --}}
@@ -1442,39 +1348,41 @@
                         <label class="form-label fw-bold small text-dark mb-1">
                             <i class="bi bi-bank2 text-primary me-1"></i>حسابات الدفع المعتمدة لدى الجامعة:
                         </label>
-                        <div class="p-2.5 bg-light rounded border" id="spModalMethodsList" style="max-height:160px; overflow-y:auto;">
+                        <div class="p-2.5 bg-light rounded border mb-2.5" id="spModalMethodsList" style="max-height:160px; overflow-y:auto;">
                             <div class="text-center py-2 text-muted small">جارٍ تحميل حسابات الدفع...</div>
+                        </div>
+
+                        {{-- تنبيه مختصر وواضح عند عرض وسائل الدفع --}}
+                        <div class="alert alert-primary-subtle border border-primary-subtle py-1.5 px-3 small rounded-2 mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
+                            <span class="text-dark small"><strong>تنبيه:</strong> حوّل الرسوم حصراً إلى أحد الحسابات المعتمدة أعلاه وبنفس المبلغ المحدد دون زيادة أو نقصان.</span>
                         </div>
                     </div>
 
                     {{-- حقول إدخال بيانات السند --}}
-                    <div class="row g-2">
+                    <div class="row g-2.5">
                         <div class="col-md-6 col-12">
-                            <label for="sp_method_id" class="form-label small fw-bold">وسيلة الدفع المستخدمة <span class="text-danger">*</span></label>
+                            <label for="sp_method_id" class="form-label small fw-bold text-dark mb-1">وسيلة الدفع المستخدمة <span class="text-danger">*</span></label>
                             <select name="method_id" id="sp_method_id" class="form-select form-select-sm" required>
                                 <option value="">-- اختر وسيلة التحويل --</option>
                             </select>
                         </div>
                         <div class="col-md-6 col-12">
-                            <label for="sp_reference" class="form-label small fw-bold">رقم الإشعار / الحوالة / السند <span class="text-danger">*</span></label>
+                            <label for="sp_reference" class="form-label small fw-bold text-dark mb-1">رقم الإشعار / الحوالة / السند <span class="text-danger">*</span></label>
                             <input type="text" name="reference" id="sp_reference" class="form-control form-control-sm font-monospace" placeholder="مثال: REF-8874125" dir="ltr" required>
                         </div>
                         <div class="col-md-6 col-12">
-                            <label for="sp_amount" class="form-label small fw-bold">المبلغ المسدد (ر.ي) <span class="text-danger">*</span></label>
-                            <input type="number" name="amount" id="sp_amount" class="form-control form-control-sm font-monospace" value="5000" required>
+                            <label for="sp_pay_date" class="form-label small fw-bold text-dark mb-1">تاريخ السداد / التحويل</label>
+                            <input type="date" name="pay_date" id="sp_pay_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}">
                         </div>
                         <div class="col-md-6 col-12">
-                            <label for="sp_pay_date" class="form-label small fw-bold">تاريخ السداد / التحويل</label>
-                            <input type="date" name="pay_date" id="sp_pay_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
+                            <label for="sp_notes" class="form-label small text-muted mb-1">ملاحظات إضافية (اختياري)</label>
+                            <input type="text" name="notes" id="sp_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
                         </div>
                         <div class="col-12">
-                            <label for="sp_proof_file" class="form-label small fw-bold">صورة أو ملف إشعار/سند السداد <span class="text-danger">*</span></label>
+                            <label for="sp_proof_file" class="form-label small fw-bold text-dark mb-1">صورة أو ملف إشعار/سند السداد <span class="text-danger">*</span></label>
                             <input type="file" name="proof_file" id="sp_proof_file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required>
                             <small class="text-muted d-block mt-0.5" style="font-size:0.72rem;">الصيغ المقبولة: JPG, PNG, PDF (الحد الأقصى 5MB)</small>
-                        </div>
-                        <div class="col-12">
-                            <label for="sp_notes" class="form-label small text-muted">ملاحظات إضافية (اختياري)</label>
-                            <input type="text" name="notes" id="sp_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
                         </div>
                     </div>
                 </div>
@@ -1999,100 +1907,4 @@
     }
 
 </script>
-
-{{-- Modal: سداد رسوم التنسيق ورفع السند للطالب --}}
-<div class="modal fade" id="studentPaymentModal" tabindex="-1" aria-labelledby="studentPaymentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px; overflow:hidden;">
-            <div class="modal-header bg-primary text-white py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); display:grid; place-items:center;">
-                        <i class="bi bi-wallet2 fs-5"></i>
-                    </div>
-                    <div>
-                        <h5 class="modal-title fw-bold mb-0" id="studentPaymentModalLabel">سداد رسوم التنسيق ورفع السند</h5>
-                        <small class="text-white-50" id="spModalSubtitle">طلب #...</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-
-            <form id="studentPaymentForm" onsubmit="submitStudentPaymentProof(event)" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" id="spModalReqId" value="">
-
-                <div class="modal-body p-4">
-                    {{-- بطاقة الحسابات المعتمدة للجامعة --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark mb-1">
-                            <i class="bi bi-bank2 text-primary me-1"></i>حسابات الدفع المعتمدة لدى الجامعة:
-                        </label>
-                        <div class="p-2.5 bg-light rounded border" id="spModalMethodsList" style="max-height:160px; overflow-y:auto;">
-                            <div class="text-center py-2 text-muted small">جارٍ تحميل حسابات الدفع...</div>
-                        </div>
-                    </div>
-
-                    {{-- حقول إدخال بيانات السند --}}
-                    <div class="row g-2">
-                        <div class="col-md-6 col-12">
-                            <label for="sp_method_id" class="form-label small fw-bold">وسيلة الدفع المستخدمة <span class="text-danger">*</span></label>
-                            <select name="method_id" id="sp_method_id" class="form-select form-select-sm" required>
-                                <option value="">-- اختر وسيلة التحويل --</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_reference" class="form-label small fw-bold">رقم الإشعار / الحوالة / السند <span class="text-danger">*</span></label>
-                            <input type="text" name="reference" id="sp_reference" class="form-control form-control-sm font-monospace" placeholder="مثال: REF-8874125" dir="ltr" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_amount" class="form-label small fw-bold">المبلغ المسدد (ر.ي) <span class="text-danger">*</span></label>
-                            <input type="number" name="amount" id="sp_amount" class="form-control form-control-sm font-monospace" value="5000" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_pay_date" class="form-label small fw-bold">تاريخ السداد / التحويل</label>
-                            <input type="date" name="pay_date" id="sp_pay_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}">
-                        </div>
-                        <div class="col-12">
-                            <label for="sp_proof_file" class="form-label small fw-bold">صورة أو ملف إشعار/سند السداد <span class="text-danger">*</span></label>
-                            <input type="file" name="proof_file" id="sp_proof_file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <small class="text-muted d-block mt-0.5" style="font-size:0.72rem;">الصيغ المقبولة: JPG, PNG, PDF (الحد الأقصى 5MB)</small>
-                        </div>
-                        <div class="col-12">
-                            <label for="sp_notes" class="form-label small text-muted">ملاحظات إضافية (اختياري)</label>
-                            <input type="text" name="notes" id="sp_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-success btn-sm px-4 fw-bold" id="btnSubmitPaymentModal">
-                        <i class="bi bi-cloud-arrow-up-fill me-1"></i>رفع وتأكيد السند
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-{{-- Modal: معاينة سند السداد --}}
-<div class="modal fade" id="receiptPreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px; overflow:hidden;">
-            <div class="modal-header bg-dark text-white py-2 px-3">
-                <h6 class="modal-title mb-0 small"><i class="bi bi-file-earmark-image me-1"></i>معاينة سند السداد: <span id="rpReferenceText" class="font-monospace"></span></h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-2 text-center bg-light" id="rpModalBody" style="min-height:300px; max-height:80vh; overflow:auto;">
-            </div>
-            <div class="modal-footer py-1.5 px-3 bg-white justify-content-between">
-                <a href="#" id="rpDownloadBtn" download class="btn btn-sm btn-primary py-1 px-3">
-                    <i class="bi bi-download me-1"></i>تنزيل الملف
-                </a>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-3" data-bs-dismiss="modal">إغلاق</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @endsection

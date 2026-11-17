@@ -346,10 +346,17 @@
                     <div class="p-3 border-bottom d-flex align-items-center gap-3 univ-card-header-box" style="background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);">
                         {{-- إطار شعار الجامعة في جهة اليمين --}}
                         <div class="univ-logo-box-inner" style="width: 65px; height: 65px; min-width: 65px; background: #ffffff; border-radius: 12px; padding: 4px; box-shadow: 0 3px 10px rgba(11, 61, 107, 0.08); display: flex; align-items: center; justify-content: center; border: 1.5px solid rgba(197, 155, 39, 0.25);">
-                            <img src="{{ $univ->logo_url }}"
-                                 onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'65\' height=\'65\'%3E%3Crect width=\'65\' height=\'65\' fill=\'%23ffffff\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%230b3d6b\' font-size=\'26\'%3E🏛%3C/text%3E%3C/svg%3E'"
-                                 style="width: 100%; height: 100%; object-fit: contain;"
-                                 alt="شعار {{ $univ->university_name }}">
+                            @if($univ->isItemQuarantined('logo'))
+                                <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; background:#fef2f2; border-radius:8px; color:#dc2626;" title="شعار الجامعة محجوب رقابياً بقرار إشرافي">
+                                    <i class="fa-solid fa-shield-virus" style="font-size:20px;"></i>
+                                    <span style="font-size:8px; font-weight:800; margin-top:2px;">محجوب</span>
+                                </div>
+                            @else
+                                <img src="{{ $univ->logo_url }}"
+                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'65\' height=\'65\'%3E%3Crect width=\'65\' height=\'65\' fill=\'%23ffffff\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%230b3d6b\' font-size=\'26\'%3E🏛%3C/text%3E%3C/svg%3E'"
+                                     style="width: 100%; height: 100%; object-fit: contain;"
+                                     alt="شعار {{ $univ->university_name }}">
+                            @endif
                         </div>
 
                         {{-- اسم الجامعة ونوعها إلى جانبه --}}
@@ -373,7 +380,11 @@
                     {{-- Body --}}
                     <div class="univ-card-body-area p-3 d-flex flex-column flex-grow-1">
                         <p class="univ-card-description mb-2" style="font-size: 0.81rem; color: #64748b; line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-                            {{ Str::limit($univ->description, 110) }}
+                            @if($univ->isItemQuarantined('description'))
+                                <span style="color:#dc2626; font-weight:700;"><i class="fa-solid fa-shield-halved me-1"></i> [النبذة التعريفية محجوبة رقابياً للمراجعة]</span>
+                            @else
+                                {{ Str::limit($univ->description, 110) }}
+                            @endif
                         </p>
 
                         {{-- كليات وتخصصات --}}

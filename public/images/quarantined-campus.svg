@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="360" viewBox="0 0 600 360">
+  <rect width="600" height="360" rx="16" fill="#fef2f2" stroke="#fca5a5" stroke-width="3" stroke-dasharray="6 6"/>
+  <circle cx="300" cy="140" r="50" fill="#fee2e2"/>
+  <path d="M300 105 L328 118 V145 C328 165 316 180 300 188 C284 180 272 165 272 145 V118 Z" fill="#ef4444"/>
+  <path d="M295 125 H305 V147 H295 Z M295 154 H305 V162 H295 Z" fill="#ffffff"/>
+  <text x="300" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="bold" fill="#991b1b" text-anchor="middle">صورة الحرم الجامعي محجوبة رقابياً</text>
+  <text x="300" y="255" font-family="system-ui, -apple-system, sans-serif" font-size="14" fill="#b91c1c" text-anchor="middle">تم إيقاف الظهور مؤقتاً بقرار إشرافي لمراجعة وتصحيح المحتوى وفق المعايير المعتمدة</text>
+</svg>

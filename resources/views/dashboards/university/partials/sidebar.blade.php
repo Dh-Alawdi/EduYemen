@@ -77,6 +77,9 @@
             <a href="{{ route('university.dashboard', ['tab' => 'notifications']) }}" onclick="event.preventDefault(); switchTab('notifications');">
                 <i class="fa-solid fa-bell"></i>
                 <span>الإشعارات</span>
+                @if(isset($unreadNotifsCount) && $unreadNotifsCount > 0)
+                    <span class="badge" style="background:#ef4444; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; margin-right:auto;">{{ $unreadNotifsCount }}</span>
+                @endif
             </a>
         </li>
 
