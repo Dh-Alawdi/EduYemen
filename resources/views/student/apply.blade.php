@@ -939,7 +939,38 @@
 </div>
 
 {{-- التنسيقات المتطورة والمنسقة للشاشات الكبيرة والهاتف --}}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+
 <style>
+/* تطبيق الخط الحديث فائق الوضوح (IBM Plex Sans Arabic) لصفحة التقديم */
+body,
+.apply-stepper-page,
+.apply-stepper-page input,
+.apply-stepper-page button,
+.apply-stepper-page select,
+.apply-stepper-page textarea,
+.modal,
+.modal input,
+.modal button,
+.modal select,
+.modal textarea {
+    font-family: 'IBM Plex Sans Arabic', 'Almarai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    letter-spacing: normal;
+}
+
+/* حماية خط الأيقونات والرموز البرمجية من التداخل */
+.bi, [class*="bi-"], [class^="bi-"] {
+    font-family: "bootstrap-icons" !important;
+}
+.fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+    font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+}
+.font-monospace, code, pre, .font-mono {
+    font-family: var(--bs-font-monospace, monospace) !important;
+}
+
 /* ضبط عرض الحاوية لتكون متناسقة ومريحة للنظر على كافة الشاشات دون تمدد مفرط */
 .apply-stepper-page .container {
     max-width: 960px !important;
@@ -1852,7 +1883,7 @@
    ======================================================== */
 #stepPane_5,
 #stepPane_5 *:not(i):not(.bi) {
-    font-family: 'Segoe UI', Tahoma, Arial, sans-serif !important;
+    font-family: 'IBM Plex Sans Arabic', 'Almarai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
 }
 
 #stepPane_5 .font-monospace {

@@ -10,7 +10,7 @@
         background: linear-gradient(150deg, #062238 0%, #0b3d6b 55%, #1565a8 100%);
         position: relative;
         overflow: hidden;
-        padding: 40px 0 90px;
+        padding: 28px 0 80px;
     }
 
     .hero-section::before {
@@ -80,17 +80,22 @@
     }
 
     /* ====== AD BANNER CAROUSEL ====== */
-    .ad-header-bar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 0.65rem;
-        color: rgba(255,255,255,0.9);
+    /* تطبيق الخط الطبيعي لجميع عناصر ونصوص بطاقة الإعلان في الرئيسية */
+    .hero-ad-col,
+    .hero-ad-col *,
+    .ad-carousel-card,
+    .ad-carousel-card *,
+    .ad-headline,
+    .ad-body-text,
+    .ad-uni-tag,
+    .btn-uni-profile {
+        font-family: 'Almarai', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif !important;
     }
 
     .ad-carousel-card {
-        background: rgba(10, 42, 74, 0.85);
+        background: rgba(10, 42, 74, 0.88);
         backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border-radius: 18px;
         border: 1px solid rgba(197,155,39,0.45);
         color: #fff;
@@ -99,29 +104,252 @@
         position: relative;
         overflow: hidden;
         box-shadow: 0 12px 36px rgba(0,0,0,0.32);
+        height: 335px;
+        min-height: 335px;
+        max-height: 335px;
+        box-sizing: border-box;
+    }
+
+    /* أسهم التنقل الرئيسية على طرفي حاوية الإعلان (< >) */
+    .ad-side-arrow {
+        position: absolute;
+        top: 86px;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(8, 24, 42, 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1.5px solid rgba(240, 200, 66, 0.65);
+        color: #f0c842;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        cursor: pointer;
+        z-index: 10;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+        padding: 0;
+        outline: none;
+    }
+
+    .ad-side-arrow:hover {
+        background: #f0c842;
+        color: #081726;
+        border-color: #ffffff;
+        transform: translateY(-50%) scale(1.14);
+        box-shadow: 0 6px 20px rgba(240, 200, 66, 0.5);
+    }
+
+    .ad-side-arrow.ad-side-prev {
+        right: 8px;
+    }
+
+    .ad-side-arrow.ad-side-next {
+        left: 8px;
     }
 
     .ad-media-col {
         width: 100%;
-        height: 185px;
+        height: 172px;
+        min-height: 172px;
+        max-height: 172px;
         position: relative;
         overflow: hidden;
-        background: #0a2a4a;
+        background: #061829;
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* خلفية ضبابية تعكس ألوان وسائط الإعلان لملء أي فراغات جانبية بدون اقتصاص */
+    .ad-media-backdrop {
+        position: absolute;
+        inset: -15px;
+        background-size: cover;
+        background-position: center;
+        filter: blur(16px) brightness(0.35);
+        opacity: 0.82;
+        transform: scale(1.12);
+        z-index: 1;
+        transition: background-image 0.4s ease, opacity 0.4s ease;
+        pointer-events: none;
     }
 
     .ad-media-col img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
+        position: relative;
+        z-index: 2;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: cover !important;
+        object-position: center;
         display: block;
-        transition: transform 0.5s ease;
+        transition: opacity 0.3s ease;
     }
 
-    .ad-carousel-card:hover .ad-media-col img {
-        transform: scale(1.04);
+    .ad-media-col video,
+    #adMediaVideo {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        object-position: center;
+        display: block;
+    }
+
+    /* شارة الفيديو الإعلاني في الزاوية العلوية وزر التحكم بالصوت */
+    .ad-video-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        background: rgba(8, 24, 42, 0.88);
+        color: #f0c842;
+        border: 1px solid rgba(197, 155, 39, 0.55);
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+    }
+
+    .ad-sound-toggle-btn {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 5;
+        background: rgba(8, 24, 42, 0.85);
+        color: #f0c842;
+        border: 1px solid rgba(197, 155, 39, 0.5);
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+        padding: 0;
+    }
+
+    .ad-sound-toggle-btn:hover {
+        background: #f0c842;
+        color: #081726;
+        transform: scale(1.1);
+    }
+
+    /* شارة معرض الصور للباقة المتوسطة/المميزة */
+    .ad-gallery-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 4;
+        background: rgba(10,27,42,0.88);
+        color: #f0c842;
+        border: 1px solid rgba(197,155,39,0.55);
+        font-size: 11px;
+        font-weight: 800;
+        padding: 3px 10px;
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        pointer-events: none;
+    }
+
+    /* أزرار تنقل لمعرض الصور داخل مساحة الصورة تظهر عند التحويم */
+    .ad-gallery-hover-nav {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 46px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+
+    .ad-media-col:hover .ad-gallery-hover-nav {
+        opacity: 1;
+    }
+
+    .ad-gal-arrow {
+        pointer-events: auto;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(8, 22, 36, 0.78);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        border: 1px solid rgba(255,255,255,0.3);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .ad-gal-arrow:hover {
+        background: rgba(240, 200, 66, 0.95);
+        color: #081726;
+        border-color: #f0c842;
+        transform: scale(1.1);
+    }
+
+    /* مؤشر نقاط صور المعرض للباقة المتوسطة/المميزة */
+    .ad-gallery-dots {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 8px;
+        background: rgba(8, 20, 32, 0.75);
+        border-radius: 20px;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .ad-gallery-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.45);
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .ad-gallery-dot.active {
+        width: 16px;
+        border-radius: 4px;
+        background: #f0c842;
+        box-shadow: 0 0 6px rgba(240, 200, 66, 0.6);
     }
 
     .ad-video-overlay {
@@ -166,13 +394,16 @@
 
     .ad-content-info {
         flex: 1;
-        padding: 1.15rem 1.35rem 1.1rem;
+        padding: 0.55rem 1.15rem 0.55rem;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: space-between;
         position: relative;
         z-index: 2;
         text-align: right;
+        min-height: 0;
+        overflow: hidden;
+        box-sizing: border-box;
     }
 
     .ad-uni-tag {
@@ -182,64 +413,178 @@
         background: rgba(197,155,39,0.18);
         border: 1px solid rgba(197,155,39,0.45);
         color: #f0c842;
-        padding: 3px 12px;
+        padding: 1px 8px;
         border-radius: 50px;
-        font-size: 0.76rem;
+        font-size: 0.71rem;
         font-weight: 700;
-        margin-bottom: 0.55rem;
+        margin-bottom: 0.2rem;
         width: fit-content;
+        height: 20px;
+        line-height: 1.3;
     }
 
     .ad-headline {
-        font-size: clamp(0.98rem, 1.8vw, 1.15rem);
+        font-size: 0.94rem;
         font-weight: 800;
         color: #fff;
-        line-height: 1.4;
-        margin-bottom: 0.45rem;
+        line-height: 1.3;
+        margin-bottom: 0.15rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        height: 1.3em;
+        min-height: 1.3em;
+        max-height: 1.3em;
     }
 
     .ad-body-text {
-        font-size: 0.82rem;
+        font-size: 0.77rem;
         color: rgba(255,255,255,0.78);
-        line-height: 1.65;
-        margin-bottom: 0.95rem;
+        line-height: 1.4;
+        margin-bottom: 0.35rem;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        height: 2.7em;
+        min-height: 2.7em;
+        max-height: 2.7em;
     }
 
     .ad-footer-actions {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.5rem;
+        flex-wrap: nowrap;
+        gap: 0.6rem;
+        margin-top: auto;
+        min-height: 36px;
     }
 
-    .btn-view-ad {
+    /* تكبير وتطوير زر الانتقال إلى الجامعة ليصبح الإجراء الأساسي والأبرز */
+    .btn-uni-profile {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         height: 36px;
-        padding: 0 18px;
-        background: linear-gradient(135deg, var(--accent-gold) 0%, #B8860B 100%);
-        color: #101828;
-        font-size: 0.84rem;
+        padding: 0 16px;
+        background: linear-gradient(135deg, #f0c842 0%, #d49f1a 100%);
+        color: #081726 !important;
+        font-size: 0.86rem;
         font-weight: 800;
-        border-radius: 10px;
+        border-radius: 8px;
         border: none;
-        cursor: pointer;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.22);
-        transition: all 0.2s;
         text-decoration: none;
-        width: fit-content;
+        white-space: nowrap;
+        box-shadow: 0 3px 12px rgba(240, 200, 66, 0.32);
+        transition: all 0.25s ease;
+        cursor: pointer;
     }
 
-    .btn-view-ad:hover {
+    .btn-uni-profile:hover {
+        background: linear-gradient(135deg, #fce074 0%, #e5b026 100%);
+        color: #05101a !important;
         transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(197,155,39,0.45);
-        color: #101828;
+        box-shadow: 0 6px 18px rgba(240, 200, 66, 0.48);
+    }
+
+    .btn-uni-profile i {
+        font-size: 0.95rem;
+    }
+
+    /* بطاقة شعار المنصة في حالة عدم وجود إعلانات */
+    .platform-brand-showcase {
+        background: rgba(10, 42, 74, 0.85);
+        backdrop-filter: blur(8px);
+        border-radius: 18px;
+        border: 1px solid rgba(197, 155, 39, 0.4);
+        height: 335px;
+        min-height: 335px;
+        max-height: 335px;
+        padding: 1.4rem 1.2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.32);
+        box-sizing: border-box;
+    }
+
+    .platform-brand-glow {
+        position: absolute;
+        width: 170px;
+        height: 170px;
+        background: radial-gradient(circle, rgba(197, 155, 39, 0.2) 0%, transparent 70%);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        filter: blur(15px);
+    }
+
+    .platform-showcase-logo {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 14px rgba(0,0,0,0.35));
+        margin-bottom: 0.75rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .platform-showcase-badge {
+        display: inline-block;
+        background: rgba(197, 155, 39, 0.18);
+        border: 1px solid rgba(197, 155, 39, 0.45);
+        color: #f0c842;
+        font-size: 0.72rem;
+        font-weight: 700;
+        padding: 2px 10px;
+        border-radius: 50px;
+        margin-bottom: 0.5rem;
+    }
+
+    .platform-showcase-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #fff;
+        margin-bottom: 0.35rem;
+    }
+
+    .platform-showcase-title .brand-edu {
+        color: #fff;
+    }
+
+    .platform-showcase-title .brand-yemen {
+        color: #f0c842;
+    }
+
+    .platform-showcase-tagline {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.78);
+        line-height: 1.5;
+        max-width: 320px;
+        margin: 0 auto 0.75rem;
+    }
+
+    .platform-showcase-features {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.65rem;
+        font-size: 0.72rem;
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 600;
+    }
+
+    .platform-showcase-features .text-gold {
+        color: #f0c842;
     }
 
     .ad-dots {
@@ -717,27 +1062,54 @@
         /* كرت الإعلان المتحرك */
         .ad-carousel-card {
             border-radius: 14px !important;
+            height: 310px !important;
+            min-height: 310px !important;
+            max-height: 310px !important;
         }
         .ad-media-col {
-            height: 155px !important;
+            height: 140px !important;
+            min-height: 140px !important;
+            max-height: 140px !important;
+        }
+        .ad-side-arrow {
+            top: 70px !important;
+            width: 30px !important;
+            height: 30px !important;
+            font-size: 13px !important;
+        }
+        .ad-side-arrow.ad-side-prev {
+            right: 4px !important;
+        }
+        .ad-side-arrow.ad-side-next {
+            left: 4px !important;
+        }
+        .ad-gallery-hover-nav {
+            padding: 0 36px !important;
         }
         .ad-content-info {
-            padding: 0.95rem 1rem 0.85rem !important;
+            padding: 0.6rem 0.85rem 0.5rem !important;
         }
         .ad-headline {
-            font-size: 0.95rem !important;
+            font-size: 0.9rem !important;
             line-height: 1.35 !important;
-            margin-bottom: 0.35rem !important;
+            height: 1.35em !important;
+            min-height: 1.35em !important;
+            max-height: 1.35em !important;
+            margin-bottom: 0.2rem !important;
         }
         .ad-body-text {
-            font-size: 0.78rem !important;
-            line-height: 1.5 !important;
-            margin-bottom: 0.75rem !important;
+            font-size: 0.74rem !important;
+            line-height: 1.4 !important;
+            height: 2.8em !important;
+            min-height: 2.8em !important;
+            max-height: 2.8em !important;
+            margin-bottom: 0.35rem !important;
         }
-        .btn-view-ad {
-            height: 34px !important;
+        .btn-uni-profile {
+            height: 33px !important;
             font-size: 0.8rem !important;
-            padding: 0 14px !important;
+            padding: 0 12px !important;
+            gap: 5px !important;
         }
 
         /* شريط الإحصائيات (Stats Band) */
@@ -956,60 +1328,113 @@
                 </div>
             </div>
 
-            {{-- القسم الثاني: المساحة الإعلانية بجانب معلومات الموقع --}}
+            {{-- القسم الثاني: المساحة الإعلانية بجانب معلومات الموقع أو شعار المنصة --}}
             <div class="hero-ad-col">
-                <div class="ad-header-bar">
-                    <div class="d-flex align-items-center gap-2">
-                        <span style="width:4px;height:20px;background:#f0c842;border-radius:2px;display:inline-block;"></span>
-                        <span class="fw-bold" style="font-size:0.9rem;">إعلانات الجامعات</span>
-                    </div>
-                    <span style="font-size:0.75rem;color:rgba(255,255,255,0.75);">
-                        <i class="bi bi-clock me-1"></i>تتجدد دورياً
-                    </span>
-                </div>
+                @if(!empty($activeAdsData) && (is_object($activeAdsData) ? $activeAdsData->isNotEmpty() : count($activeAdsData) > 0))
+                    {{-- البنر الإعلاني المتحرك (في حالة وجود إعلانات نشطة) --}}
+                    <div class="ad-carousel-card" id="adCarouselCard">
+                        {{-- أزرار التنقل الرئيسية بين الإعلانات على طرفي الحاوية (< >) --}}
+                        <button type="button" class="ad-side-arrow ad-side-prev" id="btnAdPrev" onclick="navigateAd(-1, event)" aria-label="الإعلان السابق" title="الإعلان السابق">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        <button type="button" class="ad-side-arrow ad-side-next" id="btnAdNext" onclick="navigateAd(1, event)" aria-label="الإعلان التالي" title="الإعلان التالي">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
 
-                {{-- البنر الإعلاني المتحرك --}}
-                <div class="ad-carousel-card" id="adCarouselCard">
-                    <div class="ad-media-col">
-                        <img src="/images/ads/ad-1.jpg"
-                             id="adMediaImg"
-                             onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'224\'%3E%3Crect width=\'300\' height=\'224\' fill=\'%230a2a4a\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'rgba(255,255,255,0.15)\' font-size=\'60\'%3E🎓%3C/text%3E%3C/svg%3E'"
-                             alt="إعلان الجامعة">
-                        <div class="ad-video-overlay" onclick="playAdVideo()">
-                            <div class="ad-play-btn" title="تشغيل فيديو الإعلان">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                </svg>
+                        <div class="ad-media-col">
+                            {{-- خلفية ضبابية تعكس ألوان وسائط الإعلان لملء أي أطراف فارغة بجمالية بدون اقتصاص --}}
+                            <div class="ad-media-backdrop" id="adMediaBackdrop"></div>
+
+                            <img src="/images/ads/ad-1.jpg"
+                                 id="adMediaImg"
+                                 onerror="this.onerror=null;this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'224\'%3E%3Crect width=\'300\' height=\'224\' fill=\'%230a2a4a\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'rgba(255,255,255,0.15)\' font-size=\'60\'%3E🎓%3C/text%3E%3C/svg%3E'"
+                                 alt="إعلان الجامعة">
+
+                            {{-- مشغل الفيديو التلقائي للإعلانات بدون الحاجة للضغط --}}
+                            <video id="adMediaVideo"
+                                   playsinline
+                                   muted
+                                   autoplay
+                                   loop
+                                   preload="auto"
+                                   style="display:none;width:100%;height:100%;object-fit:cover;position:relative;z-index:2;background:transparent;">
+                            </video>
+
+                            {{-- شارة الفيديو الإعلاني وزر كتم/تشغيل الصوت --}}
+                            <div class="ad-video-badge" id="adVideoBadge" style="display:none;">
+                                <i class="bi bi-play-circle-fill"></i>
+                                <span>فيديو إعلاني</span>
                             </div>
-                            <div class="ad-media-tag">▶ فيديو إعلاني</div>
-                        </div>
-                    </div>
+                            <button type="button" class="ad-sound-toggle-btn" id="adSoundToggleBtn" onclick="toggleAdSound(event)" style="display:none;" title="كتم / تشغيل الصوت">
+                                <i class="bi bi-volume-mute-fill" id="adSoundIcon" style="font-size:14px;"></i>
+                            </button>
 
-                    <div class="ad-content-info" id="adContent">
-                        <span class="ad-uni-tag" id="adUniTag">
-                            <i class="bi bi-building"></i>
-                            <span id="adUniName">جامعة صنعاء</span>
+                            {{-- شارة معرض الصور للباقة المتوسطة/المميزة --}}
+                            <div class="ad-gallery-badge" id="adGalleryBadge" style="display:none;">
+                                <i class="bi bi-images"></i>
+                                <span id="galleryCounter">صورة 1 / 1</span>
+                            </div>
+
+                            {{-- أزرار التنقل المصغرة لصور المعرض (تظهر بسلاسة عند التحويم) --}}
+                            <div class="ad-gallery-hover-nav" id="adGalleryHoverNav" style="display:none;">
+                                <button type="button" class="ad-gal-arrow ad-gal-prev" onclick="navigateGallery(-1, event)" title="الصورة السابقة">
+                                    <i class="bi bi-chevron-compact-right"></i>
+                                </button>
+                                <button type="button" class="ad-gal-arrow ad-gal-next" onclick="navigateGallery(1, event)" title="الصورة التالية">
+                                    <i class="bi bi-chevron-compact-left"></i>
+                                </button>
+                            </div>
+
+                            {{-- مؤشر النقاط التفاعلي لصور المعرض في أسفل الصورة --}}
+                            <div class="ad-gallery-dots" id="adGalleryDots" style="display:none;"></div>
+                        </div>
+
+                        <div class="ad-content-info" id="adContent">
+                            <span class="ad-uni-tag" id="adUniTag">
+                                <i class="bi bi-building"></i>
+                                <span id="adUniName">جامعة صنعاء</span>
+                            </span>
+                            <h2 class="ad-headline" id="adTitle">فتح باب القبول والتسجيل للعام الجامعي 2026/2027</h2>
+                            <p class="ad-body-text" id="adDesc">
+                                يسر جامعة صنعاء الإعلان عن فتح باب القبول في مختلف كلياتها الأكاديمية الحكومية، مع توفر مقاعد محدودة في الكليات العلمية والأدبية.
+                            </p>
+                            <div class="ad-footer-actions">
+                                <a href="#" class="btn-uni-profile" id="adUniLink" title="الانتقال إلى صفحة الجامعة التابع لها الإعلان">
+                                    <i class="bi bi-building-check"></i>
+                                    <span>الانتقال إلى الجامعة</span>
+                                    <i class="bi bi-arrow-left"></i>
+                                </a>
+
+                                <div class="ad-dots" id="adDots"></div>
+                            </div>
+                        </div>
+
+                        <div class="ad-progress-bar" id="adProgressBar"></div>
+                    </div>
+                @else
+                    {{-- بطاقة شعار المنصة في حالة عدم وجود إعلانات نشطة --}}
+                    <div class="platform-brand-showcase">
+                        <div class="platform-brand-glow"></div>
+                        <img src="/images/logo.png"
+                             onerror="this.onerror=null;this.src='/images/eduyemen-logo.svg';"
+                             class="platform-showcase-logo"
+                             alt="شعار EduYemen">
+                        <span class="platform-showcase-badge">
+                            <i class="bi bi-stars me-1"></i>البوابة الموحدة للجامعات اليمنية
                         </span>
-                        <h2 class="ad-headline" id="adTitle">فتح باب القبول والتسجيل للعام الجامعي 2026/2027</h2>
-                        <p class="ad-body-text" id="adDesc">
-                            يسر جامعة صنعاء الإعلان عن فتح باب القبول في مختلف كلياتها الأكاديمية الحكومية، مع توفر مقاعد محدودة في الكليات العلمية والأدبية.
+                        <h3 class="platform-showcase-title">
+                            <span class="brand-edu">Edu</span><span class="brand-yemen">Yemen</span>
+                        </h3>
+                        <p class="platform-showcase-tagline">
+                            دليلك المعتمد والموثوق لاختيار الجامعة والكلية والتخصص الأكاديمي المناسب والتقديم الإلكتروني المباشر
                         </p>
-                        <div class="ad-footer-actions">
-                            <a href="#" class="btn-view-ad" id="adLink">
-                                <span>عرض الإعلان</span>
-                                <i class="bi bi-arrow-left"></i>
-                            </a>
-
-                            <div class="ad-dots" id="adDots">
-                                <button class="ad-dot active" onclick="switchAd(0)" aria-label="إعلان 1"></button>
-                                <button class="ad-dot" onclick="switchAd(1)" aria-label="إعلان 2"></button>
-                                <button class="ad-dot" onclick="switchAd(2)" aria-label="إعلان 3"></button>
-                            </div>
+                        <div class="platform-showcase-features">
+                            <span><i class="bi bi-check2-circle text-gold me-1"></i>دليل رسمي</span>
+                            <span><i class="bi bi-check2-circle text-gold me-1"></i>تنسيق إلكتروني</span>
+                            <span><i class="bi bi-check2-circle text-gold me-1"></i>معتمد</span>
                         </div>
                     </div>
-
-                    <div class="ad-progress-bar" id="adProgressBar"></div>
-                </div>
+                @endif
             </div>
 
         </div>
@@ -1026,25 +1451,31 @@
 <section class="container stats-band">
     <div class="row g-2 g-md-3 justify-content-center">
         <div class="col-4 col-md-4 col-lg-3">
-            <div class="stat-card blue">
-                <div class="stat-number text-primary">{{ $stats['universities_count'] }}</div>
-                <div class="small fw-bold text-muted">جامعة معتمدة</div>
-                <div class="smaller text-muted" style="font-size:0.72rem">حكومية وأهلية</div>
-            </div>
+            <a href="{{ route('universities.index') }}" class="text-decoration-none d-block" title="استعراض دليل الجامعات المعتمدة">
+                <div class="stat-card blue">
+                    <div class="stat-number text-primary">{{ $stats['universities_count'] }}</div>
+                    <div class="small fw-bold text-muted">جامعة معتمدة</div>
+                    <div class="smaller text-muted" style="font-size:0.72rem">حكومية وأهلية</div>
+                </div>
+            </a>
         </div>
         <div class="col-4 col-md-4 col-lg-3">
-            <div class="stat-card green">
-                <div class="stat-number text-success">{{ $stats['colleges_count'] }}</div>
-                <div class="small fw-bold text-muted">كلية أكاديمية</div>
-                <div class="smaller text-muted" style="font-size:0.72rem">متخصصة ومعتمدة</div>
-            </div>
+            <a href="{{ route('universities.index') }}" class="text-decoration-none d-block" title="استعراض الكليات الأكاديمية المتخصصة">
+                <div class="stat-card green">
+                    <div class="stat-number text-success">{{ $stats['colleges_count'] }}</div>
+                    <div class="small fw-bold text-muted">كلية أكاديمية</div>
+                    <div class="smaller text-muted" style="font-size:0.72rem">متخصصة ومعتمدة</div>
+                </div>
+            </a>
         </div>
         <div class="col-4 col-md-4 col-lg-3">
-            <div class="stat-card gold">
-                <div class="stat-number text-accent">{{ $stats['specializations_count'] }}</div>
-                <div class="small fw-bold text-muted">تخصص دراسي</div>
-                <div class="smaller text-muted" style="font-size:0.72rem">في مختلف المجالات</div>
-            </div>
+            <a href="{{ route('universities.index') }}" class="text-decoration-none d-block" title="استعراض التخصصات الدراسية المتاحة">
+                <div class="stat-card gold">
+                    <div class="stat-number text-accent">{{ $stats['specializations_count'] }}</div>
+                    <div class="small fw-bold text-muted">تخصص دراسي</div>
+                    <div class="smaller text-muted" style="font-size:0.72rem">في مختلف المجالات</div>
+                </div>
+            </a>
         </div>
     </div>
 </section>
@@ -1296,111 +1727,339 @@
 @endsection
 
 @section('scripts')
+{{-- نظام الإعلانات التفاعلي — يعمل فقط في حالة وجود إعلانات نشطة --}}
+@if(!empty($activeAdsData) && (is_object($activeAdsData) ? $activeAdsData->isNotEmpty() : count($activeAdsData) > 0))
 <script>
-// نظام الـ Carousel للإعلانات
-const adList = [
-    {
-        uni:   'جامعة صنعاء',
-        title: 'فتح باب القبول والتسجيل للعام الجامعي 2026/2027',
-        desc:  'يسر جامعة صنعاء الإعلان عن فتح باب القبول في مختلف كلياتها الأكاديمية مع توفر مقاعد محدودة في الكليات العلمية والأدبية للعام الجامعي القادم.',
-        img:   '/images/ads/ad-1.jpg',
-        link:  '{{ route("universities.show", 1) }}'
-    },
-    {
-        uni:   'جامعة العلوم والتكنولوجيا',
-        title: 'منح الامتياز الأكاديمي بنسبة 30% لأوائل الطلاب',
-        desc:  'تُعلن جامعة العلوم والتكنولوجيا عن توفر منح دراسية للطلاب المتميزين في تخصصات الهندسة والطب وتكنولوجيا المعلومات والعلوم الإدارية.',
-        img:   '/images/ads/ad-2.jpg',
-        link:  '{{ route("universities.show", 2) }}'
-    },
-    {
-        uni:   'جامعة الأروى',
-        title: 'يوم مفتوح للتعريف بالتخصصات الجديدة 2026',
-        desc:  'تدعوكم جامعة الأروى لحضور اليوم المفتوح للتعريف بتخصصاتها الجديدة والتحدث مع أعضاء هيئة التدريس والاطلاع على كافة التسهيلات الأكاديمية.',
-        img:   '/images/ads/ad-3.jpg',
-        link:  '{{ route("universities.show", 4) }}'
-    }
-];
+const adList = @json($activeAdsData);
 
 let currentAdIndex = 0;
 let adTimer = null;
+let currentGallery = [];
+let galleryIndex = 0;
+let galleryInterval = null;
+
+// تحديد مدة الإعلان ديناميكياً بدقة لمنح العدالة والمساواة بين الباقات:
+// - الباقة الاقتصادية (صورة واحدة): 5 ثوانٍ
+// - الباقة المميزة / المتوسطة (معرض صور): 7 ثوانٍ
+// - الباقة الشاملة (فيديو ترويجي): 10 ثوانٍ
+function getAdDuration(ad) {
+    if (!ad) return 5000;
+    if (ad.package === 'شاملة' || ad.mediaType === 'video' || Boolean(ad.video)) {
+        return 10000;
+    }
+    if (ad.package === 'مميزة' || (ad.mediaType === 'gallery' && Array.isArray(ad.gallery) && ad.gallery.length > 1)) {
+        return 7000;
+    }
+    return 5000;
+}
+
+function updateMediaDisplay(ad) {
+    const mediaImg    = document.getElementById('adMediaImg');
+    const mediaVideo  = document.getElementById('adMediaVideo');
+    const backdrop    = document.getElementById('adMediaBackdrop');
+    const videoBadge  = document.getElementById('adVideoBadge');
+    const soundBtn    = document.getElementById('adSoundToggleBtn');
+    const galBadge    = document.getElementById('adGalleryBadge');
+    const galHoverNav = document.getElementById('adGalleryHoverNav');
+    const galDots     = document.getElementById('adGalleryDots');
+    
+    if (galleryInterval) {
+        clearInterval(galleryInterval);
+        galleryInterval = null;
+    }
+
+    // إزالة أي عناصر تحكم قديمة إذا وجدت
+    const oldLegacyControls = document.getElementById('adGalleryControls');
+    if (oldLegacyControls) oldLegacyControls.remove();
+
+    if (!ad) return;
+
+    const isVideo = (ad.mediaType === 'video' || (ad.package === 'شاملة' && Boolean(ad.video)) || Boolean(ad.video));
+
+    if (isVideo && ad.video) {
+        // حالة الفيديو
+        if (mediaImg) mediaImg.style.display = 'none';
+        if (backdrop) backdrop.style.backgroundImage = 'none';
+        if (galBadge) galBadge.style.display = 'none';
+        if (galHoverNav) galHoverNav.style.display = 'none';
+        if (galDots) galDots.style.display = 'none';
+
+        if (mediaVideo) {
+            mediaVideo.style.display = 'block';
+            if (mediaVideo.src !== ad.video) {
+                mediaVideo.src = ad.video;
+            }
+            mediaVideo.currentTime = 0;
+            mediaVideo.muted = true; // مطلوب لضمان التشغيل التلقائي فوراً
+            const playPromise = mediaVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(err => {
+                    console.log('Video autoplay prevented by browser policy:', err);
+                });
+            }
+        }
+
+        if (videoBadge) videoBadge.style.display = 'inline-flex';
+        if (soundBtn) {
+            soundBtn.style.display = 'inline-flex';
+            const soundIcon = document.getElementById('adSoundIcon');
+            if (soundIcon && mediaVideo) {
+                soundIcon.className = mediaVideo.muted ? 'bi bi-volume-mute-fill' : 'bi bi-volume-up-fill';
+            }
+        }
+    } else {
+        // حالة الصور
+        if (mediaVideo) {
+            mediaVideo.pause();
+            mediaVideo.currentTime = 0;
+            mediaVideo.style.display = 'none';
+        }
+        if (videoBadge) videoBadge.style.display = 'none';
+        if (soundBtn) soundBtn.style.display = 'none';
+
+        if (mediaImg) mediaImg.style.display = 'block';
+
+        const isGallery = (ad.package === 'مميزة' || ad.mediaType === 'gallery') && Array.isArray(ad.gallery) && ad.gallery.length > 1;
+
+        if (isGallery) {
+            currentGallery = ad.gallery;
+            galleryIndex = 0;
+
+            // عرض أول صورة مع تدرج الخلفية الضبابية
+            setGalleryImage(0, false);
+
+            // تفعيل شارة معرض الصور
+            if (galBadge) {
+                galBadge.style.display = 'inline-flex';
+                const counter = document.getElementById('galleryCounter');
+                if (counter) counter.textContent = `صورة 1 / ${currentGallery.length}`;
+            }
+
+            // تفعيل أسهم التحويم
+            if (galHoverNav) galHoverNav.style.display = 'flex';
+
+            // بناء مؤشر النقاط التفاعلي
+            if (galDots) {
+                galDots.style.display = 'flex';
+                galDots.innerHTML = currentGallery.map((_, idx) => 
+                    `<button type="button" class="ad-gallery-dot ${idx === 0 ? 'active' : ''}" onclick="setGalleryImage(${idx}, true)" aria-label="صورة ${idx + 1}"></button>`
+                ).join('');
+            }
+
+            // تدوير الصور تلقائياً خلال مدة الإعلان
+            const slideDuration = Math.max(2200, Math.floor(7000 / currentGallery.length));
+            galleryInterval = setInterval(() => {
+                const nextIdx = (galleryIndex + 1) % currentGallery.length;
+                setGalleryImage(nextIdx, false);
+            }, slideDuration);
+
+        } else {
+            // صورة مفردة
+            currentGallery = [];
+            galleryIndex = 0;
+            const singleImg = ad.img || (ad.gallery && ad.gallery[0]) || '';
+            if (mediaImg) {
+                mediaImg.src = singleImg;
+                mediaImg.style.opacity = '1';
+            }
+            if (backdrop) {
+                backdrop.style.backgroundImage = singleImg ? `url("${singleImg}")` : 'none';
+            }
+            if (galBadge) galBadge.style.display = 'none';
+            if (galHoverNav) galHoverNav.style.display = 'none';
+            if (galDots) galDots.style.display = 'none';
+        }
+    }
+}
+
+function setGalleryImage(index, userInitiated) {
+    if (!currentGallery || currentGallery.length === 0) return;
+    galleryIndex = (index + currentGallery.length) % currentGallery.length;
+    const mediaImg = document.getElementById('adMediaImg');
+    const backdrop = document.getElementById('adMediaBackdrop');
+    const counter  = document.getElementById('galleryCounter');
+    const dots     = document.querySelectorAll('.ad-gallery-dot');
+
+    const nextSrc = currentGallery[galleryIndex];
+
+    if (mediaImg) {
+        mediaImg.style.opacity = '0.35';
+        setTimeout(() => {
+            mediaImg.src = nextSrc;
+            if (backdrop) backdrop.style.backgroundImage = `url("${nextSrc}")`;
+            mediaImg.style.opacity = '1';
+        }, 120);
+    }
+
+    if (counter) {
+        counter.textContent = `صورة ${galleryIndex + 1} / ${currentGallery.length}`;
+    }
+
+    dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === galleryIndex);
+    });
+
+    if (userInitiated) {
+        if (galleryInterval) clearInterval(galleryInterval);
+        const slideDuration = Math.max(2200, Math.floor(7000 / currentGallery.length));
+        galleryInterval = setInterval(() => {
+            const nextIdx = (galleryIndex + 1) % currentGallery.length;
+            setGalleryImage(nextIdx, false);
+        }, slideDuration);
+    }
+}
+
+function navigateGallery(direction, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    setGalleryImage(galleryIndex + direction, true);
+}
+
+function navigateAd(direction, event) {
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    if (!adList || adList.length <= 1) return;
+    const nextIdx = (currentAdIndex + direction + adList.length) % adList.length;
+    switchAd(nextIdx);
+}
+
+function toggleAdSound(e) {
+    if (e) e.stopPropagation();
+    const mediaVideo = document.getElementById('adMediaVideo');
+    const soundIcon = document.getElementById('adSoundIcon');
+    if (!mediaVideo) return;
+    mediaVideo.muted = !mediaVideo.muted;
+    if (soundIcon) {
+        soundIcon.className = mediaVideo.muted ? 'bi bi-volume-mute-fill' : 'bi bi-volume-up-fill';
+    }
+}
 
 function switchAd(index, skipAnim) {
+    if (!adList || adList.length === 0) return;
     const content   = document.getElementById('adContent');
     const mediaImg  = document.getElementById('adMediaImg');
     const uniName   = document.getElementById('adUniName');
     const title     = document.getElementById('adTitle');
     const desc      = document.getElementById('adDesc');
     const link      = document.getElementById('adLink');
+    const uniLink   = document.getElementById('adUniLink');
     const bar       = document.getElementById('adProgressBar');
     const dots      = document.querySelectorAll('.ad-dot');
 
+    const oldVideo = document.getElementById('adMediaVideo');
+    if (oldVideo) {
+        oldVideo.pause();
+    }
+
     if (!skipAnim) {
-        content.style.opacity  = '0';
-        content.style.transform = 'translateX(12px)';
-        mediaImg.style.opacity = '0';
+        if (content) {
+            content.style.opacity  = '0';
+            content.style.transform = 'translateX(12px)';
+        }
+        if (mediaImg) mediaImg.style.opacity = '0';
     }
 
     setTimeout(() => {
         currentAdIndex = index;
         const ad = adList[index];
+        if (!ad) return;
 
-        uniName.textContent = ad.uni;
-        title.textContent   = ad.title;
-        desc.textContent    = ad.desc;
-        link.href           = ad.link;
-        mediaImg.src        = ad.img;
+        if (uniName) uniName.textContent = ad.uni;
+        if (title)   title.textContent   = ad.title;
+        if (desc)    desc.textContent    = ad.desc;
+        if (link)    link.href           = ad.link;
+        if (uniLink) uniLink.href        = ad.link;
+
+        updateMediaDisplay(ad);
 
         dots.forEach((d, i) => d.classList.toggle('active', i === index));
 
         if (!skipAnim) {
-            content.style.transition  = 'opacity 0.35s ease, transform 0.35s ease';
-            mediaImg.style.transition = 'opacity 0.35s ease';
-            content.style.opacity  = '1';
-            content.style.transform = 'translateX(0)';
-            mediaImg.style.opacity = '1';
+            if (content) {
+                content.style.transition  = 'opacity 0.35s ease, transform 0.35s ease';
+                content.style.opacity  = '1';
+                content.style.transform = 'translateX(0)';
+            }
+            if (mediaImg) {
+                mediaImg.style.transition = 'opacity 0.35s ease';
+                mediaImg.style.opacity = '1';
+            }
         }
+
+        const duration = getAdDuration(ad);
 
         if (bar) {
             bar.style.animation = 'none';
             bar.offsetHeight;
-            bar.style.animation = 'adProgress 7s linear';
+            bar.style.animation = `adProgress ${duration / 1000}s linear`;
         }
+
+        startAdTimer(duration);
     }, skipAnim ? 0 : 300);
 }
 
-function startAdTimer() {
-    clearInterval(adTimer);
-    adTimer = setInterval(() => {
+function startAdTimer(explicitDuration) {
+    clearTimeout(adTimer);
+    if (!adList || adList.length <= 1) return;
+    const currentAd = adList[currentAdIndex];
+    const duration = explicitDuration || getAdDuration(currentAd);
+    adTimer = setTimeout(() => {
         const next = (currentAdIndex + 1) % adList.length;
         switchAd(next);
-    }, 7000);
+    }, duration);
 }
 
 function playAdVideo() {
-    const ad = adList[currentAdIndex];
-    alert('سيتم تشغيل الفيديو الترويجي لـ: ' + ad.uni + '\n\nهذه الميزة ستكون متاحة عند رفع الجامعة للفيديو.');
+    toggleAdSound();
 }
 
-if (!navbarContainer.querySelector('.brand-sidebar-group')) {
-            const group = document.createElement('div');
-            group.className = 'brand-sidebar-group';
-            group.appendChild(newToggler);
-            group.appendChild(brand);
-            navbarContainer.insertBefore(group, navbarContainer.firstChild);
-        }
+function renderAdDots() {
+    const dotsContainer = document.getElementById('adDots');
+    if (!dotsContainer || !adList || adList.length <= 1) {
+        if (dotsContainer && adList && adList.length <= 1) dotsContainer.innerHTML = '';
+        return;
     }
+    dotsContainer.innerHTML = adList.map((_, i) => 
+        `<button class="ad-dot ${i === 0 ? 'active' : ''}" onclick="switchAd(${i})" aria-label="إعلان ${i + 1}"></button>`
+    ).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!adList || adList.length === 0) return;
+    renderAdDots();
     switchAd(0, true);
-    startAdTimer();
+
+    // إخفاء أسهم التنقل الرئيسية إذا كان هناك إعلان واحد فقط
+    const prevBtn = document.getElementById('btnAdPrev');
+    const nextBtn = document.getElementById('btnAdNext');
+    if (adList.length <= 1) {
+        if (prevBtn) prevBtn.style.display = 'none';
+        if (nextBtn) nextBtn.style.display = 'none';
+    }
 
     const card = document.getElementById('adCarouselCard');
     if (card) {
-        card.addEventListener('mouseenter', () => clearInterval(adTimer));
-        card.addEventListener('mouseleave', startAdTimer);
+        card.addEventListener('mouseenter', () => {
+            clearTimeout(adTimer);
+            if (galleryInterval) clearInterval(galleryInterval);
+        });
+        card.addEventListener('mouseleave', () => {
+            startAdTimer();
+            const ad = adList[currentAdIndex];
+            if (ad && (ad.package === 'مميزة' || ad.mediaType === 'gallery') && currentGallery && currentGallery.length > 1) {
+                const slideDur = Math.max(2200, Math.floor(7000 / currentGallery.length));
+                galleryInterval = setInterval(() => {
+                    const nextIdx = (galleryIndex + 1) % currentGallery.length;
+                    setGalleryImage(nextIdx, false);
+                }, slideDur);
+            }
+        });
     }
 });
 </script>
+@endif
 @endsection

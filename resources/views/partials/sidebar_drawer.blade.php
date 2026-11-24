@@ -112,12 +112,9 @@
     {{-- منطقة تسجيل الدخول والحساب في أسفل القائمة --}}
     <div class="sidebar-footer-auth">
         @guest
-        <div id="sidebarGuestBlock">
-            <a href="{{ route('login') }}" class="sidebar-btn-login" onclick="closeSidebar()">
-                تسجيل الدخول
-            </a>
-            <a href="{{ route('register') }}" class="sidebar-btn-register" onclick="closeSidebar()">
-                إنشاء حساب
+        <div id="sidebarGuestBlock" style="display: block;">
+            <a href="{{ route('login', request()->routeIs('login', 'register') ? [] : ['return' => url()->full()]) }}" class="sidebar-btn-login" style="width: 100%; text-align: center; display: block;" onclick="closeSidebar()">
+                <i class="bi bi-box-arrow-in-left me-1"></i>تسجيل الدخول / البدء
             </a>
         </div>
         @else
@@ -126,11 +123,11 @@
                 <div class="sidebar-user-name">
                     <span>👤</span>
                     @if(Auth::user()->isAdmin())
-                        <a href="{{ route('admin.dashboard') }}" style="color: inherit; text-decoration: none;">الملف الشخصي (مدير النظام)</a>
+                        <a href="{{ route('admin.dashboard') }}" style="color: inherit; text-decoration: none;">لوحة تحكم مدير النظام</a>
                     @elseif(Auth::user()->isUniversity())
-                        <a href="{{ route('university.dashboard') }}" style="color: inherit; text-decoration: none;">الملف الشخصي ({{ Auth::user()->username }})</a>
+                        <a href="{{ route('university.dashboard') }}" style="color: inherit; text-decoration: none;">بوابة الجامعة ({{ Auth::user()->username }})</a>
                     @else
-                        <a href="{{ route('student.dashboard') }}" style="color: inherit; text-decoration: none;">الملف الشخصي (طالب)</a>
+                        <a href="{{ route('student.dashboard') }}" style="color: inherit; text-decoration: none;">الملف الشخصي للطالب</a>
                     @endif
                 </div>
                 <span style="font-size: 11px; background: rgba(18, 183, 106, 0.2); color: #86EFAC; padding: 2px 7px; border-radius: 4px; font-weight: 600;">نشط</span>

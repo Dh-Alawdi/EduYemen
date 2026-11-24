@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -49,7 +49,7 @@
             padding-top: var(--navbar-height);
         }
 
-        @if(request()->routeIs('login') || request()->routeIs('register'))
+        @if(request()->routeIs('login') || request()->routeIs('register') || request()->routeIs('password.*') || request()->routeIs('auth.otp.*'))
         body {
             padding-top: 0 !important;
             overflow-x: hidden;
@@ -1081,18 +1081,19 @@
         .table th { font-weight: 700; font-size: .85rem; background: #f8fafc; }
 
         /* =========================================================
-           الوضع الليلي (Dark Mode) المعتمد لمنصة EduYemen
+           الوضع الليلي الشامل (Dark Mode) المعتمد لمنصة EduYemen
         ========================================================= */
         [data-theme="dark"] {
             --light-bg: #0b1324;
             --text-dark: #f8fafc;
             --text-muted: #94a3b8;
-            --border-color: #1e293b;
-            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.45);
-            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.55);
+            --border-color: #1e2f50;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.55);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.65);
             background-color: #0b1324 !important;
             color: #f8fafc !important;
+            color-scheme: dark;
         }
 
         [data-theme="dark"] body {
@@ -1100,6 +1101,7 @@
             color: #f8fafc !important;
         }
 
+        /* البطاقات والحاويات والقوائم المنسدلة */
         [data-theme="dark"] .bg-white,
         [data-theme="dark"] .card,
         [data-theme="dark"] .modal-content,
@@ -1108,58 +1110,46 @@
         [data-theme="dark"] .univ-sub-drawer,
         [data-theme="dark"] .compare-form-card,
         [data-theme="dark"] .compare-table-wrap,
-        [data-theme="dark"] .spec-compare-section {
+        [data-theme="dark"] .spec-compare-section,
+        [data-theme="dark"] .student-vnav-card,
+        [data-theme="dark"] .student-content-pane,
+        [data-theme="dark"] .mobile-accordion-card,
+        [data-theme="dark"] .mobile-accordion-body,
+        [data-theme="dark"] .mobile-accordion-header,
+        [data-theme="dark"] .req-compact-card,
+        [data-theme="dark"] .profile-section-card,
+        [data-theme="dark"] .theme-select-card,
+        [data-theme="dark"] .tone-select-item,
+        [data-theme="dark"] .pay-instruction-card,
+        [data-theme="dark"] .voucher-form-card {
             background-color: #131d36 !important;
             color: #f8fafc !important;
-            border-color: #1e293b !important;
+            border-color: #1e2f50 !important;
         }
 
+        /* العناصر الفرعية والخلفيات المضيئة والبادئات */
         [data-theme="dark"] .bg-light,
         [data-theme="dark"] .table-light,
         [data-theme="dark"] .spec-select-box,
-        [data-theme="dark"] .card-header.bg-light {
+        [data-theme="dark"] .card-header.bg-light,
+        [data-theme="dark"] .modal-footer,
+        [data-theme="dark"] .selected-method-details-card,
+        [data-theme="dark"] .account-card-box,
+        [data-theme="dark"] .upload-voucher-box,
+        [data-theme="dark"] .profile-completeness-wrap {
             background-color: #182442 !important;
             color: #cbd5e1 !important;
-            border-color: #1e293b !important;
+            border-color: #1e2f50 !important;
         }
 
-        [data-theme="dark"] .form-control,
-        [data-theme="dark"] .form-select {
-            background-color: #0d1629 !important;
-            color: #f8fafc !important;
-            border-color: #273554 !important;
-        }
-
-        [data-theme="dark"] .form-control:focus,
-        [data-theme="dark"] .form-select:focus {
-            background-color: #0f1a30 !important;
-            color: #ffffff !important;
-            border-color: var(--accent) !important;
-        }
-
-        [data-theme="dark"] .table {
-            color: #f1f5f9 !important;
-            border-color: #1e293b !important;
-        }
-
-        [data-theme="dark"] .table tbody td,
-        [data-theme="dark"] .table thead th {
-            border-color: #1e293b !important;
-            background-color: transparent !important;
-        }
-
-        [data-theme="dark"] .compare-table th:first-child,
-        [data-theme="dark"] .compare-table td:first-child {
-            background: #131d36 !important;
-            color: #cbd5e1 !important;
-            border-left: 1px solid #1e293b !important;
-        }
-
-        [data-theme="dark"] .compare-table thead th:first-child {
-            background: #182442 !important;
-        }
-
-        [data-theme="dark"] .text-dark {
+        /* تباين النصوص والعناوين لضمان وضوح كامل ومريح */
+        [data-theme="dark"] .text-dark,
+        [data-theme="dark"] h1, [data-theme="dark"] h2,
+        [data-theme="dark"] h3, [data-theme="dark"] h4,
+        [data-theme="dark"] h5, [data-theme="dark"] h6,
+        [data-theme="dark"] .section-title,
+        [data-theme="dark"] .profile-section-title,
+        [data-theme="dark"] strong.text-dark {
             color: #f8fafc !important;
         }
 
@@ -1168,10 +1158,133 @@
             color: #94a3b8 !important;
         }
 
+        [data-theme="dark"] .text-navy {
+            color: #93c5fd !important;
+        }
+
+        [data-theme="dark"] .univ-simple-title-link {
+            color: #93c5fd !important;
+        }
+        [data-theme="dark"] .univ-simple-title-link:hover {
+            color: var(--accent-light) !important;
+        }
+
+        /* الجداول وسجلات البيانات */
+        [data-theme="dark"] .table {
+            color: #f8fafc !important;
+            border-color: #1e2f50 !important;
+        }
+
+        [data-theme="dark"] .table > :not(caption) > * > * {
+            background-color: transparent !important;
+            color: #f8fafc !important;
+            border-color: #1e2f50 !important;
+        }
+
+        [data-theme="dark"] .table thead th,
+        [data-theme="dark"] .table th {
+            background-color: #182442 !important;
+            color: #e2e8f0 !important;
+            border-color: #1e2f50 !important;
+        }
+
+        [data-theme="dark"] .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255, 255, 255, 0.03) !important;
+            color: #f8fafc !important;
+        }
+
+        [data-theme="dark"] .table-hover > tbody > tr:hover > * {
+            background-color: rgba(255, 255, 255, 0.06) !important;
+            color: #ffffff !important;
+        }
+
+        /* الحقول ونماذج الإدخال */
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select,
+        [data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+        [data-theme="dark"] select,
+        [data-theme="dark"] textarea {
+            background-color: #0d1629 !important;
+            color: #f8fafc !important;
+            border-color: #273554 !important;
+        }
+
+        [data-theme="dark"] .form-control::placeholder,
+        [data-theme="dark"] textarea::placeholder {
+            color: #64748b !important;
+        }
+
+        [data-theme="dark"] .form-control:focus,
+        [data-theme="dark"] .form-select:focus {
+            background-color: #0f1a30 !important;
+            color: #ffffff !important;
+            border-color: var(--accent) !important;
+            box-shadow: 0 0 0 3px rgba(197, 155, 39, 0.25) !important;
+        }
+
+        [data-theme="dark"] .input-group-text {
+            background-color: #182442 !important;
+            color: #cbd5e1 !important;
+            border-color: #273554 !important;
+        }
+
+        [data-theme="dark"] .form-label {
+            color: #cbd5e1 !important;
+        }
+
+        /* الشارات والتنبيهات */
+        [data-theme="dark"] .badge.bg-light {
+            background-color: #182442 !important;
+            color: #cbd5e1 !important;
+            border-color: #273554 !important;
+        }
+
+        [data-theme="dark"] .badge.bg-primary-subtle {
+            background-color: rgba(37, 99, 235, 0.25) !important;
+            color: #93c5fd !important;
+            border-color: rgba(147, 197, 253, 0.3) !important;
+        }
+
+        [data-theme="dark"] .badge.bg-secondary-subtle {
+            background-color: rgba(148, 163, 184, 0.2) !important;
+            color: #cbd5e1 !important;
+            border-color: rgba(203, 213, 225, 0.3) !important;
+        }
+
+        [data-theme="dark"] .badge.bg-success-subtle {
+            background-color: rgba(22, 163, 74, 0.25) !important;
+            color: #86efac !important;
+            border-color: rgba(134, 239, 172, 0.3) !important;
+        }
+
+        [data-theme="dark"] .badge.bg-warning-subtle {
+            background-color: rgba(245, 158, 11, 0.25) !important;
+            color: #fde68a !important;
+            border-color: rgba(253, 230, 138, 0.3) !important;
+        }
+
+        [data-theme="dark"] .alert-light {
+            background-color: #182442 !important;
+            color: #cbd5e1 !important;
+            border-color: #273554 !important;
+        }
+
+        [data-theme="dark"] .alert-primary-subtle {
+            background-color: rgba(11, 61, 107, 0.35) !important;
+            color: #93c5fd !important;
+            border-color: rgba(147, 197, 253, 0.3) !important;
+        }
+
+        [data-theme="dark"] .alert-warning-subtle {
+            background-color: rgba(217, 119, 6, 0.2) !important;
+            color: #fde68a !important;
+            border-color: rgba(245, 158, 11, 0.3) !important;
+        }
+
         [data-theme="dark"] .border,
         [data-theme="dark"] .border-bottom,
         [data-theme="dark"] .border-top {
-            border-color: #1e293b !important;
+            border-color: #1e2f50 !important;
         }
     </style>
     <script>
@@ -1206,7 +1319,7 @@
 
 <div id="appPageWrapper" class="app-page-wrapper">
 
-@if(!request()->routeIs('login') && !request()->routeIs('register'))
+@if(!request()->routeIs('login') && !request()->routeIs('register') && !request()->routeIs('password.*') && !request()->routeIs('auth.otp.*'))
 @if(request()->routeIs('universities.show'))
 {{-- =====================================================================
      NAVBAR FOR UNIVERSITY SHOW PAGE (شريط تنقل صفحة الجامعة المخصص)
@@ -1292,11 +1405,11 @@
                             </span>
                         </li>
                         @if(Auth::user()->isAdmin())
-                            <li><a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2 text-primary"></i>لوحة التحكم</a></li>
+                            <li><a class="dropdown-item py-2 fw-bold text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>لوحة تحكم مدير النظام</a></li>
                         @elseif(Auth::user()->isUniversity())
-                            <li><a class="dropdown-item py-2" href="{{ route('university.dashboard') }}"><i class="bi bi-building me-2 text-primary"></i>لوحة الجامعة</a></li>
+                            <li><a class="dropdown-item py-2 fw-bold text-primary" href="{{ route('university.dashboard') }}"><i class="bi bi-building me-2"></i>بوابة الجامعة</a></li>
                         @else
-                            <li><a class="dropdown-item py-2" href="{{ route('student.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i>الملف الشخصي</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('student.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i>الملف الشخصي للطالب</a></li>
                         @endif
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
@@ -1310,7 +1423,7 @@
                     </ul>
                 </div>
             @else
-                <a href="{{ route('login') }}" class="btn btn-nav-profile-icon" title="تسجيل الدخول / الحساب">
+                <a href="{{ route('login', request()->routeIs('login', 'register') ? [] : ['return' => url()->full()]) }}" class="btn btn-nav-profile-icon" title="تسجيل الدخول / الحساب">
                     <i class="bi bi-person fs-5"></i>
                 </a>
             @endauth
@@ -1369,20 +1482,50 @@
         {{-- Desktop auth --}}
         <div class="desktop-auth d-flex align-items-center gap-2 ms-auto">
             @auth
+                @if(Auth::user()->isAdmin())
+                    <a href="{{ route('admin.dashboard') }}" class="btn btn-sm btn-outline-light d-none d-md-inline-flex align-items-center gap-1 px-3 py-1 fw-bold rounded-pill" style="border-color: rgba(255,255,255,0.45); font-size: 0.82rem; background: rgba(255,255,255,0.1);">
+                        <i class="bi bi-speedometer2 text-warning"></i>
+                        <span>لوحة تحكم المدير</span>
+                    </a>
+                @elseif(Auth::user()->isUniversity())
+                    <a href="{{ route('university.dashboard') }}" class="btn btn-sm btn-outline-light d-none d-md-inline-flex align-items-center gap-1 px-3 py-1 fw-bold rounded-pill" style="border-color: rgba(255,255,255,0.45); font-size: 0.82rem; background: rgba(255,255,255,0.1);">
+                        <i class="bi bi-building text-warning"></i>
+                        <span>بوابة الجامعة</span>
+                    </a>
+                @endif
+
                 <div class="dropdown">
-                    <button class="btn btn-nav-profile-avatar" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="الملف الشخصي">
+                    <button class="btn btn-nav-profile-avatar" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ Auth::user()->isAdmin() ? 'مدير النظام' : (Auth::user()->isUniversity() ? 'بوابة الجامعة' : 'حساب الطالب') }}">
                         <span class="nav-avatar-circle">
-                            <i class="bi bi-person-fill"></i>
+                            @if(Auth::user()->avatar_url)
+                                <img src="{{ Auth::user()->avatar_url }}" alt="Avatar" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+                            @else
+                                <i class="bi bi-person-fill"></i>
+                            @endif
                         </span>
                         <i class="bi bi-chevron-down nav-avatar-chevron"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2" style="min-width:180px;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2" style="min-width:210px;">
+                        <li class="px-3 py-2 border-bottom">
+                            <div class="fw-bold text-dark small">
+                                @if(Auth::user()->isStudent() && Auth::user()->student)
+                                    {{ Auth::user()->student->full_name }}
+                                @else
+                                    {{ Auth::user()->username }}
+                                @endif
+                            </div>
+                            <span class="badge {{ Auth::user()->isAdmin() ? 'bg-danger' : (Auth::user()->isUniversity() ? 'bg-primary' : 'bg-success') }} text-white" style="font-size:.68rem;">
+                                @if(Auth::user()->isAdmin()) مدير النظام
+                                @elseif(Auth::user()->isUniversity()) ممثل جامعة
+                                @else حساب طالب @endif
+                            </span>
+                        </li>
                         @if(Auth::user()->isAdmin())
-                            <li><a class="dropdown-item py-2" href="{{ route('admin.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i>الملف الشخصي</a></li>
+                            <li><a class="dropdown-item py-2 fw-bold text-primary" href="{{ route('admin.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>لوحة تحكم مدير النظام</a></li>
                         @elseif(Auth::user()->isUniversity())
-                            <li><a class="dropdown-item py-2" href="{{ route('university.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i>الملف الشخصي</a></li>
+                            <li><a class="dropdown-item py-2 fw-bold text-primary" href="{{ route('university.dashboard') }}"><i class="bi bi-building me-2"></i>بوابة الجامعة</a></li>
                         @else
-                            <li><a class="dropdown-item py-2" href="{{ route('student.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i>الملف الشخصي</a></li>
+                            <li><a class="dropdown-item py-2" href="{{ route('student.dashboard') }}"><i class="bi bi-person-circle me-2 text-primary"></i>الملف الشخصي للطالب</a></li>
                         @endif
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
@@ -1396,11 +1539,8 @@
                     </ul>
                 </div>
             @else
-                <a href="{{ route('login') }}" class="btn btn-nav-login">
-                    <i class="bi bi-box-arrow-in-left me-1"></i>دخول
-                </a>
-                <a href="{{ route('register') }}" class="btn btn-nav-register">
-                    <i class="bi bi-person-plus me-1"></i>حساب جديد
+                <a href="{{ route('login', request()->routeIs('login', 'register', 'home') ? [] : ['return' => url()->full()]) }}" class="btn btn-nav-login" style="padding: 7px 18px; font-weight: 700; border-radius: 10px;">
+                    <i class="bi bi-box-arrow-in-left me-1"></i>تسجيل الدخول / البدء
                 </a>
             @endauth
         </div>
@@ -1410,12 +1550,13 @@
             @auth
                 @php
                     $mobileProfileRoute = Auth::user()->isAdmin() ? route('admin.dashboard') : (Auth::user()->isUniversity() ? route('university.dashboard') : route('student.dashboard'));
+                    $mobileTitle = Auth::user()->isAdmin() ? 'لوحة تحكم المدير' : (Auth::user()->isUniversity() ? 'بوابة الجامعة' : 'الملف الشخصي');
                 @endphp
-                <a href="{{ $mobileProfileRoute }}" class="btn-mobile-user-avatar" title="الملف الشخصي">
+                <a href="{{ $mobileProfileRoute }}" class="btn-mobile-user-avatar" title="{{ $mobileTitle }}">
                     <i class="bi bi-person-fill"></i>
                 </a>
             @else
-                <a href="{{ route('login') }}" class="btn-mobile-login">
+                <a href="{{ route('login', request()->routeIs('login', 'register', 'home') ? [] : ['return' => url()->full()]) }}" class="btn-mobile-login">
                     <i class="bi bi-person"></i>
                     <span>دخول</span>
                 </a>
@@ -1474,14 +1615,15 @@
     @yield('content')
 </div>
 
-@if(!request()->routeIs('login') && !request()->routeIs('register'))
+@if(!request()->routeIs('login') && !request()->routeIs('register') && !request()->routeIs('password.*') && !request()->routeIs('auth.otp.*'))
 {{-- =====================================================================
      FOOTER
 ===================================================================== --}}
 <footer class="site-footer pt-5 pb-3 mt-5">
     <div class="container">
         <div class="row g-4 mb-4">
-            <div class="col-lg-4 col-md-6">
+            {{-- نبذة عن المنصة والشعار --}}
+            <div class="col-lg-5 col-md-6">
                 <div class="d-flex align-items-center gap-2 mb-3">
                     <img src="/images/logo.png"
                          onerror="this.onerror=null;this.src='/images/eduyemen-logo.svg';"
@@ -1491,37 +1633,30 @@
                         <span style="color:#fff;">Edu</span><span style="color:var(--accent-light);">Yemen</span>
                     </span>
                 </div>
-                <p class="small lh-lg" style="color:#94a3b8;max-width:300px;">
-                    المنصة الإلكترونية المركزية الموحدة التي تربط الطلاب بالجامعات الحكومية والأهلية في الجمهورية اليمنية.
+                <p class="small lh-lg" style="color:#94a3b8;max-width:380px;">
+                    المنصة الإلكترونية المركزية الموحدة لخدمات التنسيق والقبول الأكاديمي التي تربط الطلاب بالجامعات الحكومية والأهلية المعتمدة في الجمهورية اليمنية.
                 </p>
-                <div class="d-flex gap-2">
-                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-3"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-3"><i class="bi bi-twitter-x"></i></a>
-                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-3"><i class="bi bi-youtube"></i></a>
+                <div class="d-flex gap-2 mt-2">
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-3" title="فيسبوك"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-3" title="منصة إكس"><i class="bi bi-twitter-x"></i></a>
+                    <a href="#" class="btn btn-sm btn-outline-secondary rounded-3" title="يوتيوب"><i class="bi bi-youtube"></i></a>
                 </div>
             </div>
 
-            <div class="col-lg-2 col-md-3 col-6">
-                <h6 class="fw-bold mb-3">روابط سريعة</h6>
+            {{-- روابط سريعة --}}
+            <div class="col-lg-3 col-md-6 col-6">
+                <h6 class="fw-bold mb-3 text-white">روابط سريعة</h6>
                 <ul class="list-unstyled small">
                     <li class="mb-2"><a href="{{ route('home') }}"><i class="bi bi-chevron-left me-1"></i>الرئيسية</a></li>
                     <li class="mb-2"><a href="{{ route('universities.index') }}"><i class="bi bi-chevron-left me-1"></i>دليل الجامعات</a></li>
                     <li class="mb-2"><a href="{{ route('compare') }}"><i class="bi bi-chevron-left me-1"></i>مقارنة الجامعات</a></li>
-                    <li class="mb-2"><a href="{{ route('ai.advisor') }}"><i class="bi bi-chevron-left me-1"></i>المساعد الذكي</a></li>
+                    <li class="mb-2"><a href="{{ route('ai.advisor') }}"><i class="bi bi-chevron-left me-1"></i>المستشار الأكاديمي الذكي</a></li>
                 </ul>
             </div>
 
-            <div class="col-lg-2 col-md-3 col-6">
-                <h6 class="fw-bold mb-3">للطلاب</h6>
-                <ul class="list-unstyled small">
-                    <li class="mb-2"><a href="{{ route('register') }}"><i class="bi bi-chevron-left me-1"></i>إنشاء حساب</a></li>
-                    <li class="mb-2"><a href="{{ route('login') }}"><i class="bi bi-chevron-left me-1"></i>تسجيل الدخول</a></li>
-                    <li class="mb-2"><a href="{{ route('universities.index') }}"><i class="bi bi-chevron-left me-1"></i>ابحث عن جامعة</a></li>
-                </ul>
-            </div>
-
-            <div class="col-lg-4 col-md-6">
-                <h6 class="fw-bold mb-3">تواصل معنا</h6>
+            {{-- معلومات التواصل الرسمية --}}
+            <div class="col-lg-4 col-md-12 col-6">
+                <h6 class="fw-bold mb-3 text-white">تواصل معنا</h6>
                 <ul class="list-unstyled small">
                     <li class="mb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-geo-alt-fill text-accent"></i>
@@ -1529,11 +1664,11 @@
                     </li>
                     <li class="mb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-envelope-fill text-accent"></i>
-                        <a href="mailto:info@eduyemen.ye">info@eduyemen.ye</a>
+                        <a href="mailto:alawdi20026@gmail.com" class="text-decoration-none">alawdi20026@gmail.com</a>
                     </li>
                     <li class="mb-2 d-flex align-items-center gap-2">
                         <i class="bi bi-telephone-fill text-accent"></i>
-                        <span dir="ltr">+967 1 234 567</span>
+                        <a href="tel:773569269" class="text-decoration-none" dir="ltr">773569269</a>
                     </li>
                 </ul>
             </div>
@@ -1544,7 +1679,9 @@
             <p class="small mb-1 mb-md-0" style="color:#64748b;">
                 &copy; {{ date('Y') }} منصة <strong style="color:#fff;">EduYemen</strong> — جميع الحقوق محفوظة
             </p>
-            <p class="small mb-0" style="color:#64748b;">مشروع تخرج جامعي — الجمهورية اليمنية</p>
+            <p class="small mb-0" style="color:#cbd5e1;">
+                <i class="bi bi-mortarboard-fill text-accent me-1"></i>مشروع تخرج جامعي - ضياء العودي
+            </p>
         </div>
     </div>
 </footer>

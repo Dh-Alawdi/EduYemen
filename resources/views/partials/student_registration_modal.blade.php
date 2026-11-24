@@ -489,6 +489,15 @@
 
 {{-- تنسيقات CSS الخاصة بالاستمارة --}}
 <style>
+/* تطبيق الخط الحديث فائق الوضوح (IBM Plex Sans Arabic) لنافذة تسجيل الطالب */
+.reg-modal-wrapper,
+.reg-modal-wrapper input,
+.reg-modal-wrapper select,
+.reg-modal-wrapper button,
+.reg-modal-wrapper textarea {
+    font-family: 'IBM Plex Sans Arabic', 'Almarai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
 /* تراكب المودال */
 .reg-modal-overlay {
     position: fixed;
