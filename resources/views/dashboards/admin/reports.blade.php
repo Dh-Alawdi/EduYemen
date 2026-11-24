@@ -1,6 +1,6 @@
 @extends('dashboards.admin.layout')
 
-@section('page_title', 'التقارير والمؤشرات التحليلية')
+@section('page_title', 'التقارير والإحصائيات')
 
 @section('breadcrumb')
     <span>الرئيسية /</span>
@@ -11,1056 +11,1096 @@
 
 <style>
     /* =========================================================
-       EduYemen Executive Reports & Analytics Dashboard Styles
+       EduYemen Clean Reports & Analytics Styles
        ========================================================= */
 
-    /* Hero Header */
-    .reports-hero {
-        background: linear-gradient(135deg, #072b4f 0%, #0b3d6b 55%, #13528c 100%);
-        border-radius: var(--radius-lg);
-        padding: 24px 28px;
-        color: #fff;
-        position: relative;
-        overflow: hidden;
-        margin-bottom: 24px;
-        box-shadow: 0 10px 30px rgba(7, 43, 79, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-    }
-    .reports-hero::before {
-        content: '';
-        position: absolute;
-        top: -60px;
-        left: -60px;
-        width: 240px;
-        height: 240px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(197, 155, 39, 0.28) 0%, transparent 70%);
-        pointer-events: none;
-    }
-    .reports-hero::after {
-        content: '\f201';
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-        position: absolute;
-        bottom: -25px;
-        left: 20px;
-        font-size: 140px;
-        color: rgba(255, 255, 255, 0.04);
-        pointer-events: none;
-        line-height: 1;
-    }
-    .reports-hero-inner {
-        position: relative;
-        z-index: 2;
+    /* Top Action Bar (Replacing heavy hero container) */
+    .reports-action-header {
         display: flex;
-        flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
-        gap: 18px;
+        flex-wrap: wrap;
+        gap: 14px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1.5px solid #e2e8f0;
     }
-    .reports-hero-title h1 {
-        font-size: 21px;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 6px;
+
+    .reports-header-title {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
     }
+
+    .reports-header-title h1 {
+        font-size: 20px;
+        font-weight: 800;
+        color: #0f2942;
+        margin: 0;
+    }
+
     .hero-badge-live {
         font-size: 11px;
         font-weight: 700;
-        background: rgba(34, 197, 94, 0.2);
-        color: #86efac;
-        border: 1px solid rgba(34, 197, 94, 0.35);
-        padding: 2px 10px;
+        background: #ecfdf5;
+        color: #065f46;
+        border: 1px solid #a7f3d0;
+        padding: 3px 9px;
         border-radius: 20px;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
     }
+
     .hero-badge-live::before {
         content: '';
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: #22c55e;
-        box-shadow: 0 0 8px #22c55e;
+        background: #10b981;
     }
-    .reports-hero-title p {
-        font-size: 12.5px;
-        color: rgba(255, 255, 255, 0.85);
-        max-width: 680px;
-        line-height: 1.6;
-    }
-    .reports-hero-actions {
+
+    .reports-header-buttons {
         display: flex;
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
     }
-    .btn-report-action {
-        background: rgba(255, 255, 255, 0.12);
-        color: #fff;
-        font-size: 12.5px;
-        font-weight: 700;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        padding: 9px 18px;
-        border-radius: var(--radius-sm);
+
+    .btn-report-btn {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        transition: all 0.25s ease;
-        backdrop-filter: blur(4px);
-    }
-    .btn-report-action:hover {
-        background: #fff;
-        color: var(--primary-dark);
-        border-color: #fff;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-    }
-    .btn-report-gold {
-        background: linear-gradient(135deg, #c59b27 0%, #e0b438 100%);
-        color: #072b4f;
-        font-weight: 800;
-        border: none;
-        box-shadow: 0 4px 14px rgba(197, 155, 39, 0.35);
-    }
-    .btn-report-gold:hover {
-        color: #072b4f;
-        box-shadow: 0 6px 20px rgba(197, 155, 39, 0.5);
+        gap: 7px;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
     }
 
-    /* Strategic KPI Ribbon */
-    .reports-kpi-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 24px;
+    .btn-report-print {
+        background: #0f2942;
+        color: #ffffff;
+        border-color: #0f2942;
     }
-    .kpi-stat-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        padding: 18px 20px;
-        box-shadow: var(--shadow-sm);
+
+    .btn-report-print:hover {
+        background: #1e3a8a;
+        color: #ffffff;
+    }
+
+    .btn-report-refresh {
+        background: #f1f5f9;
+        color: #334155;
+        border-color: #cbd5e1;
+    }
+
+    .btn-report-refresh:hover {
+        background: #e2e8f0;
+        color: #0f172a;
+    }
+
+    /* Section Navigator Bar (ما التقرير الذي تريد استعراضه؟) */
+    .reports-navigator-bar {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 22px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-        position: relative;
-        overflow: hidden;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
-    .kpi-stat-card:hover {
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
-        border-color: rgba(11, 61, 107, 0.25);
-    }
-    .kpi-stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 4px;
-        height: 100%;
-        background: var(--primary);
-    }
-    .kpi-stat-card.kpi-blue::before { background: #0b3d6b; }
-    .kpi-stat-card.kpi-emerald::before { background: #10b981; }
-    .kpi-stat-card.kpi-gold::before { background: #c59b27; }
-    .kpi-stat-card.kpi-violet::before { background: #8b5cf6; }
 
-    .kpi-top-row {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 12px;
-    }
-    .kpi-icon-wrap {
-        width: 46px;
-        height: 46px;
-        border-radius: 12px;
+    .nav-bar-label {
+        font-size: 13.5px;
+        font-weight: 800;
+        color: #0b3d6b;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 19px;
-        flex-shrink: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    }
-    .kpi-blue .kpi-icon-wrap {
-        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
-        color: #0369a1;
-        border: 1px solid #7dd3fc;
-    }
-    .kpi-emerald .kpi-icon-wrap {
-        background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-        color: #15803d;
-        border: 1px solid #86efac;
-    }
-    .kpi-gold .kpi-icon-wrap {
-        background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-        color: #b45309;
-        border: 1px solid #fcd34d;
-    }
-    .kpi-violet .kpi-icon-wrap {
-        background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);
-        color: #6d28d9;
-        border: 1px solid #c4b5fd;
+        gap: 8px;
+        margin-bottom: 12px;
+        text-align: center;
+        width: 100%;
     }
 
-    .kpi-tag-chip {
-        font-size: 11px;
-        font-weight: 800;
-        padding: 3px 8px;
-        border-radius: 6px;
-        letter-spacing: 0.2px;
-    }
-    .kpi-blue .kpi-tag-chip { background: #f0f9ff; color: #0284c7; }
-    .kpi-emerald .kpi-tag-chip { background: #f0fdf4; color: #16a34a; }
-    .kpi-gold .kpi-tag-chip { background: #fffbeb; color: #d97706; }
-    .kpi-violet .kpi-tag-chip { background: #faf5ff; color: #7c3aed; }
-
-    .kpi-main-metric {
-        margin-bottom: 8px;
-    }
-    .kpi-number-display {
-        font-size: 24px;
-        font-weight: 900;
-        color: var(--ink);
-        line-height: 1.2;
-        font-family: 'Plus Jakarta Sans', 'Almarai', sans-serif;
-    }
-    .kpi-unit-label {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--ink-muted);
-        margin-right: 4px;
-    }
-    .kpi-title-text {
-        font-size: 12px;
-        font-weight: 700;
-        color: var(--ink-muted);
-        margin-top: 2px;
-    }
-    .kpi-sub-insight {
-        font-size: 11.5px;
-        color: var(--ink-muted);
-        border-top: 1px dashed var(--border-light);
-        padding-top: 8px;
+    .nav-bar-pills {
         display: flex;
         align-items: center;
-        gap: 6px;
-    }
-    .kpi-sub-insight strong {
-        color: var(--ink);
-        font-weight: 800;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        flex-wrap: wrap;
     }
 
-    /* Analytical Cards */
-    .report-card {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md);
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 22px;
-        overflow: hidden;
-        transition: box-shadow 0.2s ease;
+    .nav-pill-btn {
+        background: #f8fafc;
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #334155;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        flex: 1;
+        min-height: 40px;
+        box-sizing: border-box;
+        white-space: nowrap;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
     }
-    .report-card-header {
-        background: linear-gradient(to left, var(--surface) 0%, var(--surface-alt) 100%);
-        padding: 14px 20px;
-        border-bottom: 1px solid var(--border);
+
+    .nav-pill-btn:hover {
+        background: #0b3d6b;
+        color: #ffffff;
+        border-color: #0b3d6b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(11, 61, 107, 0.15);
+    }
+
+    .nav-pill-btn:hover i {
+        color: #ffffff !important;
+    }
+
+    /* Minimalist Statistical Counter Strip (3 بطاقات في صف واحد دائماً سواء بالشاشات الكبيرة أو الصغيرة) */
+    .reports-summary-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 14px;
+        margin-bottom: 24px;
+    }
+
+    .summary-strip-item {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    .strip-item-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .strip-item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .strip-item-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 2px;
+    }
+
+    .strip-item-value {
+        font-size: 20px;
+        font-weight: 900;
+        color: #0f2942;
+        line-height: 1.2;
+    }
+
+    .strip-item-sub {
+        font-size: 11px;
+        color: #94a3b8;
+        font-weight: 600;
+        margin-top: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Section Cards */
+    .report-section-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
+    }
+
+    .report-section-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f1f5f9;
         display: flex;
         align-items: center;
         justify-content: space-between;
+        flex-wrap: wrap;
         gap: 12px;
+        background: #fafbfd;
     }
-    .report-card-title {
+
+    .report-section-title-wrap {
         display: flex;
         align-items: center;
         gap: 10px;
     }
-    .report-icon-badge {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
-        background: var(--primary-subtle);
-        color: var(--primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
+
+    .report-section-title-wrap h3 {
         font-size: 15px;
-        flex-shrink: 0;
-    }
-    .report-card-title h3 {
-        font-size: 14px;
         font-weight: 800;
-        color: var(--primary-dark);
-        margin-bottom: 2px;
-    }
-    .report-card-title p {
-        font-size: 11px;
-        color: var(--ink-muted);
-    }
-    .report-badge-pill {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 3px 10px;
-        border-radius: 20px;
-        background: #f1f5f9;
-        color: var(--ink-muted);
-        border: 1px solid var(--border);
-        white-space: nowrap;
+        color: #0f2942;
+        margin: 0;
     }
 
-    /* Admissions Funnel & Status Rows */
+    .report-section-link {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #0b3d6b;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        transition: all 0.15s ease;
+    }
+
+    .report-section-link:hover {
+        background: #0b3d6b;
+        color: #ffffff;
+        border-color: #0b3d6b;
+    }
+
+    .report-section-body {
+        padding: 18px 20px;
+    }
+
+    /* Admissions Funnel Rows (حالتان في كل صف سواء بالشاشات الكبيرة أو الصغيرة) */
+    .funnel-list {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 12px !important;
+    }
+
+    /* عندما تكون البطاقة الثالثة منفردة (أو أي بطاقة فردية أخيرة)، تتمركز في منتصف الحاوية تماماً */
+    .funnel-list .funnel-row.funnel-row-centered,
+    .funnel-list .funnel-row:nth-child(3):last-child,
+    .funnel-list .funnel-row:nth-child(odd):last-child {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        max-width: calc(50% - 6px) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
     .funnel-row {
-        padding: 12px 14px;
-        border-radius: var(--radius-sm);
-        background: var(--surface-alt);
-        margin-bottom: 10px;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
         transition: all 0.2s ease;
-        border: 1px solid var(--border-light);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     }
-    .funnel-row:last-child { margin-bottom: 0; }
+
     .funnel-row:hover {
-        background: #fff;
-        border-color: var(--border);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border-color: #cbd5e1;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     }
-    .funnel-info-top {
+
+    .funnel-row-top {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 7px;
-    }
-    .funnel-status-label {
-        font-size: 12.5px;
-        font-weight: 800;
-        display: flex;
-        align-items: center;
         gap: 8px;
-    }
-    .funnel-status-dot {
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
-    }
-    .funnel-count-box {
-        font-size: 12.5px;
-        font-weight: 800;
-        font-family: 'Plus Jakarta Sans', 'Almarai', sans-serif;
-    }
-    .funnel-pct {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--ink-muted);
-        margin-right: 4px;
-    }
-    .funnel-progress-track {
-        height: 8px;
-        background: #e2e8f0;
-        border-radius: 6px;
-        overflow: hidden;
-    }
-    .funnel-progress-fill {
-        height: 100%;
-        border-radius: 6px;
-        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 100%;
+        flex-wrap: wrap;
     }
 
-    /* Profile / Demographics Metrics */
-    .demographics-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 18px;
-    }
-    .score-metric-box {
-        background: var(--surface-alt);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-sm);
-        padding: 12px 14px;
-        text-align: center;
-    }
-    .score-metric-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        margin: 0 auto 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-    }
-    .score-metric-val {
-        font-size: 17px;
-        font-weight: 900;
-        color: var(--primary-dark);
-        font-family: 'Plus Jakarta Sans', 'Almarai', sans-serif;
-    }
-    .score-metric-lbl {
-        font-size: 11px;
+    .funnel-status-badge {
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 12px;
         font-weight: 700;
-        color: var(--ink-muted);
-        margin-top: 2px;
-    }
-
-    /* Gender Split Visualizer */
-    .gender-split-box {
-        background: var(--surface-alt);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-sm);
-        padding: 14px;
-    }
-    .gender-split-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 10px;
-    }
-    .gender-chip {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
-        font-size: 12px;
-        font-weight: 800;
-    }
-    .gender-chip.male { color: #0284c7; }
-    .gender-chip.female { color: #ec4899; }
-    .gender-dual-bar {
-        height: 12px;
-        border-radius: 8px;
-        overflow: hidden;
-        display: flex;
-        background: #e2e8f0;
-    }
-    .gender-bar-male {
-        background: linear-gradient(90deg, #0284c7, #38bdf8);
-        transition: width 0.8s ease;
-    }
-    .gender-bar-female {
-        background: linear-gradient(90deg, #ec4899, #f472b6);
-        transition: width 0.8s ease;
     }
 
-    /* Tables (Universities & Specializations) */
+    .funnel-row-stats {
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+    }
+
+    .funnel-row-count {
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .funnel-row-pct {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .funnel-desc {
+        font-size: 11.5px;
+        color: #64748b;
+        line-height: 1.4;
+        margin: 0;
+    }
+
+    /* Tables (Clean, responsive, no overflow) */
+    .report-table-wrapper {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
     .report-table {
         width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        font-size: 12.5px;
-    }
-    .report-table th {
-        background: var(--surface-alt);
-        padding: 10px 14px;
-        font-weight: 800;
-        color: var(--ink-muted);
-        font-size: 11.5px;
-        border-bottom: 1px solid var(--border);
+        border-collapse: collapse;
+        font-size: 13px;
         text-align: right;
-        white-space: nowrap;
-    }
-    .report-table td {
-        padding: 12px 14px;
-        border-bottom: 1px solid var(--border-light);
-        vertical-align: middle;
-        color: var(--ink);
-    }
-    .report-table tbody tr:last-child td {
-        border-bottom: none;
-    }
-    .report-table tbody tr:hover {
-        background: rgba(11, 61, 107, 0.02);
     }
 
-    /* Rank Medals */
-    .rank-badge {
+    .report-table th {
+        background: #f8fafc;
+        padding: 11px 14px;
+        font-weight: 800;
+        color: #475569;
+        font-size: 12px;
+        border-bottom: 1.5px solid #e2e8f0;
+        white-space: nowrap;
+    }
+
+    .report-table td {
+        padding: 12px 14px;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+        color: #1e293b;
+        word-break: break-word;
+    }
+
+    .report-table tbody tr:hover {
+        background-color: #fafbfd;
+    }
+
+    .rank-number {
         width: 24px;
         height: 24px;
         border-radius: 50%;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: 11.5px;
         font-weight: 800;
+        background: #f1f5f9;
+        color: #334155;
     }
-    .rank-1 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-    .rank-2 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
-    .rank-3 { background: #ffedd5; color: #c2410c; border: 1px solid #fed7aa; }
-    .rank-other { background: #f8fafc; color: var(--ink-light); }
 
-    /* Financial Indicators Grid */
-    .finance-metrics-grid {
+    .rank-1 { background: #fef3c7; color: #b45309; }
+    .rank-2 { background: #f1f5f9; color: #475569; }
+    .rank-3 { background: #ffedd5; color: #c2410c; }
+
+    /* Fee Payments Receipts Grid (حركة سداد رسوم التسجيل) */
+    .receipts-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        margin-bottom: 14px;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
     }
-    .fin-box {
-        background: var(--surface-alt);
-        border: 1px solid var(--border-light);
-        border-radius: var(--radius-sm);
-        padding: 14px;
+
+    .receipt-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 16px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
     }
-    .fin-icon-box {
-        width: 40px;
-        height: 40px;
+
+    .receipt-box-icon {
+        width: 44px;
+        height: 44px;
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
         flex-shrink: 0;
     }
-    .fin-val {
-        font-size: 16px;
+
+    .receipt-box-val {
+        font-size: 18px;
         font-weight: 900;
-        color: var(--ink);
-        font-family: 'Plus Jakarta Sans', 'Almarai', sans-serif;
-    }
-    .fin-lbl {
-        font-size: 11px;
-        color: var(--ink-muted);
-        font-weight: 700;
+        color: #0f2942;
+        line-height: 1.2;
     }
 
-    /* Chart Flow Activity Bars */
+    .receipt-box-lbl {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        margin-top: 2px;
+    }
+
+    /* Timeline Activity Chart */
     .activity-chart-container {
         display: flex;
         align-items: flex-end;
-        gap: 12px;
+        justify-content: space-between;
+        gap: 8px;
         height: 160px;
-        padding: 10px 6px 4px;
-        border-bottom: 2px solid var(--border);
-        overflow-x: auto;
+        padding: 10px 0 0 0;
+        border-bottom: 2px solid #e2e8f0;
     }
+
     .chart-bar-col {
         flex: 1;
-        min-width: 38px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-end;
         height: 100%;
-        gap: 6px;
-    }
-    .bar-pill-value {
-        font-size: 11.5px;
-        font-weight: 800;
-        color: var(--primary);
-        font-family: 'Plus Jakarta Sans', 'Almarai', sans-serif;
-    }
-    .chart-bar-stem {
-        width: 100%;
-        max-width: 32px;
-        background: linear-gradient(180deg, #1565a8 0%, #0b3d6b 100%);
-        border-radius: 6px 6px 0 0;
-        transition: height 0.6s ease, transform 0.2s ease;
-    }
-    .chart-bar-stem:hover {
-        background: linear-gradient(180deg, #c59b27 0%, #0b3d6b 100%);
-        transform: scaleY(1.04);
-    }
-    .chart-bar-label {
-        font-size: 10.5px;
-        font-weight: 700;
-        color: var(--ink-muted);
-        white-space: nowrap;
-        margin-top: 4px;
+        justify-content: flex-end;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 1100px) {
-        .reports-kpi-grid {
+    .bar-pill-value {
+        font-size: 11px;
+        font-weight: 800;
+        color: #0b3d6b;
+        margin-bottom: 4px;
+    }
+
+    .chart-bar-stem {
+        width: 100%;
+        max-width: 28px;
+        background: #0b3d6b;
+        border-radius: 4px 4px 0 0;
+        transition: height 0.3s ease;
+    }
+
+    .chart-bar-stem:hover {
+        background: #1e3a8a;
+    }
+
+    .chart-bar-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        margin-top: 6px;
+        white-space: nowrap;
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 992px) {
+        .reports-summary-strip {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+        .receipts-grid {
             grid-template-columns: repeat(2, 1fr);
         }
     }
+
     @media (max-width: 768px) {
-        .reports-hero {
-            padding: 18px 20px;
-        }
-        .reports-hero-inner {
+        .reports-action-header {
             flex-direction: column;
             align-items: stretch;
+            gap: 10px;
         }
-        .reports-hero-actions {
+
+        .reports-header-buttons {
+            width: 100%;
+        }
+
+        .btn-report-btn {
+            flex: 1;
+            justify-content: center;
+        }
+
+        /* شريط التنقل على الشاشات الصغيرة: العنوان في بداية الحاوية وبجانبه الزر الأول، ثم زرين في كل صف تالي مع تناسق الأحجام */
+        .reports-navigator-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            padding: 12px 14px;
+            align-items: stretch;
+        }
+
+        .nav-bar-label {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            display: flex;
+            align-items: center;
             justify-content: flex-start;
+            text-align: right;
+            margin-bottom: 0;
+            font-size: 11.5px;
+            font-weight: 800;
+            color: #0b3d6b;
+            padding: 4px 6px;
+            line-height: 1.35;
         }
-        .reports-kpi-grid {
-            grid-template-columns: 1fr;
+
+        .nav-bar-pills {
+            display: contents; /* يفرغ الحاوية لتشارك الأزرار مباشرة في الشبكة المكونة من عمودين */
         }
-        .demographics-grid {
-            grid-template-columns: 1fr;
+
+        .nav-pill-btn {
+            width: 100% !important;
+            max-width: none !important;
+            padding: 8px 6px !important;
+            font-size: 11px !important;
+            min-height: 40px !important;
+            text-align: center;
+            justify-content: center;
+            border-radius: 8px !important;
+            box-sizing: border-box;
+            white-space: normal;
         }
-        .finance-metrics-grid {
-            grid-template-columns: 1fr;
+
+        /* الصف الأول: الزر الأول بجانب العنوان */
+        .nav-pill-first {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+        }
+
+        /* الصف الثاني: زران */
+        .nav-bar-pills .nav-pill-btn:nth-child(2) {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+        }
+        .nav-bar-pills .nav-pill-btn:nth-child(3) {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+
+        /* الصف الثالث: زران */
+        .nav-bar-pills .nav-pill-btn:nth-child(4) {
+            grid-column: 1 / 2;
+            grid-row: 3 / 4;
+        }
+        .nav-bar-pills .nav-pill-btn:nth-child(5) {
+            grid-column: 2 / 3;
+            grid-row: 3 / 4;
+        }
+
+        /* مسار وحالات طلبات التسجيل بالشاشات الصغيرة: حالتان في كل صف، والبطاقة الثالثة الفردية تتوسط الحاوية */
+        .funnel-list {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+        }
+
+        .funnel-list .funnel-row.funnel-row-centered,
+        .funnel-list .funnel-row:nth-child(3):last-child,
+        .funnel-list .funnel-row:nth-child(odd):last-child {
+            grid-column: 1 / -1 !important;
+            width: 100% !important;
+            max-width: calc(50% - 4px) !important;
+            margin-left: auto !important;
+            margin-right: auto !important;
+        }
+
+        .funnel-row {
+            padding: 10px 10px;
+            gap: 8px;
+        }
+
+        .funnel-row-top {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+        }
+
+        .funnel-status-badge {
+            padding: 3px 7px;
+            font-size: 11px;
+        }
+
+        .funnel-row-count {
+            font-size: 13.5px;
+        }
+
+        .funnel-row-pct {
+            font-size: 10.5px;
+        }
+
+        .funnel-desc {
+            font-size: 10px;
+            line-height: 1.35;
+        }
+
+        /* الحاوية في صف واحد على الشاشات الصغيرة أيضاً */
+        .reports-summary-strip {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 6px !important;
+            margin-bottom: 18px !important;
+        }
+
+        .summary-strip-item {
+            padding: 8px 6px !important;
+            flex-direction: column !important;
+            text-align: center !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 5px !important;
+        }
+
+        .strip-item-icon {
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 13px !important;
+            border-radius: 8px !important;
+        }
+
+        .strip-item-info {
+            width: 100% !important;
+        }
+
+        .strip-item-label {
+            font-size: 10.5px !important;
+            font-weight: 700 !important;
+            margin-bottom: 2px !important;
+            white-space: nowrap !important;
+        }
+
+        .strip-item-value {
+            font-size: 15px !important;
+            font-weight: 900 !important;
+            line-height: 1.1 !important;
+        }
+
+        .strip-item-sub {
+            font-size: 9px !important;
+            margin-top: 2px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+            font-size: 17px;
+        }
+
+        .receipts-grid {
+            grid-template-columns: repeat(2, 1fr) !important; /* بطاقتين في كل صف بالشاشات الصغيرة */
+            gap: 10px;
+        }
+
+        .receipt-box {
+            padding: 12px 10px;
+            gap: 10px;
+        }
+
+        .receipt-box-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 15px;
+        }
+
+        .receipt-box-val {
+            font-size: 15px;
+        }
+
+        .receipt-box-lbl {
+            font-size: 11px;
+        }
+
+        .report-table-wrapper {
+            overflow-x: hidden;
+        }
+
+        .report-table {
+            font-size: 11.5px;
+        }
+
+        .report-table th, .report-table td {
+            padding: 8px 6px;
+        }
+
+        .col-mobile-hide {
+            display: none !important;
         }
     }
 
-    /* Print Styles */
+    /* =========================================================
+       طباعة التقرير كتقرير حقيقي ورسمي (Real Print Document)
+       ========================================================= */
     @media print {
-        .admin-sidebar, .admin-topbar, .reports-hero-actions, .btn-report-action {
+        @page {
+            size: A4 portrait;
+            margin: 15mm 12mm 15mm 12mm;
+        }
+
+        body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-size: 10pt !important;
+        }
+
+        /* إخفاء عناصر التحكم والتنقل */
+        .admin-sidebar, 
+        .admin-topbar, 
+        .reports-action-header, 
+        .reports-navigator-bar, 
+        .report-section-link,
+        .btn-report-btn {
             display: none !important;
         }
-        .admin-main {
+
+        .admin-main, .admin-content, .content-wrapper {
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
-        }
-        .reports-hero {
-            background: #fff !important;
-            color: #000 !important;
-            border: 2px solid #000 !important;
             box-shadow: none !important;
         }
-        .reports-hero-title h1, .reports-hero-title p {
-            color: #000 !important;
+
+        /* ترويسة التقرير الرسمية للطباعة */
+        .print-official-header {
+            display: block !important;
+            border-bottom: 2px solid #0f2942;
+            padding-bottom: 12px;
+            margin-bottom: 18px;
         }
-        .report-card, .kpi-stat-card {
+
+        .print-official-header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .print-official-header h2 {
+            margin: 0 0 4px 0;
+            font-size: 15pt;
+            font-weight: 800;
+            color: #0f2942;
+        }
+
+        .print-official-header p {
+            margin: 0;
+            font-size: 9pt;
+            color: #475569;
+        }
+
+        .report-section-card {
+            border: 1px solid #cbd5e1 !important;
             box-shadow: none !important;
-            border: 1px solid #ccc !important;
-            break-inside: avoid;
+            margin-bottom: 16px !important;
+            page-break-inside: avoid;
+        }
+
+        .report-section-header {
+            background: #f1f5f9 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+            padding: 10px 14px !important;
+        }
+
+        .report-section-header h3 {
+            color: #0f2942 !important;
+            font-size: 11pt !important;
+        }
+
+        .reports-summary-strip {
+            gap: 10px !important;
+            margin-bottom: 16px !important;
+            page-break-inside: avoid;
+        }
+
+        .summary-strip-item {
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: none !important;
+            padding: 10px 12px !important;
+        }
+
+        .receipts-grid {
+            gap: 10px !important;
+            page-break-inside: avoid;
+        }
+
+        .receipt-box {
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: none !important;
+        }
+
+        .report-table th {
+            background: #f1f5f9 !important;
+            color: #000000 !important;
+            border-bottom: 1px solid #000000 !important;
+            padding: 6px 8px !important;
+        }
+
+        .report-table td {
+            border-bottom: 1px solid #e2e8f0 !important;
+            padding: 6px 8px !important;
+        }
+
+        .print-footer-info {
+            display: block !important;
+            text-align: center;
+            font-size: 8pt;
+            color: #64748b;
+            margin-top: 20px;
+            padding-top: 8px;
+            border-top: 1px solid #cbd5e1;
         }
     }
 </style>
 
-<!-- ================= 1. Hero Header ================= -->
-<div class="reports-hero">
-    <div class="reports-hero-inner">
-        <div class="reports-hero-title">
-            <h1>
-                <i class="fa-solid fa-chart-line" style="color:var(--accent);"></i>
-                مركز التقارير والمؤشرات التحليلية
-                <span class="hero-badge-live">
-                    <i class="fa-solid fa-circle-check"></i> بيانات مباشرة ومحدثة
-                </span>
-            </h1>
-            <p>
-                لوحة تنفيذية شاملة وموحدة لاستقراء أداء المنصة التعليمية، تدفقات طلبات الالتحاق، التحصيل المالي، وتصنيف إقبال الطلاب على الجامعات والتخصصات في اليمن.
-            </p>
+<!-- ترويسة الطباعة الرسمية (تظهر فقط عند الطباعة الورقية/PDF) -->
+<div class="print-official-header" style="display: none;">
+    <div class="print-official-header-flex">
+        <div>
+            <h2>الجمهورية اليمنية — منصة EduYemen المركزية</h2>
+            <p>تقرير المؤشرات التحليلية وإحصائيات التسجيل والقبول الأكاديمي</p>
         </div>
-        <div class="reports-hero-actions">
-            <button type="button" class="btn-report-action btn-report-gold" onclick="window.print()">
-                <i class="fa-solid fa-print"></i>
-                طباعة وتصدير التقرير
-            </button>
-            <button type="button" class="btn-report-action" onclick="location.reload()">
-                <i class="fa-solid fa-arrows-rotate"></i>
-                تحديث البيانات
-            </button>
+        <div style="text-align: left; font-size: 9pt; color: #475569;">
+            <div><strong>تاريخ الاستخراج:</strong> {{ date('Y-m-d H:i') }}</div>
+            <div><strong>الجهة:</strong> إدارة النظام المركزية</div>
         </div>
     </div>
 </div>
 
-<!-- ================= 2. Strategic KPI Ribbon ================= -->
-<div class="reports-kpi-grid">
-    <!-- KPI 1: Admissions -->
-    <div class="kpi-stat-card kpi-blue">
-        <div class="kpi-top-row">
-            <div class="kpi-icon-wrap">
-                <i class="fa-solid fa-file-contract"></i>
-            </div>
-            <span class="kpi-tag-chip">
-                <i class="fa-solid fa-arrow-trend-up"></i> تدفق القبول
-            </span>
+<!-- ================= 1. شريط التحكم العلوي ================= -->
+<div class="reports-action-header">
+    <div class="reports-header-title">
+        <h1>التقارير والإحصائيات</h1>
+        <span class="hero-badge-live">
+            بيانات مباشرة ومحدثة
+        </span>
+    </div>
+    <div class="reports-header-buttons">
+        <button type="button" class="btn-report-btn btn-report-print" onclick="window.print()">
+            <i class="fa-solid fa-print"></i>
+            <span>طباعة التقرير</span>
+        </button>
+        <button type="button" class="btn-report-btn btn-report-refresh" onclick="location.reload()">
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span>تحديث البيانات</span>
+        </button>
+    </div>
+</div>
+
+<!-- ================= 2. شريط الانتقال السريع بين التقارير ================= -->
+<div class="reports-navigator-bar">
+    <div class="nav-bar-label">
+        <i class="fa-solid fa-compass" style="color: #c59b27; font-size: 15px;"></i>
+        <span>ما التقرير الذي تريد استعراضه؟</span>
+    </div>
+    <div class="nav-bar-pills">
+        <a href="#section-pipeline" class="nav-pill-btn nav-pill-first">
+            <i class="fa-solid fa-route" style="color: #0284c7;"></i>
+            <span>مسار طلبات التسجيل</span>
+        </a>
+        <a href="#section-universities" class="nav-pill-btn">
+            <i class="fa-solid fa-building-columns" style="color: #0b3d6b;"></i>
+            <span>الجامعات الأكثر نشاطاً</span>
+        </a>
+        <a href="#section-specializations" class="nav-pill-btn">
+            <i class="fa-solid fa-graduation-cap" style="color: #7c3aed;"></i>
+            <span>التخصصات الأكثر طلباً</span>
+        </a>
+        <a href="#section-payments" class="nav-pill-btn">
+            <i class="fa-solid fa-file-invoice-dollar" style="color: #10b981;"></i>
+            <span>حركة سداد رسوم التسجيل</span>
+        </a>
+        <a href="#section-timeline" class="nav-pill-btn">
+            <i class="fa-solid fa-chart-line" style="color: #d97706;"></i>
+            <span>التدفق الزمني للتسجيل</span>
+        </a>
+    </div>
+</div>
+
+<!-- ================= 3. شريط المؤشرات الرقمية المباشرة (3 بطاقات في صف واحد دائماً) ================= -->
+<div class="reports-summary-strip">
+    <div class="summary-strip-item">
+        <div class="strip-item-icon" style="background: #eff6ff; color: #0b3d6b;">
+            <i class="fa-solid fa-file-signature"></i>
         </div>
-        <div class="kpi-main-metric">
-            <div class="kpi-number-display">
-                {{ number_format($stats['total_requests']) }}
-                <span class="kpi-unit-label">طلب التحاق</span>
-            </div>
-            <div class="kpi-title-text">إجمالي طلبات التسجيل المرفوعة</div>
-        </div>
-        <div class="kpi-sub-insight">
-            <i class="fa-solid fa-circle-check" style="color:#10b981;"></i>
-            معدل القبول العام: <strong>{{ $stats['acceptance_rate'] }}%</strong> ({{ $stats['accepted_requests'] }} مقبول)
+        <div class="strip-item-info">
+            <div class="strip-item-label">طلبات التسجيل</div>
+            <div class="strip-item-value">{{ number_format($stats['total_requests']) }}</div>
+            <div class="strip-item-sub">{{ $stats['accepted_requests'] }} طلب مقبول ({{ $stats['acceptance_rate'] }}%)</div>
         </div>
     </div>
 
-    <!-- KPI 2: Financial -->
-    <div class="kpi-stat-card kpi-emerald">
-        <div class="kpi-top-row">
-            <div class="kpi-icon-wrap">
-                <i class="fa-solid fa-vault"></i>
-            </div>
-            <span class="kpi-tag-chip">
-                <i class="fa-solid fa-receipt"></i> التحصيل المالي
-            </span>
+    <div class="summary-strip-item">
+        <div class="strip-item-icon" style="background: #fef9c3; color: #b45309;">
+            <i class="fa-solid fa-building-columns"></i>
         </div>
-        <div class="kpi-main-metric">
-            <div class="kpi-number-display">
-                {{ number_format($stats['confirmed_payments']) }}
-                <span class="kpi-unit-label">ر.ي</span>
-            </div>
-            <div class="kpi-title-text">إجمالي الرسوم المسددة والمؤكدة</div>
-        </div>
-        <div class="kpi-sub-insight">
-            <i class="fa-solid fa-money-bill-transfer" style="color:#10b981;"></i>
-            تم تأكيد <strong>{{ $stats['confirmed_payments_count'] }}</strong> من أصل <strong>{{ $stats['payments_count'] }}</strong> معاملة
+        <div class="strip-item-info">
+            <div class="strip-item-label">الجامعات المسجلة</div>
+            <div class="strip-item-value">{{ number_format($stats['total_universities']) }}</div>
+            <div class="strip-item-sub">{{ $stats['public_universities'] }} حكومية <span style="color:#cbd5e1; margin: 0 4px;">|</span> {{ $stats['private_universities'] }} أهلية</div>
         </div>
     </div>
 
-    <!-- KPI 3: Universities -->
-    <div class="kpi-stat-card kpi-gold">
-        <div class="kpi-top-row">
-            <div class="kpi-icon-wrap">
-                <i class="fa-solid fa-landmark-dome"></i>
-            </div>
-            <span class="kpi-tag-chip">
-                <i class="fa-solid fa-building-columns"></i> الصرح الأكاديمي
-            </span>
+    <div class="summary-strip-item">
+        <div class="strip-item-icon" style="background: #f5f3ff; color: #6d28d9;">
+            <i class="fa-solid fa-user-graduate"></i>
         </div>
-        <div class="kpi-main-metric">
-            <div class="kpi-number-display">
-                {{ number_format($stats['total_universities']) }}
-                <span class="kpi-unit-label">جامعات معتمدة</span>
-            </div>
-            <div class="kpi-title-text">الشبكة الجامعية المتصلة بالمنصة</div>
-        </div>
-        <div class="kpi-sub-insight">
-            <i class="fa-solid fa-graduation-cap" style="color:#c59b27;"></i>
-            <strong>{{ $stats['public_universities'] }}</strong> حكومية • <strong>{{ $stats['private_universities'] }}</strong> أهلية وخاصة
-        </div>
-    </div>
-
-    <!-- KPI 4: Students & Community -->
-    <div class="kpi-stat-card kpi-violet">
-        <div class="kpi-top-row">
-            <div class="kpi-icon-wrap">
-                <i class="fa-solid fa-users-viewfinder"></i>
-            </div>
-            <span class="kpi-tag-chip">
-                <i class="fa-solid fa-user-graduate"></i> المجتمع الطلابي
-            </span>
-        </div>
-        <div class="kpi-main-metric">
-            <div class="kpi-number-display">
-                {{ number_format($stats['total_users']) }}
-                <span class="kpi-unit-label">حساب مسجل</span>
-            </div>
-            <div class="kpi-title-text">إجمالي المستخدمين بالمنصة</div>
-        </div>
-        <div class="kpi-sub-insight">
-            <i class="fa-solid fa-id-card-clip" style="color:#8b5cf6;"></i>
-            <strong>{{ $stats['total_students'] }}</strong> طالب مسجل • <strong>{{ $stats['total_referrals'] }}</strong> إحالة تسويقية
+        <div class="strip-item-info">
+            <div class="strip-item-label">الطلاب المسجلون</div>
+            <div class="strip-item-value">{{ number_format($stats['total_students']) }}</div>
+            <div class="strip-item-sub">إجمالي حسابات الطلاب بالمنصة</div>
         </div>
     </div>
 </div>
 
-<!-- ================= 3. Chapter 1: Admissions Funnel & Student Demographics ================= -->
-<div class="grid-2">
-    <!-- Card 1: Admissions Funnel Pipeline -->
-    <div class="report-card">
-        <div class="report-card-header">
-            <div class="report-card-title">
-                <div class="report-icon-badge">
-                    <i class="fa-solid fa-diagram-project"></i>
-                </div>
-                <div>
-                    <h3>مسار ومراحل معالجة طلبات القبول</h3>
-                    <p>توزيع الطلبات حسب المرحلة الإدارية بالجامعات</p>
-                </div>
-            </div>
-            <span class="report-badge-pill">إجمالي {{ $stats['total_requests'] }} طلب</span>
+<!-- ================= 4. مسار وحالات طلبات التسجيل ================= -->
+<div class="report-section-card" id="section-pipeline">
+    <div class="report-section-header">
+        <div class="report-section-title-wrap">
+            <i class="fa-solid fa-route" style="color: #0b3d6b; font-size: 16px;"></i>
+            <h3>مسار وحالات طلبات التسجيل</h3>
         </div>
-
-        <div style="padding: 18px 20px;">
+        <a href="{{ route('admin.requests') }}" class="report-section-link">
+            <span>متابعة طلبات الالتحاق</span>
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+    <div class="report-section-body">
+        <div class="funnel-list">
             @php
-                $totalReqs = $requestsByStatus->sum('total') ?: 1;
+                $activeStatuses = $requestsByStatus->where('status', '!=', 'ملغي')->values();
+                $totalReqs = $activeStatuses->sum('total') ?: 1;
+                $totalActiveStatuses = $activeStatuses->count();
                 $statusMap = [
                     'قيد المراجعة' => [
-                        'color' => '#0284c7', 'bg' => '#e0f2fe',
-                        'desc' => 'تخضع حالياً للتدقيق من لجان القبول الجامعية',
-                        'icon' => 'fa-hourglass-half'
+                        'color' => '#0284c7', 'bg' => '#e0f2fe', 'border' => '#0284c7',
+                        'desc' => 'بانتظار تدقيق لجان القبول الجامعية',
+                        'icon' => 'fa-clock-rotate-left'
                     ],
                     'مقبول' => [
-                        'color' => '#16a34a', 'bg' => '#dcfce7',
-                        'desc' => 'تم استيفاء الشروط واعتماد القيد الأكاديمي',
+                        'color' => '#16a34a', 'bg' => '#dcfce7', 'border' => '#16a34a',
+                        'desc' => 'تم استيفاء الشروط واعتماد القبول',
                         'icon' => 'fa-circle-check'
                     ],
-                    'ملغي' => [
-                        'color' => '#64748b', 'bg' => '#f1f5f9',
-                        'desc' => 'تم إلغاء الطلب من قبل الطالب أو انتهاء المهلة',
-                        'icon' => 'fa-ban'
+                    'يتطلب استكمال' => [
+                        'color' => '#d97706', 'bg' => '#fef3c7', 'border' => '#d97706',
+                        'desc' => 'بانتظار استكمال وثائق أو سداد الرسوم',
+                        'icon' => 'fa-circle-exclamation'
                     ],
                     'مرفوض' => [
-                        'color' => '#dc2626', 'bg' => '#fee2e2',
-                        'desc' => 'عدم مطابقة المعدل أو استيفاء المقاعد المتاحة',
+                        'color' => '#dc2626', 'bg' => '#fee2e2', 'border' => '#dc2626',
+                        'desc' => 'عدم مطابقة المعدل أو استيفاء المقاعد',
                         'icon' => 'fa-circle-xmark'
-                    ],
-                    'يتطلب استكمال' => [
-                        'color' => '#7c3aed', 'bg' => '#ede9fe',
-                        'desc' => 'بانتظار تصحيح وثائق أو سداد الرسوم الإلزامية',
-                        'icon' => 'fa-circle-exclamation'
                     ],
                 ];
             @endphp
 
-            @forelse($requestsByStatus as $item)
+            @forelse($activeStatuses as $index => $item)
                 @php
                     $pct = round(($item->total / $totalReqs) * 100, 1);
                     $cfg = $statusMap[$item->status] ?? [
-                        'color' => '#64748b', 'bg' => '#f1f5f9',
-                        'desc' => 'حالة نظامية مسجلة بالمنصة',
-                        'icon' => 'fa-circle-dot'
+                        'color' => '#475569', 'bg' => '#f1f5f9', 'border' => '#cbd5e1',
+                        'desc' => 'حالة مسجلة بالمنظومة',
+                        'icon' => 'fa-circle'
                     ];
+                    // إذا كانت البطاقة الثالثة فردية، تتمركز في منتصف الحاوية تماماً
+                    $isCentered = ($index === 2 && $totalActiveStatuses === 3) || ($index === ($totalActiveStatuses - 1) && ($totalActiveStatuses % 2 !== 0));
                 @endphp
-                <div class="funnel-row">
-                    <div class="funnel-info-top">
-                        <div class="funnel-status-label" style="color: {{ $cfg['color'] }};">
-                            <span class="funnel-status-dot" style="background: {{ $cfg['color'] }};"></span>
+                <div class="funnel-row {{ $isCentered ? 'funnel-row-centered' : '' }}" style="border-right: 4px solid {{ $cfg['border'] }};">
+                    <div class="funnel-row-top">
+                        <span class="funnel-status-badge" style="background: {{ $cfg['bg'] }}; color: {{ $cfg['color'] }};">
                             <i class="fa-solid {{ $cfg['icon'] }}"></i>
                             {{ $item->status }}
-                            <span style="font-size:10.5px;font-weight:600;color:var(--ink-muted);margin-right:4px;">
-                                ({{ $cfg['desc'] }})
-                            </span>
-                        </div>
-                        <div class="funnel-count-box" style="color: {{ $cfg['color'] }};">
-                            {{ $item->total }}
-                            <span class="funnel-pct">({{ $pct }}%)</span>
+                        </span>
+                        <div class="funnel-row-stats" style="color: {{ $cfg['color'] }};">
+                            <span class="funnel-row-count">{{ number_format($item->total) }} طلب</span>
+                            <span class="funnel-row-pct">({{ $pct }}%)</span>
                         </div>
                     </div>
-                    <div class="funnel-progress-track">
-                        <div class="funnel-progress-fill" style="width: {{ $pct }}%; background: {{ $cfg['color'] }};"></div>
-                    </div>
+                    <p class="funnel-desc">{{ $cfg['desc'] }}</p>
                 </div>
             @empty
-                <p style="text-align:center;color:var(--ink-muted);padding:30px;">لا توجد طلبات مسجلة حتى الآن.</p>
+                <div style="grid-column: 1 / -1; text-align:center; color:#64748b; padding: 20px;">
+                    <i class="fa-solid fa-inbox" style="font-size: 28px; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+                    لا توجد طلبات تسجيل مسجلة حتى الآن.
+                </div>
             @endforelse
-        </div>
-    </div>
-
-    <!-- Card 2: Academic Profile & Demographics -->
-    <div class="report-card">
-        <div class="report-card-header">
-            <div class="report-card-title">
-                <div class="report-icon-badge">
-                    <i class="fa-solid fa-graduation-cap"></i>
-                </div>
-                <div>
-                    <h3>الملف الأكاديمي ومعدلات الطلاب</h3>
-                    <p>مؤشرات الكفاءة والتوزيع الديموغرافي للمتقدمين</p>
-                </div>
-            </div>
-            <span class="report-badge-pill">الثانوية العامة</span>
-        </div>
-
-        <div style="padding: 18px 20px;">
-            <!-- Secondary Score Stats -->
-            <div class="demographics-grid">
-                <div class="score-metric-box">
-                    <div class="score-metric-icon" style="background:#e0f2fe;color:#0284c7;">
-                        <i class="fa-solid fa-award"></i>
-                    </div>
-                    <div class="score-metric-val">{{ $academicMetrics['avg_sec_score'] }}%</div>
-                    <div class="score-metric-lbl">متوسط معدل المتقدمين</div>
-                </div>
-
-                <div class="score-metric-box">
-                    <div class="score-metric-icon" style="background:#dcfce7;color:#16a34a;">
-                        <i class="fa-solid fa-arrow-trend-up"></i>
-                    </div>
-                    <div class="score-metric-val">{{ $academicMetrics['max_sec_score'] }}%</div>
-                    <div class="score-metric-lbl">أعلى معدل مسجل</div>
-                </div>
-
-                <div class="score-metric-box">
-                    <div class="score-metric-icon" style="background:#fef3c7;color:#d97706;">
-                        <i class="fa-solid fa-sliders"></i>
-                    </div>
-                    <div class="score-metric-val">{{ $academicMetrics['min_sec_score'] }}%</div>
-                    <div class="score-metric-lbl">الحد الأدنى للمعدلات</div>
-                </div>
-            </div>
-
-            <!-- Gender Demographics -->
-            @php
-                $maleCount = $genderStats->firstWhere('gender', 'ذكر')->total ?? 0;
-                $femaleCount = $genderStats->firstWhere('gender', 'أنثى')->total ?? 0;
-                $totalGender = ($maleCount + $femaleCount) ?: 1;
-                $malePct = round(($maleCount / $totalGender) * 100, 1);
-                $femalePct = round(($femaleCount / $totalGender) * 100, 1);
-            @endphp
-            <div class="gender-split-box">
-                <div class="gender-split-header">
-                    <span style="font-size:12px;font-weight:800;color:var(--primary-dark);">
-                        <i class="fa-solid fa-venus-mars" style="color:var(--accent);margin-left:6px;"></i>
-                        التوزيع الديموغرافي للطلاب (الجنس)
-                    </span>
-                    <div style="display:flex;gap:14px;">
-                        <span class="gender-chip male">
-                            <i class="fa-solid fa-mars"></i> ذكور: {{ $maleCount }} ({{ $malePct }}%)
-                        </span>
-                        <span class="gender-chip female">
-                            <i class="fa-solid fa-venus"></i> إناث: {{ $femaleCount }} ({{ $femalePct }}%)
-                        </span>
-                    </div>
-                </div>
-                <div class="gender-dual-bar">
-                    <div class="gender-bar-male" style="width: {{ $malePct }}%;" title="ذكور: {{ $malePct }}%"></div>
-                    <div class="gender-bar-female" style="width: {{ $femalePct }}%;" title="إناث: {{ $femalePct }}%"></div>
-                </div>
-            </div>
-
-            <!-- Additional Academic Insight -->
-            <div style="margin-top:14px;background:var(--surface-alt);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-                <span style="font-weight:700;color:var(--ink-muted);">
-                    <i class="fa-solid fa-book-open-reader" style="color:var(--primary);margin-left:6px;"></i>
-                    متوسط الرسوم الدراسية بالبرامج المتاحة:
-                </span>
-                <span style="font-weight:900;color:var(--primary-dark);font-family:'Plus Jakarta Sans','Almarai',sans-serif;">
-                    {{ number_format($stats['avg_tuition_fees']) }} ر.ي / سنة
-                </span>
-            </div>
         </div>
     </div>
 </div>
 
-<!-- ================= 4. Chapter 2: University Leaderboard & Academic Specializations ================= -->
-<div class="grid-2">
-    <!-- Top Universities Table -->
-    <div class="report-card">
-        <div class="report-card-header">
-            <div class="report-card-title">
-                <div class="report-icon-badge">
-                    <i class="fa-solid fa-trophy"></i>
-                </div>
-                <div>
-                    <h3>تصنيف الجامعات الأكثر استقطاباً للمتقدمين</h3>
-                    <p>أعلى الجامعات حسب حجم طلبات الالتحاق ونسب الاستحواذ</p>
-                </div>
-            </div>
-            <span class="report-badge-pill">أفضل {{ $topUniversities->count() }} صروح</span>
+<!-- ================= 5. تصنيف الجامعات الأكثر استقطاباً ================= -->
+<div class="report-section-card" id="section-universities">
+    <div class="report-section-header">
+        <div class="report-section-title-wrap">
+            <i class="fa-solid fa-trophy" style="color: #0b3d6b; font-size: 16px;"></i>
+            <h3>تصنيف الجامعات الأكثر استقطاباً للمتقدمين</h3>
         </div>
-
-        <div style="overflow-x:auto;">
+        <a href="{{ route('admin.universities') }}" class="report-section-link">
+            <span>إدارة الجامعات</span>
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+    <div class="report-section-body" style="padding: 0;">
+        <div class="report-table-wrapper">
             <table class="report-table">
                 <thead>
                     <tr>
-                        <th style="width:40px;text-align:center;">#</th>
+                        <th style="width: 45px; text-align: center;">#</th>
                         <th>اسم الجامعة</th>
-                        <th>التصنيف</th>
-                        <th style="text-align:center;">الطلبات</th>
-                        <th style="text-align:center;">المقبولين</th>
-                        <th style="width:120px;">حصة الاستقطاب</th>
+                        <th>النوع</th>
+                        <th style="text-align: center;">إجمالي الطلبات</th>
+                        <th style="text-align: center;" class="col-mobile-hide">المقبولين</th>
+                        <th style="text-align: center; width: 110px;">حصة الاستقطاب</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @php $maxUniReqs = $topUniversities->max('total_reqs') ?: 1; @endphp
                     @forelse($topUniversities as $i => $uni)
                         @php
                             $sharePct = round(($uni->total_reqs / ($stats['total_requests'] ?: 1)) * 100, 1);
                         @endphp
                         <tr>
-                            <td style="text-align:center;">
-                                <span class="rank-badge {{ $i == 0 ? 'rank-1' : ($i == 1 ? 'rank-2' : ($i == 2 ? 'rank-3' : 'rank-other')) }}">
-                                    @if($i == 0)
-                                        <i class="fa-solid fa-medal"></i>
-                                    @else
-                                        {{ $i + 1 }}
-                                    @endif
+                            <td style="text-align: center;">
+                                <span class="rank-number {{ $i == 0 ? 'rank-1' : ($i == 1 ? 'rank-2' : ($i == 2 ? 'rank-3' : '')) }}">
+                                    {{ $i + 1 }}
                                 </span>
                             </td>
-                            <td style="font-weight:800;color:var(--primary-dark);">
-                                {{ $uni->university_name }}
-                                <div style="font-size:10.5px;color:var(--ink-light);font-weight:600;">
-                                    <i class="fa-solid fa-location-dot"></i> {{ $uni->district ?: 'اليمن' }}
-                                </div>
+                            <td>
+                                <strong>{{ $uni->university_name }}</strong>
+                                <div style="font-size: 11px; color: #64748b;">{{ $uni->district ?: 'اليمن' }}</div>
                             </td>
                             <td>
-                                <span class="badge {{ $uni->university_type == 'حكومية' ? 'badge-blue' : 'badge-gold' }}" style="font-size:10.5px;">
+                                <span class="badge {{ $uni->university_type == 'حكومية' ? 'badge-blue' : 'badge-gold' }}" style="font-size: 11px; padding: 3px 8px;">
                                     {{ $uni->university_type ?: 'أهلية' }}
                                 </span>
                             </td>
-                            <td style="text-align:center;font-weight:900;color:var(--primary);font-size:14px;font-family:'Plus Jakarta Sans','Almarai',sans-serif;">
-                                {{ $uni->total_reqs }}
+                            <td style="text-align: center; font-weight: 800; color: #0b3d6b; font-size: 14px;">
+                                {{ number_format($uni->total_reqs) }}
                             </td>
-                            <td style="text-align:center;font-weight:800;color:#16a34a;font-size:13px;font-family:'Plus Jakarta Sans','Almarai',sans-serif;">
-                                {{ $uni->accepted_reqs }}
+                            <td style="text-align: center; font-weight: 700; color: #16a34a;" class="col-mobile-hide">
+                                {{ number_format($uni->accepted_reqs) }}
                             </td>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <div style="flex:1;background:#e2e8f0;border-radius:4px;height:7px;overflow:hidden;">
-                                        <div style="height:100%;background:linear-gradient(90deg,#0b3d6b,#1565a8);width:{{ $sharePct }}%;border-radius:4px;"></div>
-                                    </div>
-                                    <span style="font-size:10.5px;font-weight:800;color:var(--ink-muted);width:32px;text-align:left;">
-                                        {{ $sharePct }}%
-                                    </span>
-                                </div>
+                            <td style="text-align: center; font-weight: 800; color: #0f2942; font-size: 13px;">
+                                {{ $sharePct }}%
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" style="text-align:center;color:var(--ink-muted);padding:24px;">لا توجد بيانات متاحة</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Top Specializations Table -->
-    <div class="report-card">
-        <div class="report-card-header">
-            <div class="report-card-title">
-                <div class="report-icon-badge">
-                    <i class="fa-solid fa-book-bookmark"></i>
-                </div>
-                <div>
-                    <h3>البرامج الأكاديمية والتخصصات الأكثر طلباً</h3>
-                    <p>رغبات الطلاب المعتمدة الأكثر استهدافاً بالمنصة</p>
-                </div>
-            </div>
-            <span class="report-badge-pill">إقبال البرامج</span>
-        </div>
-
-        <div style="overflow-x:auto;">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th style="width:40px;text-align:center;">#</th>
-                        <th>التخصص الأكاديمي</th>
-                        <th style="text-align:center;">عدد المتقدمين</th>
-                        <th style="width:130px;">مؤشر الإقبال</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php $maxSpecReqs = $topSpecs->max('total') ?: 1; @endphp
-                    @forelse($topSpecs as $i => $spec)
-                        @php
-                            $specPct = round(($spec->total / ($stats['total_requests'] ?: 1)) * 100, 1);
-                        @endphp
-                        <tr>
-                            <td style="text-align:center;color:var(--ink-muted);font-weight:700;">
-                                {{ $i + 1 }}
-                            </td>
-                            <td style="font-weight:800;color:var(--ink);">
-                                <i class="fa-solid fa-certificate" style="color:var(--accent);margin-left:6px;font-size:11px;"></i>
-                                {{ $spec->desired_spec }}
-                            </td>
-                            <td style="text-align:center;font-weight:900;color:#7c3aed;font-size:14px;font-family:'Plus Jakarta Sans','Almarai',sans-serif;">
-                                {{ $spec->total }}
-                            </td>
-                            <td>
-                                <div style="display:flex;align-items:center;gap:6px;">
-                                    <div style="flex:1;background:#e2e8f0;border-radius:4px;height:7px;overflow:hidden;">
-                                        <div style="height:100%;background:linear-gradient(90deg,#7c3aed,#a855f7);width:{{ $specPct }}%;border-radius:4px;"></div>
-                                    </div>
-                                    <span style="font-size:10.5px;font-weight:800;color:var(--ink-muted);width:32px;text-align:left;">
-                                        {{ $specPct }}%
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" style="text-align:center;color:var(--ink-muted);padding:24px;">لا توجد تخصصات مسجلة</td>
+                            <td colspan="6" style="text-align: center; color: #64748b; padding: 24px;">لا توجد بيانات متاحة</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -1069,136 +1109,184 @@
     </div>
 </div>
 
-<!-- ================= 5. Chapter 3: Financial Settlement & Growth Timeline ================= -->
-<div class="grid-2">
-    <!-- Financial Settlements & Proofs -->
-    <div class="report-card">
-        <div class="report-card-header">
-            <div class="report-card-title">
-                <div class="report-icon-badge">
-                    <i class="fa-solid fa-sack-dollar"></i>
-                </div>
-                <div>
-                    <h3>حركة التحصيل المالي والسندات</h3>
-                    <p>متابعة إيرادات التسجيل ومطابقة الإيصالات البنكية</p>
-                </div>
-            </div>
-            <span class="report-badge-pill">التدقيق المالي</span>
+<!-- ================= 6. البرامج الأكاديمية والتخصصات الأكثر طلباً ================= -->
+<div class="report-section-card" id="section-specializations">
+    <div class="report-section-header">
+        <div class="report-section-title-wrap">
+            <i class="fa-solid fa-graduation-cap" style="color: #0b3d6b; font-size: 16px;"></i>
+            <h3>البرامج الأكاديمية والتخصصات الأكثر طلباً</h3>
         </div>
-
-        <div style="padding: 18px 20px;">
-            <div class="finance-metrics-grid">
-                <!-- Verified Payments -->
-                <div class="fin-box">
-                    <div class="fin-icon-box" style="background:#dcfce7;color:#15803d;">
-                        <i class="fa-solid fa-circle-check"></i>
-                    </div>
-                    <div>
-                        <div class="fin-val">{{ number_format($stats['confirmed_payments']) }} ر.ي</div>
-                        <div class="fin-lbl">مبالغ مؤكدة ({{ $stats['confirmed_payments_count'] }} سند)</div>
-                    </div>
-                </div>
-
-                <!-- Pending Payments -->
-                <div class="fin-box">
-                    <div class="fin-icon-box" style="background:#fef3c7;color:#b45309;">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </div>
-                    <div>
-                        <div class="fin-val">{{ number_format($stats['total_payments'] - $stats['confirmed_payments']) }} ر.ي</div>
-                        <div class="fin-lbl">قيد المطابقة ({{ $stats['payments_count'] - $stats['confirmed_payments_count'] }} سند)</div>
-                    </div>
-                </div>
-
-                <!-- Verified Registration Proofs -->
-                <div class="fin-box">
-                    <div class="fin-icon-box" style="background:#e0f2fe;color:#0369a1;">
-                        <i class="fa-solid fa-file-invoice"></i>
-                    </div>
-                    <div>
-                        <div class="fin-val">{{ $stats['verified_proofs'] }} / {{ $stats['total_proofs'] }}</div>
-                        <div class="fin-lbl">سندات تسجيل مدققة ومعتمدة</div>
-                    </div>
-                </div>
-
-                <!-- Active Marketing Referrals -->
-                <div class="fin-box">
-                    <div class="fin-icon-box" style="background:#ede9fe;color:#6d28d9;">
-                        <i class="fa-solid fa-share-nodes"></i>
-                    </div>
-                    <div>
-                        <div class="fin-val">{{ $stats['total_referrals'] }} إحالة</div>
-                        <div class="fin-lbl">أكواد حملات التسويق الأكاديمي</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Financial Health Strip -->
-            <div style="background:var(--surface-alt);border:1px solid var(--border-light);border-radius:var(--radius-sm);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;">
-                <span style="font-weight:700;color:var(--ink-muted);">
-                    <i class="fa-solid fa-shield-halved" style="color:#16a34a;margin-left:6px;"></i>
-                    نسبة مطابقة واعتماد السندات المالية:
-                </span>
-                <span style="font-weight:900;color:#16a34a;font-size:13px;font-family:'Plus Jakarta Sans','Almarai',sans-serif;">
-                    100% (موثوق ومطابق بنكياً)
-                </span>
-            </div>
-        </div>
+        <a href="{{ route('admin.requests') }}" class="report-section-link">
+            <span>تصفية حسب التخصص</span>
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
     </div>
-
-    <!-- Timeline Activity Chart -->
-    <div class="report-card">
-        <div class="report-card-header">
-            <div class="report-card-title">
-                <div class="report-icon-badge">
-                    <i class="fa-solid fa-chart-column"></i>
-                </div>
-                <div>
-                    <h3>التدفق الزمني لطلبات التسجيل</h3>
-                    <p>حركة تدفق المتقدمين خلال الأيام النشطة</p>
-                </div>
-            </div>
-            <span class="report-badge-pill">التسلسل الزمني</span>
-        </div>
-
-        <div style="padding: 18px 20px;">
-            @php
-                $maxDaily = $dailyActivity->max('total') ?: 1;
-            @endphp
-
-            @if($dailyActivity->isNotEmpty())
-                <div class="activity-chart-container">
-                    @foreach($dailyActivity as $day)
+    <div class="report-section-body" style="padding: 0;">
+        <div class="report-table-wrapper">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th style="width: 45px; text-align: center;">#</th>
+                        <th>التخصص الأكاديمي</th>
+                        <th style="text-align: center;">عدد المتقدمين</th>
+                        <th style="text-align: center; width: 110px;">مؤشر الإقبال</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($topSpecs as $i => $spec)
                         @php
-                            $heightPct = round(($day->total / $maxDaily) * 110);
-                            $heightPct = max($heightPct, 16);
-                            $carbonDate = \Carbon\Carbon::parse($day->day_date);
+                            $specPct = round(($spec->total / ($stats['total_requests'] ?: 1)) * 100, 1);
                         @endphp
-                        <div class="chart-bar-col">
-                            <span class="bar-pill-value">{{ $day->total }}</span>
-                            <div class="chart-bar-stem" style="height: {{ $heightPct }}px;" title="{{ $day->total }} طلبات في {{ $carbonDate->isoFormat('D MMMM') }}"></div>
-                            <span class="chart-bar-label">{{ $carbonDate->format('m/d') }}</span>
-                        </div>
-                    @endforeach
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11.5px;color:var(--ink-muted);">
-                    <span><i class="fa-solid fa-circle-info" style="color:var(--primary);margin-left:4px;"></i> عدد الطلبات المستلمة لكل يوم</span>
-                    <span>إجمالي الأيام الموضحة: {{ $dailyActivity->count() }} أيام نشطة</span>
-                </div>
-            @else
-                <p style="text-align:center;color:var(--ink-muted);padding:40px;">لا توجد حركة تسجيل مسجلة حديثاً</p>
-            @endif
+                        <tr>
+                            <td style="text-align: center; color: #64748b; font-weight: 700;">
+                                {{ $i + 1 }}
+                            </td>
+                            <td>
+                                <strong>{{ $spec->desired_spec }}</strong>
+                            </td>
+                            <td style="text-align: center; font-weight: 800; color: #6d28d9; font-size: 14px;">
+                                {{ number_format($spec->total) }}
+                            </td>
+                            <td style="text-align: center; font-weight: 800; color: #0f2942; font-size: 13px;">
+                                {{ $specPct }}%
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: #64748b; padding: 24px;">لا توجد تخصصات مسجلة</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
+</div>
+
+<!-- ================= 7. حركة سداد رسوم التسجيل (مع عرض بطاقتين بالصف على الجوال) ================= -->
+<div class="report-section-card" id="section-payments">
+    <div class="report-section-header">
+        <div class="report-section-title-wrap">
+            <i class="fa-solid fa-file-invoice-dollar" style="color: #10b981; font-size: 16px;"></i>
+            <h3>حركة سداد رسوم التسجيل</h3>
+        </div>
+        <a href="{{ route('admin.requests', ['status' => 'قيد المراجعة']) }}" class="report-section-link">
+            <span>مراجعة سندات الطلبات</span>
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+    </div>
+    <div class="report-section-body">
+        <div class="receipts-grid">
+            <!-- المؤكدة -->
+            <div class="receipt-box">
+                <div class="receipt-box-icon" style="background: #ecfdf5; color: #16a34a;">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <div>
+                    <div class="receipt-box-val">{{ number_format($stats['confirmed_payments_count']) }}</div>
+                    <div class="receipt-box-lbl">سندات مؤكدة ومطابقة</div>
+                </div>
+            </div>
+
+            <!-- قيد المراجعة والتدقيق -->
+            <div class="receipt-box">
+                <div class="receipt-box-icon" style="background: #fffbeb; color: #d97706;">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <div class="receipt-box-val">{{ number_format(max(0, $stats['payments_count'] - $stats['confirmed_payments_count'])) }}</div>
+                    <div class="receipt-box-lbl">سندات قيد المراجعة</div>
+                </div>
+            </div>
+
+            <!-- سندات التسجيل المدققة -->
+            <div class="receipt-box">
+                <div class="receipt-box-icon" style="background: #eff6ff; color: #0284c7;">
+                    <i class="fa-solid fa-stamp"></i>
+                </div>
+                <div>
+                    <div class="receipt-box-val">{{ number_format($stats['verified_proofs']) }}</div>
+                    <div class="receipt-box-lbl">سندات تسجيل معتمدة</div>
+                </div>
+            </div>
+
+            <!-- إجمالي السندات المرفوعة -->
+            <div class="receipt-box">
+                <div class="receipt-box-icon" style="background: #f5f3ff; color: #7c3aed;">
+                    <i class="fa-solid fa-folder-closed"></i>
+                </div>
+                <div>
+                    <div class="receipt-box-val">{{ number_format($stats['payments_count']) }}</div>
+                    <div class="receipt-box-lbl">إجمالي السندات المرفوعة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 8. التدفق الزمني لطلبات التسجيل ================= -->
+<div class="report-section-card" id="section-timeline">
+    <div class="report-section-header">
+        <div class="report-section-title-wrap">
+            <i class="fa-solid fa-chart-line" style="color: #0b3d6b; font-size: 16px;"></i>
+            <h3>التدفق الزمني لطلبات التسجيل</h3>
+        </div>
+        <span style="font-size: 12px; color: #64748b; font-weight: 600;">
+            إجمالي الأيام النشطة: {{ $dailyActivity->count() }} يوم
+        </span>
+    </div>
+    <div class="report-section-body">
+        @php
+            $maxDaily = $dailyActivity->max('total') ?: 1;
+        @endphp
+
+        @if($dailyActivity->isNotEmpty())
+            <div class="activity-chart-container">
+                @foreach($dailyActivity as $day)
+                    @php
+                        $heightPct = round(($day->total / $maxDaily) * 115);
+                        $heightPct = max($heightPct, 16);
+                        $carbonDate = \Carbon\Carbon::parse($day->day_date);
+                    @endphp
+                    <div class="chart-bar-col">
+                        <span class="bar-pill-value">{{ $day->total }}</span>
+                        <div class="chart-bar-stem" style="height: {{ $heightPct }}px;" title="{{ $day->total }} طلب في {{ $carbonDate->format('Y-m-d') }}"></div>
+                        <span class="chart-bar-label">{{ $carbonDate->format('m/d') }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <p style="text-align: center; color: #64748b; margin: 20px 0;">لا توجد حركة تسجيل مسجلة حديثاً</p>
+        @endif
+    </div>
+</div>
+
+<!-- تذييل الطباعة الرسمي (يظهر فقط في الطباعة) -->
+<div class="print-footer-info" style="display: none;">
+    تم إنشاء هذا التقرير تلقائياً عبر منصة EduYemen للجامعات اليمنية — جميع البيانات موثقة ومطابقة لقواعد البيانات المركزية.
 </div>
 
 @endsection
 
 @section('scripts')
 <script>
-    // عند فتح التقرير للطباعة، يتم ضبط العنوان الافتراضي للمستند المطبوع
+    // تهيئة اسم الملف المطبوع عند فتح نافذة الطباعة
     window.addEventListener('beforeprint', () => {
         document.title = 'تقرير_منظومة_EduYemen_الإحصائي_' + new Date().toISOString().slice(0, 10);
+    });
+
+    // تمرير سلس عند النقر على روابط شريط الانتقال
+    document.querySelectorAll('.nav-pill-btn').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetEl = document.querySelector(targetId);
+            if (targetEl) {
+                targetEl.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
     });
 </script>
 @endsection

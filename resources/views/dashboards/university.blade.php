@@ -8,7 +8,7 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -48,7 +48,7 @@
             min-height: 100vh;
             background-color: var(--canvas);
             color: var(--ink);
-            font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+            font-family: 'Almarai', 'IBM Plex Sans Arabic', system-ui, -apple-system, sans-serif;
             font-size: 14px;
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
@@ -226,11 +226,18 @@
         .sidebar {
             position: fixed; z-index: 990; top: var(--header-height); right: 0;
             width: var(--sidebar-width); height: calc(100vh - var(--header-height));
-            padding: 20px 14px 20px; overflow-y: auto;
+            padding: 16px 12px 20px; overflow-y: auto;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
             color: #e8f0f5; background: linear-gradient(180deg, #102a43, #12334d 68%, #102a43);
             border-left: 1px solid rgba(255,255,255,.08);
             box-shadow: -12px 0 35px rgba(16,42,67,.09);
             transition: transform .28s ease, width .28s ease;
+        }
+        .sidebar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }
         .sidebar.collapsed { transform: translateX(100%); }
         body.sidebar-collapsed .sidebar { transform: translateX(100%); }
@@ -2028,9 +2035,6 @@
 
             <!-- ز. تبويب الحسابات ووسائل الدفع -->
             @include('dashboards.university.tabs.payments')
-
-            <!-- ح. تبويب الأخبار والإعلانات الجامعية -->
-            @include('dashboards.university.tabs.announcements')
 
             <!-- ط. تبويب التقارير والإحصائيات -->
             @include('dashboards.university.tabs.reports')

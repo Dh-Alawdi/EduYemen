@@ -145,6 +145,36 @@
         color: #ffffff;
     }
 
+    .hero-action-buttons {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        .hero-action-buttons {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }
+        .hero-action-buttons > :nth-child(1),
+        .hero-action-buttons > :nth-child(2) {
+            grid-column: span 1 !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+        .hero-action-buttons > :nth-child(3) {
+            grid-column: 1 / -1 !important;
+            justify-self: center !important; /* في منتصف الصف الثاني وليس بدايته */
+            margin: 0 auto !important;
+            display: inline-flex !important;
+            justify-content: center !important;
+            width: fit-content !important;
+        }
+    }
+
     /* ==========================================================
        3D PRESENTATION THEATER FOR ADMIN RESPONSIBILITIES
        (مسرح العرض التقديمي ثلاثي الأبعاد لمهام مدير النظام في قسم حول)
@@ -910,7 +940,7 @@
             </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <div class="hero-action-buttons">
             <a href="{{ route('admin.universities', ['action' => 'add']) }}" class="btn-hero-accent">
                 <i class="fa-solid fa-circle-plus"></i>
                 <span>إضافة جامعة جديدة</span>

@@ -1,4 +1,4 @@
-<aside class="sidebar" id="sidebar" aria-label="القائمة الرئيسية">
+﻿<aside class="sidebar" id="sidebar" aria-label="القائمة الرئيسية">
     <!-- هوية الجامعة أعلى القائمة: شعار الجامعة واسم الجامعة فقط -->
     <div class="sidebar-user-card">
         <div class="user-avatar-wrap">
@@ -9,72 +9,76 @@
 
     <div class="sidebar-caption">القائمة الرئيسية</div>
 
+    @php
+        $isDashboardRoute = request()->routeIs('university.dashboard');
+    @endphp
+
     <ul class="sidebar-nav">
-        <li class="{{ (!isset($activeTab) || $activeTab === 'overview') ? 'active' : '' }}" data-tab="overview">
-            <a href="{{ route('university.dashboard') }}" onclick="event.preventDefault(); switchTab('overview');">
+        <li class="{{ ($isDashboardRoute && (!isset($activeTab) || $activeTab === 'overview')) ? 'active' : '' }}" data-tab="overview">
+            <a href="{{ route('university.dashboard') }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('overview'); }" @endif>
                 <i class="fa-solid fa-house"></i>
                 <span>الرئيسية</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'profile') ? 'active' : '' }}" data-tab="profile">
-            <a href="{{ route('university.dashboard', ['tab' => 'profile']) }}" onclick="event.preventDefault(); switchTab('profile');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'profile') ? 'active' : '' }}" data-tab="profile">
+            <a href="{{ route('university.dashboard', ['tab' => 'profile']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('profile'); }" @endif>
                 <i class="fa-solid fa-building-columns"></i>
                 <span>بيانات الجامعة</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'colleges') ? 'active' : '' }}" data-tab="colleges">
-            <a href="{{ route('university.dashboard', ['tab' => 'colleges']) }}" onclick="event.preventDefault(); switchTab('colleges');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'colleges') ? 'active' : '' }}" data-tab="colleges">
+            <a href="{{ route('university.dashboard', ['tab' => 'colleges']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('colleges'); }" @endif>
                 <i class="fa-solid fa-graduation-cap"></i>
                 <span>الكليات والتخصصات</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'admission') ? 'active' : '' }}" data-tab="admission">
-            <a href="{{ route('university.dashboard', ['tab' => 'admission']) }}" onclick="event.preventDefault(); switchTab('admission');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'admission') ? 'active' : '' }}" data-tab="admission">
+            <a href="{{ route('university.dashboard', ['tab' => 'admission']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('admission'); }" @endif>
                 <i class="fa-solid fa-clipboard-check"></i>
                 <span>القبول والتسجيل</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'applications') ? 'active' : '' }}" data-tab="applications">
-            <a href="{{ route('university.dashboard', ['tab' => 'applications']) }}" onclick="event.preventDefault(); switchTab('applications');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'applications') ? 'active' : '' }}" data-tab="applications">
+            <a href="{{ route('university.dashboard', ['tab' => 'applications']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('applications'); }" @endif>
                 <i class="fa-solid fa-file-signature"></i>
                 <span>طلبات التسجيل</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'referrals') ? 'active' : '' }}" data-tab="referrals">
-            <a href="{{ route('university.dashboard', ['tab' => 'referrals']) }}" onclick="event.preventDefault(); switchTab('referrals');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'referrals') ? 'active' : '' }}" data-tab="referrals">
+            <a href="{{ route('university.dashboard', ['tab' => 'referrals']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('referrals'); }" @endif>
                 <i class="fa-solid fa-share-nodes"></i>
                 <span>الإحالات</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'payments') ? 'active' : '' }}" data-tab="payments">
-            <a href="{{ route('university.dashboard', ['tab' => 'payments']) }}" onclick="event.preventDefault(); switchTab('payments');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'payments') ? 'active' : '' }}" data-tab="payments">
+            <a href="{{ route('university.dashboard', ['tab' => 'payments']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('payments'); }" @endif>
                 <i class="fa-solid fa-credit-card"></i>
                 <span>طرق الدفع</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'announcements') ? 'active' : '' }}" data-tab="announcements">
-            <a href="{{ route('university.dashboard', ['tab' => 'announcements']) }}" onclick="event.preventDefault(); switchTab('announcements');">
-                <i class="fa-solid fa-bullhorn"></i>
-                <span>الإعلانات</span>
+        <li class="{{ request()->routeIs('university.advertisements.*') ? 'active' : '' }}" data-tab="advertisements">
+            <a href="{{ route('university.advertisements.index') }}">
+                <i class="fa-solid fa-rectangle-ad"></i>
+                <span>الإعلانات الممولة</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'reports') ? 'active' : '' }}" data-tab="reports">
-            <a href="{{ route('university.dashboard', ['tab' => 'reports']) }}" onclick="event.preventDefault(); switchTab('reports');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'reports') ? 'active' : '' }}" data-tab="reports">
+            <a href="{{ route('university.dashboard', ['tab' => 'reports']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('reports'); }" @endif>
                 <i class="fa-solid fa-chart-pie"></i>
                 <span>التقارير</span>
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'notifications') ? 'active' : '' }}" data-tab="notifications">
-            <a href="{{ route('university.dashboard', ['tab' => 'notifications']) }}" onclick="event.preventDefault(); switchTab('notifications');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'notifications') ? 'active' : '' }}" data-tab="notifications">
+            <a href="{{ route('university.dashboard', ['tab' => 'notifications']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('notifications'); }" @endif>
                 <i class="fa-solid fa-bell"></i>
                 <span>الإشعارات</span>
                 @if(isset($unreadNotifsCount) && $unreadNotifsCount > 0)
@@ -83,8 +87,8 @@
             </a>
         </li>
 
-        <li class="{{ (isset($activeTab) && $activeTab === 'settings') ? 'active' : '' }}" data-tab="settings">
-            <a href="{{ route('university.dashboard', ['tab' => 'settings']) }}" onclick="event.preventDefault(); switchTab('settings');">
+        <li class="{{ ($isDashboardRoute && isset($activeTab) && $activeTab === 'settings') ? 'active' : '' }}" data-tab="settings">
+            <a href="{{ route('university.dashboard', ['tab' => 'settings']) }}" @if($isDashboardRoute) onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('settings'); }" @endif>
                 <i class="fa-solid fa-gear"></i>
                 <span>الإعدادات</span>
             </a>

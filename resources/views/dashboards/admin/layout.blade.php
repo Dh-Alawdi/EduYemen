@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,8 +8,20 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        (function() {
+            var userDbTheme = @json(auth()->check() ? (auth()->user()->theme_mode ?? 'light') : null);
+            var localTheme = localStorage.getItem('eduyemen_theme');
+            var targetTheme = 'light';
+            if (userDbTheme === 'dark' || (!userDbTheme && localTheme === 'dark')) {
+                targetTheme = 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', targetTheme);
+        })();
+    </script>
 
     <style>
         :root {
@@ -53,14 +65,138 @@
             --shadow-lg:       0 12px 36px rgba(11, 61, 107, 0.12);
         }
 
+        /* ========================================================
+           الوضع الليلي الشامل (Dark Mode) في لوحة تحكم الإدارة
+           ======================================================== */
+        html[data-theme="dark"] {
+            --canvas:         #09111e;
+            --surface:        #111c33;
+            --surface-alt:    #172440;
+            --border:         #1e2f50;
+            --border-light:   #243860;
+            --ink:            #f8fafc;
+            --ink-muted:      #94a3b8;
+            --ink-light:      #64748b;
+            --primary-subtle: rgba(11, 61, 107, 0.45);
+            --accent-subtle:  rgba(197, 155, 39, 0.2);
+            color-scheme: dark;
+        }
+
+        html[data-theme="dark"] body {
+            background: var(--canvas) !important;
+            color: var(--ink) !important;
+        }
+
+        html[data-theme="dark"] .admin-card,
+        html[data-theme="dark"] .quick-link-card,
+        html[data-theme="dark"] .admin-table-container,
+        html[data-theme="dark"] .modal-content,
+        html[data-theme="dark"] .admin-dropdown,
+        html[data-theme="dark"] .stat-card,
+        html[data-theme="dark"] .chart-card,
+        html[data-theme="dark"] .filter-bar,
+        html[data-theme="dark"] .bg-white {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+            color: var(--ink) !important;
+        }
+
+        html[data-theme="dark"] .admin-header {
+            background: var(--surface) !important;
+            border-color: var(--border) !important;
+        }
+
+        html[data-theme="dark"] .header-breadcrumb,
+        html[data-theme="dark"] .header-date-badge {
+            color: var(--ink) !important;
+            background: var(--surface-alt) !important;
+            border-color: var(--border) !important;
+        }
+
+        html[data-theme="dark"] .header-search input {
+            background: #0d1629 !important;
+            color: #f8fafc !important;
+            border-color: var(--border) !important;
+        }
+
+        html[data-theme="dark"] .admin-table th {
+            background: var(--surface-alt) !important;
+            color: var(--ink) !important;
+            border-color: var(--border) !important;
+        }
+
+        html[data-theme="dark"] .admin-table td {
+            border-color: var(--border) !important;
+            color: var(--ink) !important;
+            background: transparent !important;
+        }
+
+        html[data-theme="dark"] .admin-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        html[data-theme="dark"] .admin-form-input,
+        html[data-theme="dark"] .admin-form-select,
+        html[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]),
+        html[data-theme="dark"] select,
+        html[data-theme="dark"] textarea {
+            background: #0d1629 !important;
+            color: #f8fafc !important;
+            border-color: #273554 !important;
+        }
+
+        html[data-theme="dark"] .text-dark,
+        html[data-theme="dark"] strong.text-dark,
+        html[data-theme="dark"] h1, html[data-theme="dark"] h2,
+        html[data-theme="dark"] h3, html[data-theme="dark"] h4,
+        html[data-theme="dark"] h5, html[data-theme="dark"] h6 {
+            color: #f8fafc !important;
+        }
+
+        html[data-theme="dark"] .text-muted {
+            color: #94a3b8 !important;
+        }
+
+        html[data-theme="dark"] .text-secondary {
+            color: #cbd5e1 !important;
+        }
+
+        html[data-theme="dark"] .badge-light,
+        html[data-theme="dark"] .badge.bg-light {
+            background: #182442 !important;
+            color: #cbd5e1 !important;
+            border-color: #273554 !important;
+        }
+
+        .header-theme-toggle {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--surface-alt);
+            color: var(--ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .header-theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: scale(1.05);
+        }
+
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
 
         body {
-            font-family: 'Almarai', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            font-size: 14px;
-            line-height: 1.65;
-            color: var(--ink);
+            font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+            font-size: 14.5px;
+            font-weight: 600;
+            line-height: 1.6;
+            color: #0f172a;
             background: var(--canvas);
             min-height: 100vh;
             overflow-x: hidden;
@@ -86,12 +222,21 @@
             transition: transform .3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-y: auto;
             overflow-x: hidden;
+            scrollbar-width: none !important; /* Firefox: إخفاء السكرول بار بالكامل */
+            -ms-overflow-style: none !important; /* IE / Edge */
             box-shadow: -4px 0 25px rgba(7, 43, 79, 0.25);
             border-left: 1px solid rgba(255, 255, 255, 0.08);
         }
 
+        /* Chrome, Safari, Opera: إلغاء ظهور السكرول بار تماماً مع الحفاظ على التمرير المرن */
+        .admin-sidebar::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
         .sidebar-brand {
-            padding: 20px 18px 18px;
+            padding: 16px 18px 14px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
@@ -173,7 +318,7 @@
         }
 
         .sidebar-admin-info {
-            padding: 16px 20px;
+            padding: 12px 18px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             align-items: center;
@@ -232,14 +377,14 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 11px 14px;
+            padding: 9.5px 14px;
             border-radius: 12px;
             color: rgba(255, 255, 255, 0.75);
             font-size: 13.5px;
             font-weight: 600;
             transition: all .22s ease;
             position: relative;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
 
         .sidebar-nav li a i {
@@ -297,16 +442,17 @@
 
         .sidebar-bottom {
             margin-top: auto;
-            padding: 16px 12px;
+            padding: 12px 14px;
             border-top: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(0, 0, 0, 0.15);
+            flex-shrink: 0;
         }
 
         .sidebar-bottom a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 10px 14px;
+            padding: 8px 12px;
             border-radius: 10px;
             color: rgba(255, 255, 255, 0.65);
             font-size: 13px;
@@ -500,6 +646,8 @@
             padding: 28px 32px;
             min-height: calc(100vh - var(--header-h));
             background: var(--canvas);
+            box-sizing: border-box;
+            transition: all .25s ease;
         }
 
         /* ========== PAGE HEADER ========== */
@@ -1182,9 +1330,19 @@
 
             .admin-sidebar.open { transform: translateX(0); }
 
-            .admin-header { right: 0; }
+            .admin-header {
+                right: 0 !important;
+                width: 100% !important;
+                left: 0 !important;
+            }
 
-            .admin-main { margin-right: 0; padding: 14px 12px; }
+            .admin-main {
+                margin-right: 0 !important;
+                width: 100% !important;
+                max-width: 100vw !important;
+                padding: 16px 12px !important;
+                box-sizing: border-box !important;
+            }
 
             .header-toggle { display: flex; }
 
@@ -1244,6 +1402,8 @@
     </style>
 
     @yield('extra_styles')
+    @yield('styles')
+    @stack('styles')
 </head>
 <body>
 
@@ -1274,7 +1434,7 @@
     </div>
 
     <!-- قائمة التنقل الجانبية الموحدة الواضحة دون عناوين أقسام مشتتة -->
-    <ul class="sidebar-nav" style="margin-top:10px;">
+    <ul class="sidebar-nav" style="margin-top:6px;">
         <!-- 1. الرئيسية (لوحة التحكم سابقاً) -->
         <li class="{{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
             <a href="{{ route('admin.dashboard') }}" title="الانتقال إلى الرئيسية">
@@ -1413,6 +1573,11 @@
     </div>
 
     <div class="header-actions">
+        {{-- زر تبديل الوضع الليلي / النهاري --}}
+        <button type="button" class="header-theme-toggle" id="adminThemeBtn" onclick="toggleAdminTheme()" title="تبديل الوضع الليلي والنهاري" aria-label="تبديل المظهر">
+            <i class="fa-solid fa-moon" id="adminThemeIcon"></i>
+        </button>
+
         <div class="header-date-badge">
             <i class="fa-regular fa-clock"></i>
             <span id="currentTime">--:--</span>
@@ -1462,6 +1627,38 @@
         document.getElementById('adminSidebar').classList.remove('open');
         document.getElementById('sidebarOverlay').classList.remove('open');
     }
+
+    // Theme mode toggle
+    function updateAdminThemeIcon(theme) {
+        const icon = document.getElementById('adminThemeIcon');
+        if (icon) {
+            icon.className = (theme === 'dark') ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+            icon.style.color = (theme === 'dark') ? '#f0c842' : '';
+        }
+    }
+
+    function toggleAdminTheme() {
+        const cur = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = (cur === 'dark') ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('eduyemen_theme', next);
+        updateAdminThemeIcon(next);
+
+        fetch('{{ route("user.theme") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ theme_mode: next })
+        }).catch(err => console.log('Theme saved locally'));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        updateAdminThemeIcon(currentTheme);
+    });
 
     // Clock
     function updateClock() {
@@ -1521,13 +1718,21 @@
 
     // Open / close modals
     function openModal(id) {
-        document.getElementById(id)?.classList.add('open');
-        document.body.style.overflow = 'hidden';
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.add('open');
+            el.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     function closeModal(id) {
-        document.getElementById(id)?.classList.remove('open');
-        document.body.style.overflow = '';
+        const el = document.getElementById(id);
+        if (el) {
+            el.classList.remove('open');
+            el.style.display = 'none';
+            document.body.style.overflow = '';
+        }
     }
 
     // Close modal on overlay click
@@ -1539,5 +1744,6 @@
 </script>
 
 @yield('scripts')
+@stack('scripts')
 </body>
 </html>

@@ -16,9 +16,12 @@
                 </span>
             </div>
         </div>
-        <button type="button" class="btn btn-sm" style="background:#dc2626; color:#ffffff; font-weight:700; border-radius:8px; padding:8px 16px; border:none; cursor:pointer;" onclick="switchTab('notifications')">
-            <i class="fa-solid fa-bell me-1"></i> استعراض الإشعارات والتوجيهات
-        </button>
+        <div>
+            <button type="button" class="btn btn-sm" style="background:#dc2626; color:#ffffff; font-weight:700; border-radius:8px; padding:9px 18px; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:8px; box-shadow:0 3px 10px rgba(220,38,38,0.25); transition:all 0.2s;" onclick="openModerationCorrectionModal()">
+                <i class="fa-solid fa-file-shield"></i>
+                <span>استعراض التوجيهات وتصحيح البيانات</span>
+            </button>
+        </div>
     </div>
     @endif
 
@@ -83,7 +86,7 @@
             <!-- شبكة بطاقات التحكم السريعة الأربع (بيانات الجامعة، الكليات والتخصصات، طرق الدفع، التقارير) -->
             <div class="summary-stats">
                 <!-- 1. بيانات الجامعة -->
-                <a href="{{ route('university.dashboard', ['tab' => 'profile']) }}" onclick="event.preventDefault(); switchTab('profile');" class="summary-stat" title="بيانات الجامعة">
+                <a href="{{ route('university.dashboard', ['tab' => 'profile']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('profile'); }" class="summary-stat" title="بيانات الجامعة">
                     <div class="summary-stat-icon stat-blue">
                         <i class="fa-solid fa-building-columns"></i>
                     </div>
@@ -94,7 +97,7 @@
                 </a>
 
                 <!-- 2. الكليات والتخصصات -->
-                <a href="{{ route('university.dashboard', ['tab' => 'colleges']) }}" onclick="event.preventDefault(); switchTab('colleges');" class="summary-stat" title="الكليات والتخصصات">
+                <a href="{{ route('university.dashboard', ['tab' => 'colleges']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('colleges'); }" class="summary-stat" title="الكليات والتخصصات">
                     <div class="summary-stat-icon stat-teal">
                         <i class="fa-solid fa-graduation-cap"></i>
                     </div>
@@ -105,7 +108,7 @@
                 </a>
 
                 <!-- 3. طرق الدفع -->
-                <a href="{{ route('university.dashboard', ['tab' => 'payments']) }}" onclick="event.preventDefault(); switchTab('payments');" class="summary-stat" title="طرق الدفع">
+                <a href="{{ route('university.dashboard', ['tab' => 'payments']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('payments'); }" class="summary-stat" title="طرق الدفع">
                     <div class="summary-stat-icon stat-gold">
                         <i class="fa-solid fa-credit-card"></i>
                     </div>
@@ -116,7 +119,7 @@
                 </a>
 
                 <!-- 4. التقارير -->
-                <a href="{{ route('university.dashboard', ['tab' => 'reports']) }}" onclick="event.preventDefault(); switchTab('reports');" class="summary-stat" title="التقارير">
+                <a href="{{ route('university.dashboard', ['tab' => 'reports']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('reports'); }" class="summary-stat" title="التقارير">
                     <div class="summary-stat-icon stat-purple">
                         <i class="fa-solid fa-chart-pie"></i>
                     </div>
@@ -131,7 +134,7 @@
             <section class="services-container" aria-labelledby="servicesTitle">
                 <div class="navigation-actions-list" id="serviceCards">
 
-                    <a href="{{ route('university.dashboard', ['tab' => 'applications']) }}" onclick="event.preventDefault(); switchTab('applications');" class="nav-action-item" data-search="عرض طلبات التسجيل طلبات التسجيل الالتحاق الطلاب">
+                    <a href="{{ route('university.dashboard', ['tab' => 'applications']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('applications'); }" class="nav-action-item" data-search="عرض طلبات التسجيل طلبات التسجيل الالتحاق الطلاب">
                         <div class="nav-action-icon"><i class="fa-solid fa-file-signature"></i></div>
                         <div class="nav-action-content">
                             <div class="nav-action-title">عرض طلبات التسجيل</div>
@@ -139,7 +142,7 @@
                         <div class="nav-action-arrow"><i class="fa-solid fa-chevron-left"></i></div>
                     </a>
 
-                    <a href="{{ route('university.dashboard', ['tab' => 'applications']) }}" onclick="event.preventDefault(); switchTab('applications');" class="nav-action-item" data-search="الطلبات الجديدة القبول التسجيل طلبات حديثة">
+                    <a href="{{ route('university.dashboard', ['tab' => 'applications']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('applications'); }" class="nav-action-item" data-search="الطلبات الجديدة القبول التسجيل طلبات حديثة">
                         <div class="nav-action-icon"><i class="fa-solid fa-folder-plus"></i></div>
                         <div class="nav-action-content">
                             <div class="nav-action-title">الطلبات الجديدة</div>
@@ -147,7 +150,7 @@
                         <div class="nav-action-arrow"><i class="fa-solid fa-chevron-left"></i></div>
                     </a>
 
-                    <a href="{{ route('university.dashboard', ['tab' => 'referrals']) }}" onclick="event.preventDefault(); switchTab('referrals');" class="nav-action-item" data-search="الإحالات أوراق الطلاب الكليات الأقسام">
+                    <a href="{{ route('university.dashboard', ['tab' => 'referrals']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('referrals'); }" class="nav-action-item" data-search="الإحالات أوراق الطلاب الكليات الأقسام">
                         <div class="nav-action-icon"><i class="fa-solid fa-share-nodes"></i></div>
                         <div class="nav-action-content">
                             <div class="nav-action-title">الإحالات</div>
@@ -155,15 +158,15 @@
                         <div class="nav-action-arrow"><i class="fa-solid fa-chevron-left"></i></div>
                     </a>
 
-                    <a href="{{ route('university.dashboard', ['tab' => 'announcements']) }}" onclick="event.preventDefault(); switchTab('announcements');" class="nav-action-item" data-search="الإعلانات النشطة الأخبار التعميمات">
-                        <div class="nav-action-icon"><i class="fa-solid fa-bullhorn"></i></div>
+                    <a href="{{ route('university.advertisements.index') }}" class="nav-action-item" data-search="الإعلانات الممولة الحملات الترويجية الباقات">
+                        <div class="nav-action-icon"><i class="fa-solid fa-rectangle-ad"></i></div>
                         <div class="nav-action-content">
-                            <div class="nav-action-title">الإعلانات النشطة</div>
+                            <div class="nav-action-title">الإعلانات الممولة</div>
                         </div>
                         <div class="nav-action-arrow"><i class="fa-solid fa-chevron-left"></i></div>
                     </a>
 
-                    <a href="{{ route('university.dashboard', ['tab' => 'notifications']) }}" onclick="event.preventDefault(); switchTab('notifications');" class="nav-action-item" data-search="تنبيهات مهمة الإشعارات الملاحظات العاجلة">
+                    <a href="{{ route('university.dashboard', ['tab' => 'notifications']) }}" onclick="if(typeof switchTab==='function'){ event.preventDefault(); switchTab('notifications'); }" class="nav-action-item" data-search="تنبيهات مهمة الإشعارات الملاحظات العاجلة">
                         <div class="nav-action-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
                         <div class="nav-action-content">
                             <div class="nav-action-title">تنبيهات مهمة</div>

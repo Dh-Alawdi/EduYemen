@@ -645,3 +645,202 @@
         </form>
     </div>
 </div>
+
+<!-- Modal استعراض التوجيهات وتصحيح البيانات الرقابية لمدير النظام -->
+<div class="modal-overlay" id="moderationCorrectionModal" role="dialog" aria-modal="true" style="display:none; z-index:9999;">
+    <div class="modal-container modal-lg" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column;">
+        <div class="modal-header" style="border-bottom: 1px solid #fee2e2; background: #fffdfd; padding: 16px 22px;">
+            <div class="d-flex align-items-center gap-2">
+                <div class="modal-header-icon" style="background: #fef2f2; color: #dc2626; width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                    <i class="fa-solid fa-file-shield"></i>
+                </div>
+                <div>
+                    <h3 class="modal-title" style="font-size: 16.5px; font-weight: 800; color: #991b1b; margin: 0;">استعراض التوجيهات وتصحيح البيانات</h3>
+                </div>
+            </div>
+            <button type="button" class="btn-close-modal" onclick="closeModal('moderationCorrectionModal')">&times;</button>
+        </div>
+
+        <form id="moderationCorrectionForm" onsubmit="submitModerationCorrectionAjax(event)" enctype="multipart/form-data" style="display:flex; flex-direction:column; overflow:hidden; flex:1;">
+            @csrf
+            <div class="modal-body" style="overflow-y: auto; padding: 20px 24px; flex:1;">
+                
+                {{-- 1. اختيار العنصر المحجوب إن وجد أكثر من عنصر --}}
+                <div class="form-group mb-3">
+                    <label class="form-label fw-bold" style="font-size: 13px; color: #1e293b;">العنصر المحجوب والمطلوب تصحيحه:</label>
+                    <select id="modCorrectionItemId" class="form-select" onchange="onModerationItemChange(this)" required style="font-size: 13.5px; border-color: #cbd5e1;">
+                        @if(isset($activeModerations) && $activeModerations->isNotEmpty())
+                            @foreach($activeModerations as $m)
+                                <option value="{{ $m->moderation_id }}"
+                                        data-type="{{ $m->item_type }}"
+                                        data-item-id="{{ $m->item_id }}"
+                                        data-title="{{ $m->item_title }}"
+                                        data-reason="{{ $m->violation_reason }}"
+                                        data-guidance="{{ $m->admin_guidance ?? 'يرجى مراجعة وتعديل بيانات هذا العنصر ليتطابق مع المعايير واللوائح الأكاديمية الرسمية المعتمدة بالمنصة.' }}"
+                                        data-date="{{ $m->suspended_at ? $m->suspended_at->format('Y-m-d h:i A') : '' }}"
+                                        data-status="{{ $m->status }}">
+                                    [{{ $m->item_title }}] — ({{ $m->item_type }})
+                                </option>
+                            @endforeach
+                        @else
+                            <option value="">لا توجد عناصر محجوبة حالياً</option>
+                        @endif
+                    </select>
+                </div>
+
+                {{-- 2. بطاقة توجيهات الإدارة وسبب الحجب وتفاصيله --}}
+                <div id="modDirectivesCard" style="background: #ffffff; border: 1.5px solid #fecaca; border-radius: 12px; padding: 16px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(220,38,38,0.04);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                        <span id="modBadgeTitle" class="badge" style="background:#fee2e2; color:#dc2626; font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px;">
+                            <i class="fa-solid fa-ban me-1"></i> محجوب رقابياً
+                        </span>
+                        <span id="modDateText" style="font-size: 11.5px; color: #64748b;">
+                            <i class="fa-regular fa-clock me-1"></i> --
+                        </span>
+                    </div>
+
+                    {{-- سبب الحجب --}}
+                    <div style="background: #fff5f5; border-right: 4px solid #dc2626; border-radius: 6px; padding: 10px 14px; margin-bottom: 10px;">
+                        <div style="font-size: 12px; font-weight: 800; color: #991b1b; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span>سبب الإيقاف والحجب الرقابي:</span>
+                        </div>
+                        <div id="modViolationReasonText" style="font-size: 13px; color: #7f1d1d; line-height: 1.55;">
+                            --
+                        </div>
+                    </div>
+
+                    {{-- توجيهات الإدارة والاشتراطات --}}
+                    <div style="background: #f0f7ff; border-right: 4px solid #0284c7; border-radius: 6px; padding: 10px 14px;">
+                        <div style="font-size: 12px; font-weight: 800; color: #0369a1; margin-bottom: 3px; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-compass"></i>
+                            <span>توجيهات الإدارة والاشتراطات المطلوبة لإعادة الاعتماد:</span>
+                        </div>
+                        <div id="modAdminGuidanceText" style="font-size: 13px; color: #0c4a6e; line-height: 1.55;">
+                            --
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3. مساحة التعديل التفاعلي المباشر بحسب نوع العنصر المحجوب --}}
+                <div style="border-top: 1.5px dashed #cbd5e1; padding-top: 18px; margin-bottom: 18px;">
+                    <div style="font-size: 14px; font-weight: 800; color: #0f172a; margin-bottom: 12px; display: flex; align-items: center; gap: 7px;">
+                        <i class="fa-solid fa-pen-to-square" style="color: #0b3d6b;"></i>
+                        <span>تعديل وتصحيح العنصر مباشرة من هنا:</span>
+                    </div>
+
+                    {{-- أ. محرر الشعار --}}
+                    <div id="editorType_logo" class="mod-type-editor" style="display:none;">
+                        <div style="display:flex; align-items:center; gap:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px;">
+                            <div style="width:70px; height:70px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                <img id="modCurrentLogoImg" src="{{ $university->logo_url ?? asset('logo.png') }}" alt="الشعار الحالي" style="max-width:100%; max-height:100%; object-fit:contain;" />
+                            </div>
+                            <div style="flex:1;">
+                                <label class="form-label fw-bold mb-1" style="font-size:12.5px;">رفع صورة الشعار البديلة (PNG, JPG, WEBP, SVG حتى 5MB):</label>
+                                <input type="file" name="new_logo" id="modNewLogoInput" class="form-control form-control-sm" accept="image/png,image/jpeg,image/webp,image/svg+xml" onchange="previewModUploadedImg(this, 'modCurrentLogoImg')">
+                                <div class="form-text" style="font-size:11.5px; color:#64748b;">سيتم حفظ الشعار وتعيينه فوراً ورفعه للإدارة لفك الحجب.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ب. محرر صورة الحرم الجامعي --}}
+                    <div id="editorType_campus_image" class="mod-type-editor" style="display:none;">
+                        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px;">
+                            <div style="width:100%; height:110px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden; margin-bottom:10px;">
+                                <img id="modCurrentCampusImg" src="{{ $university->campus_image_url ?? asset('images/campus-default.svg') }}" alt="صورة الحرم" style="width:100%; height:100%; object-fit:cover;" />
+                            </div>
+                            <label class="form-label fw-bold mb-1" style="font-size:12.5px;">رفع صورة حرم جامعي بديلة وعالية الجودة:</label>
+                            <input type="file" name="new_campus_image" id="modNewCampusInput" class="form-control form-control-sm" accept="image/png,image/jpeg,image/webp" onchange="previewModUploadedImg(this, 'modCurrentCampusImg')">
+                        </div>
+                    </div>
+
+                    {{-- ج. محرر النبذة والوصف التعريفي --}}
+                    <div id="editorType_description" class="mod-type-editor" style="display:none;">
+                        <label class="form-label fw-bold mb-1" style="font-size:12.5px;">تعديل الوصف والنبذة التعريفية للجامعة:</label>
+                        <textarea name="new_description" id="modNewDescInput" rows="4" class="form-control" style="font-size:13.5px; line-height:1.6;" placeholder="اكتب النبذة المصححة وفق المعايير المطلوبة...">{{ $university->description ?? '' }}</textarea>
+                    </div>
+
+                    {{-- د. محرر بيانات التواصل --}}
+                    <div id="editorType_contact_info" class="mod-type-editor" style="display:none;">
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">رقم الهاتف / الاتصال:</label>
+                                <input type="text" name="new_phone" value="{{ $university->phone ?? '' }}" class="form-control form-control-sm" placeholder="مثال: 01234567">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">البريد الإلكتروني الرسمي:</label>
+                                <input type="email" name="new_email" value="{{ $university->email ?? '' }}" class="form-control form-control-sm" placeholder="info@univ.edu.ye">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">الموقع الإلكتروني:</label>
+                                <input type="url" name="new_website" value="{{ $university->website ?? '' }}" class="form-control form-control-sm" placeholder="https://univ.edu.ye">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- هـ. محرر بيانات الكلية --}}
+                    <div id="editorType_college" class="mod-type-editor" style="display:none;">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold mb-1" style="font-size:12.5px;">اسم الكلية الأكاديمية المصحح:</label>
+                            <input type="text" name="new_college_name" id="modNewCollegeName" class="form-control form-control-sm" placeholder="اسم الكلية المعتمد...">
+                        </div>
+                        <div>
+                            <label class="form-label fw-bold mb-1" style="font-size:12.5px;">وصف الكلية (اختياري):</label>
+                            <textarea name="new_college_desc" id="modNewCollegeDesc" rows="2" class="form-control form-control-sm" placeholder="نبذة عن الكلية..."></textarea>
+                        </div>
+                    </div>
+
+                    {{-- و. محرر بيانات التخصص --}}
+                    <div id="editorType_specialization" class="mod-type-editor" style="display:none;">
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">اسم التخصص الأكاديمي:</label>
+                                <input type="text" name="new_spec_name" id="modNewSpecName" class="form-control form-control-sm" placeholder="اسم التخصص...">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">نسبة الثانوية الأدنى (%):</label>
+                                <input type="number" step="0.01" min="50" max="100" name="new_min_percentage" id="modNewMinPercentage" class="form-control form-control-sm" placeholder="مثال: 75.00">
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">الرسوم السنوية (ر.ي):</label>
+                                <input type="number" step="1" name="new_annual_fees" id="modNewAnnualFees" class="form-control form-control-sm" placeholder="مثال: 450000">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold mb-1" style="font-size:12px;">سنوات الدراسة:</label>
+                                <input type="number" min="1" max="7" name="new_study_years" id="modNewStudyYears" class="form-control form-control-sm" placeholder="مثال: 4">
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ز. محرر الإعلان --}}
+                    <div id="editorType_announcement" class="mod-type-editor" style="display:none;">
+                        <div class="mb-2">
+                            <label class="form-label fw-bold mb-1" style="font-size:12.5px;">عنوان الإعلان:</label>
+                            <input type="text" name="new_ann_title" id="modNewAnnTitle" class="form-control form-control-sm" placeholder="عنوان الإعلان المصحح...">
+                        </div>
+                        <div>
+                            <label class="form-label fw-bold mb-1" style="font-size:12.5px;">محتوى الإعلان:</label>
+                            <textarea name="new_ann_content" id="modNewAnnContent" rows="3" class="form-control form-control-sm" placeholder="نص ومحتوى الإعلان..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 4. إيضاحات إضافية اختيارية لمدير النظام --}}
+                <div class="form-group mb-1">
+                    <label class="form-label fw-bold mb-1" style="font-size: 12.5px; color:#334155;">ملاحظات وإيضاحات إضافية لمدير النظام (اختياري):</label>
+                    <textarea id="modCorrectionNotes" name="correction_notes" rows="2" class="form-control" style="font-size:13px;" placeholder="اكتب أي ملاحظة أو تعقيب تود إرفاقه مع التعديلات المرفوعة أعلاه..."></textarea>
+                </div>
+
+            </div>
+
+            <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 14px 24px; background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" class="btn btn-secondary-light btn-sm" onclick="closeModal('moderationCorrectionModal')">إلغاء</button>
+                <button type="submit" id="btnSubmitModCorrection" class="btn btn-primary btn-sm px-4" style="background:#0b3d6b; border-color:#0b3d6b; font-weight:700;">
+                    <i class="fa-solid fa-paper-plane me-1"></i> إرسال التعديلات لمدير النظام وفك الحجب
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

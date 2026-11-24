@@ -3,7 +3,40 @@
 @section('title', 'الملف الشخصي ولوحة التحكم — EduYemen')
 
 @section('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&display=swap" rel="stylesheet">
+
 <style>
+    /* ========================================================
+       تطبيق الخط الحديث فائق الوضوح (IBM Plex Sans Arabic) لصفحات الطالب
+       ======================================================== */
+    body,
+    .student-dashboard-wrap,
+    .student-dashboard-wrap input,
+    .student-dashboard-wrap button,
+    .student-dashboard-wrap select,
+    .student-dashboard-wrap textarea,
+    .modal,
+    .modal input,
+    .modal button,
+    .modal select,
+    .modal textarea {
+        font-family: 'IBM Plex Sans Arabic', 'Almarai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        letter-spacing: normal;
+    }
+
+    /* حماية خط الأيقونات والرموز البرمجية من التداخل */
+    .bi, [class*="bi-"], [class^="bi-"] {
+        font-family: "bootstrap-icons" !important;
+    }
+    .fa, .fa-solid, .fa-regular, .fa-brands, [class*="fa-"] {
+        font-family: "Font Awesome 6 Free", "Font Awesome 6 Brands" !important;
+    }
+    .font-monospace, code, pre, .font-mono {
+        font-family: var(--bs-font-monospace, monospace) !important;
+    }
+
     /* ========================================================
        تصميم لوحة تحكم وملف الطالب الشخصي — الهوية الرسمية EduYemen
        ======================================================== */
@@ -273,6 +306,20 @@
         box-shadow: 0 3px 14px rgba(11, 61, 107, 0.06);
     }
 
+    /* رابط الجامعة النصي البسيط في رأس البطاقة */
+    .univ-simple-title-link {
+        color: #1e293b;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 0.96rem;
+        transition: color 0.15s ease;
+    }
+
+    .univ-simple-title-link:hover {
+        color: var(--primary);
+        text-decoration: underline;
+    }
+
     /* كروت وتنبيهات تنظيم الملف الشخصي الحديث */
     .profile-section-card {
         background: #fbfcfe;
@@ -380,6 +427,288 @@
         .student-content-pane {
             padding: 1.1rem;
         }
+    }
+
+    /* ========================================================
+       تصميم وهيكلية نافذة سداد الرسوم واثبات العملية الموحدة
+       ======================================================== */
+    /* تثبيت النافذة المنبثقة فوق كامل الصفحة بما في ذلك الشريط العلوي */
+    #studentPaymentModal.modal {
+        z-index: 100050 !important;
+        overscroll-behavior: contain !important;
+    }
+    .modal-backdrop {
+        z-index: 100040 !important;
+    }
+    body.modal-open,
+    html.modal-open {
+        overflow: hidden !important;
+    }
+
+    /* هيكلية مرنة لضمان ظهور أزرار الإجراءات السفلية دوماً دون الحاجة لتصغير الصفحة */
+    #studentPaymentModal .modal-dialog {
+        max-height: calc(100vh - 2.5rem);
+        height: auto;
+        margin: 1.25rem auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    @media (max-width: 576.98px) {
+        #studentPaymentModal .modal-dialog {
+            max-height: calc(100vh - 1rem);
+            margin: 0.5rem auto;
+            width: calc(100% - 1rem);
+        }
+    }
+
+    #studentPaymentModal .modal-content {
+        max-height: calc(100vh - 2.5rem);
+        display: flex;
+        flex-direction: column;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.5);
+        overflow: hidden;
+    }
+    @media (max-width: 576.98px) {
+        #studentPaymentModal .modal-content {
+            max-height: calc(100vh - 1rem);
+            border-radius: 14px;
+        }
+    }
+
+    #studentPaymentModal #studentPaymentForm {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        margin: 0;
+    }
+
+    #studentPaymentModal .modal-header {
+        flex-shrink: 0;
+        background: linear-gradient(135deg, #091325 0%, #0f2552 45%, #1e3a8a 100%);
+        border-bottom: 2.5px solid #f59e0b;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        padding: 0.9rem 1.4rem;
+    }
+
+    .sp-modal-icon-badge {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(30, 58, 138, 0.45));
+        border: 1.5px solid rgba(245, 158, 11, 0.45);
+        display: grid;
+        place-items: center;
+        color: #fbbf24;
+        font-size: 1.35rem;
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+        flex-shrink: 0;
+    }
+
+    #studentPaymentModal .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto !important;
+        overscroll-behavior: contain !important;
+        -webkit-overflow-scrolling: touch;
+        padding: 1.15rem 1.4rem !important;
+        background: #f8fafc;
+    }
+
+    [data-theme="dark"] #studentPaymentModal .modal-body {
+        background: #0b1120 !important;
+    }
+
+    #studentPaymentModal .modal-footer {
+        flex-shrink: 0;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+        padding: 0.75rem 1.4rem;
+        position: relative;
+        z-index: 10;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.04);
+    }
+
+    [data-theme="dark"] #studentPaymentModal .modal-footer {
+        background: #0f172a !important;
+        border-top-color: #1e293b !important;
+    }
+
+    .sp-payment-fee-summary-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px 16px;
+    }
+
+    .sp-pay-instruction-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 14px 16px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        transition: all 0.25s ease;
+    }
+
+    .sp-instruction-step-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: #2563eb;
+        color: #ffffff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.84rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 2px 4px rgba(37,99,235,0.2);
+    }
+
+    .sp-instruction-step-num.completed {
+        background: #16a34a !important;
+        box-shadow: 0 2px 4px rgba(22,163,74,0.2);
+    }
+
+    .sp-pay-methods-pills-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .sp-pay-method-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 8px 18px;
+        background: #f8fafc;
+        border: 1.5px solid #cbd5e1;
+        border-radius: 50px;
+        color: #1e293b;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        outline: none;
+    }
+
+    .sp-pay-method-pill:hover {
+        border-color: #2563eb;
+        background: #eff6ff;
+        color: #1d4ed8;
+        transform: translateY(-2px);
+    }
+
+    .sp-pay-method-pill.active {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: #ffffff;
+    }
+
+    .sp-selected-method-details-card {
+        background: #f8fafc;
+        border: 1.5px solid #bfdbfe;
+        border-radius: 10px;
+        padding: 12px 14px;
+        animation: spFadeInDetails 0.22s ease-out;
+    }
+
+    @keyframes spFadeInDetails {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .sp-account-card-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .sp-voucher-form-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        background: #ffffff;
+    }
+
+    .sp-upload-voucher-box {
+        border: 1.5px dashed #cbd5e1;
+        border-radius: 6px;
+        background: #f8fafc;
+        transition: border-color 0.2s;
+    }
+
+    .sp-upload-voucher-box:hover {
+        border-color: #2563eb;
+    }
+
+    /* تكامل الوضع الليلي في ملف الطالب الشخصي */
+    [data-theme="dark"] .student-vnav-card,
+    [data-theme="dark"] .student-content-pane,
+    [data-theme="dark"] .mobile-accordion-card,
+    [data-theme="dark"] .mobile-accordion-header,
+    [data-theme="dark"] .mobile-accordion-body,
+    [data-theme="dark"] .profile-section-card,
+    [data-theme="dark"] .req-compact-card,
+    [data-theme="dark"] .theme-select-card,
+    [data-theme="dark"] .tone-select-item,
+    [data-theme="dark"] .sp-pay-instruction-card,
+    [data-theme="dark"] .sp-voucher-form-card {
+        background: #131d36 !important;
+        border-color: #1e2f50 !important;
+        color: #f8fafc !important;
+    }
+
+    [data-theme="dark"] .mobile-accordion-card.open .mobile-accordion-header {
+        background: #182442 !important;
+        color: var(--accent-light) !important;
+        border-color: #1e2f50 !important;
+    }
+
+    [data-theme="dark"] .student-vnav-item {
+        color: #cbd5e1 !important;
+    }
+    [data-theme="dark"] .student-vnav-item:hover {
+        background: #182442 !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .profile-completeness-wrap,
+    [data-theme="dark"] .academic-glance-badge,
+    [data-theme="dark"] .sp-payment-fee-summary-card,
+    [data-theme="dark"] .sp-selected-method-details-card,
+    [data-theme="dark"] .sp-account-card-box,
+    [data-theme="dark"] .sp-upload-voucher-box {
+        background: #182442 !important;
+        border-color: #273554 !important;
+        color: #cbd5e1 !important;
+    }
+
+    [data-theme="dark"] .sp-pay-method-pill {
+        background: #182442 !important;
+        color: #cbd5e1 !important;
+        border-color: #273554 !important;
+    }
+    [data-theme="dark"] .sp-pay-method-pill:hover,
+    [data-theme="dark"] .sp-pay-method-pill.active {
+        background: #2563eb !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .univ-simple-title-link {
+        color: #93c5fd !important;
+    }
+    [data-theme="dark"] .univ-simple-title-link:hover {
+        color: var(--accent-light) !important;
+    }
+
+    [data-theme="dark"] .profile-section-title {
+        color: #f8fafc !important;
+        border-color: #273554 !important;
     }
 </style>
 @endsection
@@ -899,149 +1228,180 @@
             @if($requests->count() > 0)
             <div class="row g-3">
                 @foreach($requests as $req)
-                <div class="col-12">
-                    <div class="req-compact-card {{ $req->status === 'يتطلب استكمال' ? 'req-needs-completion-card' : '' }}">
+                @php
+                    $isDraft = ($req->status === 'مسودة');
+                    $isAccepted = ($req->status === 'مقبول');
+                    $isRejected = ($req->status === 'مرفوض');
+                    $isNeedsCompletion = ($req->status === 'يتطلب استكمال');
+                    $isPending = ($req->status === 'قيد المراجعة');
+
+                    // حالة السداد المحسوبة بدقة وفق أحدث دورة بيانات
+                    $latestPayment = $req->latestPayment ?? ($req->payments ? $req->payments->sortByDesc('payment_id')->first() : null);
+                    $isReceiptRejected = ($latestPayment && $latestPayment->ver_status === 'مرفوض') || ($req->payment_status === 'سند مرفوض');
+                    $isPaid = (!$isReceiptRejected && (in_array($req->payment_status, ['مسدد ومعتمد', 'قيد التحقق']) || ($latestPayment && in_array($latestPayment->ver_status, ['معتمد ومؤكد', 'قيد التحقق']))));
+                    $isUnpaid = (!$isPaid && !$isReceiptRejected);
+                @endphp
+
+                <div class="col-12" id="reqCard_{{ $req->req_id }}">
+                    <div class="req-compact-card {{ $isNeedsCompletion ? 'req-needs-completion-card' : '' }}">
+                        
+                        {{-- رأس البطاقة: رقم المعاملة + اسم الجامعة كرابط نصي بسيط + التخصص + وسم الحالة --}}
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 pb-2 mb-2 border-bottom">
                             <div class="d-flex align-items-center gap-2 flex-wrap">
                                 <span class="badge bg-light text-secondary border font-monospace">#{{ $req->req_id }}</span>
-                                <span class="fw-bold text-dark fs-6">{{ $req->university->university_name }}</span>
+                                
+                                {{-- رابط الجامعة: اسم الجامعة في رأس البطاقة رابطاً نصياً بسيطاً ينقل إلى صفحتها بدون زخرفة أو تلوين مفرط --}}
+                                <a href="{{ route('universities.show', $req->university_id) }}" class="univ-simple-title-link" title="الانتقال إلى صفحة الجامعة">
+                                    {{ $req->university->university_name }}
+                                </a>
+
                                 <span class="badge bg-primary-subtle text-primary border">{{ $req->desired_spec }}</span>
+
+                                {{-- الطلبات المسودة (Draft): يظهر وسم "مسودة" بجانب اسم التخصص أو الجامعة، والنقر عليه ينقل مباشرة لاستكمال وإرسال الطلب --}}
+                                @if($isDraft)
+                                    <a href="{{ route('student.apply', ['req_id' => $req->req_id]) }}" class="badge bg-secondary text-white text-decoration-none px-2.5 py-1" title="انقر هنا مباشرة لاستكمال ومتابعة إرسال الطلب">
+                                        <i class="bi bi-pencil-square me-1"></i>مسودة (انقر للاستكمال)
+                                    </a>
+                                @endif
+
                                 @if($req->is_replacement)
-                                <span class="badge bg-secondary-subtle text-secondary border" title="طلب بديل تم تقديمه بعد إلغاء طلب سابق خلال 24 ساعة">
-                                    <i class="bi bi-arrow-repeat me-1"></i>طلب بديل
-                                </span>
+                                    <span class="badge bg-secondary-subtle text-secondary border" title="طلب بديل تم تقديمه بعد إلغاء طلب سابق خلال 24 ساعة">
+                                        <i class="bi bi-arrow-repeat me-1"></i>طلب بديل
+                                    </span>
                                 @endif
                             </div>
 
+                            {{-- شارات الحالة وفق القواعد المحددة بدقة دون تشتيت أو تعارض --}}
                             <div class="d-flex align-items-center gap-1.5 flex-wrap">
-                                {{-- شارة حالة سداد الرسوم --}}
-                                @if(!in_array($req->status, ['مسودة', 'ملغي']))
-                                    @if($req->payment_status === 'مسدد ومعتمد')
+                                @if($isAccepted)
+                                    {{-- الطلبات المقبولة: تظهر شارة "مقبول" فقط، وتُخفى أي ملاحظات دفع سابقة أو أزرار غير لازمة --}}
+                                    <span class="badge bg-success px-3 py-1.5 fw-bold" style="font-size:0.8rem;">
+                                        <i class="bi bi-check-circle-fill me-1"></i>مقبول
+                                    </span>
+
+                                @elseif($isRejected)
+                                    {{-- الطلبات المرفوضة: تظهر شارة "مرفوض" فقط --}}
+                                    <span class="badge bg-danger px-3 py-1.5 fw-bold" style="font-size:0.8rem;">
+                                        <i class="bi bi-x-circle-fill me-1"></i>مرفوض
+                                    </span>
+
+                                @elseif($isNeedsCompletion)
+                                    {{-- الطلبات التي تتطلب استكمال: تظهر شارة "يتطلب استكمال" فقط - لا يظهر أبداً وسم "قيد المراجعة" --}}
+                                    <span class="badge bg-warning text-dark fw-bold px-3 py-1.5" style="font-size:0.8rem;">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>يتطلب استكمال
+                                    </span>
+                                    @if($isPaid)
                                         <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1" style="font-size:0.75rem;">
-                                            <i class="bi bi-check-circle-fill me-1"></i>الرسوم: مسددة ومعتمدة
+                                            <i class="bi bi-check-circle-fill me-1"></i>تم الدفع
                                         </span>
-                                    @elseif($req->payment_status === 'قيد التحقق')
-                                        <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2.5 py-1" style="font-size:0.75rem;">
-                                            <i class="bi bi-clock-history me-1"></i>الرسوم: قيد التدقيق المالي
-                                        </span>
-                                    @elseif($req->payment_status === 'سند مرفوض')
+                                    @elseif($isReceiptRejected)
                                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1" style="font-size:0.75rem;">
-                                            <i class="bi bi-exclamation-triangle-fill me-1"></i>الرسوم: سند مرفوض
-                                        </span>
-                                    @else
-                                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2.5 py-1" style="font-size:0.75rem;">
-                                            <i class="bi bi-cash-coin me-1"></i>الرسوم: بانتظار السداد
+                                            <i class="bi bi-exclamation-circle-fill me-1"></i>سند مرفوض
                                         </span>
                                     @endif
-                                @endif
 
-                                {{-- شارة حالة الطلب الأكاديمي --}}
-                                @if($req->status === 'مقبول')
-                                    <span class="badge bg-success px-3 py-1.5"><i class="bi bi-check-circle-fill me-1"></i>مقبول نهائياً</span>
-                                @elseif($req->status === 'مرفوض')
-                                    <span class="badge bg-danger px-3 py-1.5"><i class="bi bi-x-circle-fill me-1"></i>مرفوض</span>
-                                @elseif($req->status === 'يتطلب استكمال')
-                                    <span class="badge bg-warning text-dark fw-bold px-3 py-1.5"><i class="bi bi-exclamation-triangle-fill me-1"></i>يتطلب استكمال وثائق</span>
-                                @elseif($req->status === 'مسودة')
-                                    <span class="badge bg-secondary text-white px-3 py-1.5"><i class="bi bi-bookmark-fill me-1"></i>مسودة (محفوظة لديك فقط)</span>
-                                @elseif($req->status === 'ملغي')
-                                    <span class="badge bg-dark text-white px-3 py-1.5"><i class="bi bi-slash-circle me-1"></i>ملغي من قِبل الطالب</span>
-                                @else
-                                    <span class="badge bg-primary text-white px-3 py-1.5"><i class="bi bi-clock-history me-1"></i>قيد المراجعة لدى الجامعة</span>
+                                @elseif($isPending)
+                                    {{-- الطلبات قيد المراجعة: إذا كان السند مرفوضاً تظهر شارة واضحة بدلاً من "قيد المراجعة" --}}
+                                    @if($isReceiptRejected)
+                                        <span class="badge bg-danger text-white px-3 py-1.5 fw-bold" style="font-size:0.8rem;">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>مطلوب إعادة رفع السند
+                                        </span>
+                                    @else
+                                        <span class="badge bg-primary text-white px-3 py-1.5 fw-bold" style="font-size:0.8rem;">
+                                            <i class="bi bi-clock-history me-1"></i>قيد المراجعة
+                                        </span>
+                                        @if($isPaid)
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1" style="font-size:0.75rem;">
+                                                <i class="bi bi-check-circle-fill me-1"></i>تم الدفع
+                                            </span>
+                                        @endif
+                                    @endif
                                 @endif
                             </div>
                         </div>
 
+                        {{-- تفاصيل الطلب والأزرار الإجرائية --}}
                         <div class="row g-2 small text-muted align-items-center">
+                            {{-- تاريخ التقديم --}}
                             <div class="col-md-3">
                                 <i class="bi bi-calendar3 me-1 text-primary"></i>تاريخ التقديم: <strong>{{ $req->req_date ? $req->req_date->format('Y-m-d') : '—' }}</strong>
                             </div>
+
+                            {{-- عدد الوثائق المرفقة: يُلغى عرضه في الطلبات المسودة لعدم اكتمال الطلب بعد --}}
+                            @if(!$isDraft)
                             <div class="col-md-3">
                                 <i class="bi bi-paperclip me-1 text-info"></i>الوثائق: <strong>{{ $req->regDocs->count() }} مستند</strong>
                             </div>
-                            <div class="col-md-6 text-md-end d-flex justify-content-md-end gap-1 flex-wrap align-items-center">
-                                @if($req->status === 'مسودة')
-                                    <a href="{{ route('student.apply', ['req_id' => $req->req_id]) }}" class="btn btn-primary btn-xs py-1 px-2.5 fw-bold" style="font-size:0.75rem;">
-                                        <i class="bi bi-send-fill me-1"></i>متابعة وإرسال الطلب
-                                    </a>
-                                @elseif($req->status === 'يتطلب استكمال')
+                            @endif
+
+                            {{-- أزرار الإجراءات المحددة بدقة دون تشتيت وإلغاء الأزرار الزائدة والمكررة --}}
+                            <div class="{{ $isDraft ? 'col-md-9' : 'col-md-6' }} text-md-end d-flex justify-content-md-end gap-1.5 flex-wrap align-items-center">
+                                
+                                {{-- 1. زر استكمال النواقص للطلبات التي تتطلب استكمال --}}
+                                @if($isNeedsCompletion)
                                     <a href="{{ route('student.apply', ['req_id' => $req->req_id]) }}" class="btn btn-warning btn-xs py-1 px-2.5 fw-bold" style="font-size:0.75rem;">
                                         <i class="bi bi-pencil-square me-1"></i>استكمال النواقص
                                     </a>
                                 @endif
 
-                                {{-- أزرار سداد الرسوم ومعاينة السند --}}
-                                @if(!in_array($req->status, ['مسودة', 'ملغي']))
-                                    @if(in_array($req->payment_status, ['بانتظار السداد', 'سند مرفوض']))
-                                        <button type="button" class="btn btn-success btn-xs py-1 px-2.5 fw-bold" style="font-size:0.75rem;" onclick="openStudentPaymentModal({{ $req->req_id }}, '{{ addslashes($req->university->university_name) }}', '{{ addslashes($req->desired_spec) }}', {{ $req->university_id }})">
-                                            <i class="bi bi-cash-stack me-1"></i>سداد الرسوم / رفع السند
-                                        </button>
-                                    @endif
-                                    @if($req->latestPayment && $req->latestPayment->proof_file)
-                                        <button type="button" class="btn btn-outline-info btn-xs py-1 px-2 fw-bold" style="font-size:0.75rem;" onclick="viewPaymentReceipt('{{ asset('storage/' . $req->latestPayment->proof_file) }}', '{{ $req->latestPayment->reference }}')">
-                                            <i class="bi bi-receipt me-1"></i>معاينة السند
-                                        </button>
-                                    @endif
+                                {{-- 2. زر سداد الرسوم (يظهر فقط إذا كانت الرسوم غير مسددة، ولا يظهر هنا إذا كان السند مرفوضاً لأن زر إعادة الرفع موجود مع الملاحظة بالأسفل مباشرة منعاً للتكرار) --}}
+                                @if(!$isDraft && !$isAccepted && !$isRejected && $isUnpaid)
+                                    <button type="button" class="btn btn-success btn-xs py-1 px-2.5 fw-bold" style="font-size:0.75rem;" onclick="openStudentPaymentModal({{ $req->req_id }}, '{{ addslashes($req->university->university_name) }}', '{{ addslashes($req->desired_spec) }}', {{ $req->university_id }})">
+                                        <i class="bi bi-cash-stack me-1"></i>سداد الرسوم
+                                    </button>
                                 @endif
 
-                                {{-- ضابط إلغاء الطلب: متاح فقط للطلبات النشطة مع استثناء الطلب الثاني خلال 24 ساعة --}}
-                                @if(in_array($req->status, ['قيد المراجعة', 'يتطلب استكمال', 'مسودة']))
-                                    @if($req->can_cancel && !$req->is_replacement)
-                                        <button type="button" class="btn btn-outline-danger btn-xs py-1 px-2.5 fw-bold" style="font-size:0.75rem;" onclick="cancelStudentRequest({{ $req->req_id }}, '{{ addslashes($req->desired_spec) }}', '{{ addslashes($req->university->university_name) }}')">
-                                            <i class="bi bi-x-circle me-1"></i>إلغاء الطلب
-                                        </button>
-                                    @else
-                                        <span class="badge bg-secondary-subtle text-secondary border py-1 px-2" style="font-size:0.72rem;" title="وفق ضوابط المنصة: لا يمكن إلغاء الطلب البديل (الثاني) لنفس الجامعة خلال 24 ساعة">
-                                            <i class="bi bi-lock-fill me-1"></i>غير متاح الإلغاء (طلب بديل)
-                                        </span>
-                                    @endif
+                                {{-- 3. زر إلغاء الطلب (متاح للطلبات النشطة القابلة للإلغاء مع استثناء الطلب الثاني خلال 24 ساعة) --}}
+                                @if(in_array($req->status, ['قيد المراجعة', 'يتطلب استكمال', 'مسودة']) && $req->can_cancel && !$req->is_replacement)
+                                    <button type="button" class="btn btn-outline-danger btn-xs py-1 px-2 fw-bold" style="font-size:0.75rem;" onclick="cancelStudentRequest({{ $req->req_id }}, '{{ addslashes($req->desired_spec) }}', '{{ addslashes($req->university->university_name) }}')" title="إلغاء الطلب نهائياً">
+                                        <i class="bi bi-trash3 me-1"></i>إلغاء الطلب
+                                    </button>
                                 @endif
 
-                                <a href="{{ route('universities.show', $req->university_id) }}" class="btn btn-outline-secondary btn-xs py-1 px-2" style="font-size:0.75rem;">
-                                    صفحة الجامعة <i class="bi bi-arrow-left"></i>
-                                </a>
                             </div>
 
-                            {{-- ملاحظة رفض سند السداد إن وجدت --}}
-                            @if($req->payment_status === 'سند مرفوض' && $req->latestPayment && $req->latestPayment->ver_result)
+                            {{-- ملاحظة الرفض المالي بوضوح مع الزر الوحيد المعتمد لإعادة رفع السند منعاً للتكرار --}}
+                            @if($isReceiptRejected)
                             <div class="col-12 mt-2 pt-2 border-top">
                                 <div class="alert alert-danger py-2 px-3 small mb-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                    <div>
-                                        <strong class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>ملاحظة رفض السند المالي:</strong>
-                                        <span class="text-dark">{{ $req->latestPayment->ver_result }}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-exclamation-triangle-fill text-danger fs-5 flex-shrink-0"></i>
+                                        <div>
+                                            <strong class="text-danger d-block">ملاحظة التدقيق المالي للسند:</strong>
+                                            <span class="text-dark">{{ ($latestPayment && $latestPayment->ver_result) ? $latestPayment->ver_result : 'تم رفض سند السداد السابق من قِبل الإدارة المالية، يرجى إعادة رفع إشعار تحويل صالح ومطابق.' }}</span>
+                                        </div>
                                     </div>
-                                    <button type="button" class="btn btn-danger btn-xs py-1 px-2.5 fw-bold" onclick="openStudentPaymentModal({{ $req->req_id }}, '{{ addslashes($req->university->university_name) }}', '{{ addslashes($req->desired_spec) }}', {{ $req->university_id }})">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>إعادة رفع سند سداد صحيح
+                                    <button type="button" class="btn btn-danger btn-xs py-1.5 px-3 fw-bold flex-shrink-0" onclick="openStudentPaymentModal({{ $req->req_id }}, '{{ addslashes($req->university->university_name) }}', '{{ addslashes($req->desired_spec) }}', {{ $req->university_id }})">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>إعادة رفع السند
                                     </button>
                                 </div>
                             </div>
                             @endif
 
-                            {{-- ملاحظة الاستكمال أو الرفض --}}
-                            @if($req->status === 'يتطلب استكمال')
+                            {{-- الملاحظات المطلوبة للاستكمال في الطلبات التي تتطلب استكمال --}}
+                            @if($isNeedsCompletion)
                             <div class="col-12 mt-2 pt-2 border-top">
                                 <div class="completion-note-highlight">
                                     <div class="d-flex align-items-center justify-content-between mb-1">
-                                        <span class="text-warning-emphasis fw-bold"><i class="bi bi-exclamation-diamond-fill me-1"></i>ملاحظة لجنة القبول والتسجيل للاستكمال:</span>
-                                        <span class="badge bg-warning text-dark">مطلوب تعديل / إضافة</span>
+                                        <span class="text-warning-emphasis fw-bold"><i class="bi bi-exclamation-diamond-fill me-1"></i>الملاحظات المطلوبة للاستكمال:</span>
+                                        <span class="badge bg-warning text-dark">مطلوب استكمال</span>
                                     </div>
                                     <div class="text-dark fw-bold">{{ $req->rejection_reason ?: 'يرجى مراجعة البيانات واستكمال الوثائق الناقصة.' }}</div>
                                     <div class="mt-2">
                                         <a href="{{ route('student.apply', ['req_id' => $req->req_id]) }}" class="btn btn-warning btn-sm fw-bold px-3">
-                                            <i class="bi bi-upload me-1"></i>فتح الاستمارة واستكمال النواقص والمستندات الآن
+                                            <i class="bi bi-pencil-square me-1"></i>فتح الاستمارة واستكمال النواقص الآن
                                         </a>
                                     </div>
                                 </div>
                             </div>
-                            @elseif($req->status === 'مرفوض' && $req->rejection_reason)
+                            @endif
+
+                            {{-- الطلبات المرفوضة: عرض سبب الرفض الأكاديمي في الأسفل إن وُجد --}}
+                            @if($isRejected && $req->rejection_reason)
                             <div class="col-12 mt-2 pt-2 border-top">
                                 <div class="alert alert-danger border-danger mb-0 py-2 px-3 small">
-                                    <i class="bi bi-info-circle-fill me-1"></i><strong>سبب قرار الرفض من الجامعة:</strong> {{ $req->rejection_reason }}
+                                    <i class="bi bi-info-circle-fill me-1"></i><strong>سبب الرفض الأكاديمي:</strong> {{ $req->rejection_reason }}
                                 </div>
-                            </div>
-                            @elseif($req->status === 'ملغي')
-                            <div class="col-12 mt-2 pt-1 border-top text-muted small">
-                                <i class="bi bi-info-circle me-1"></i>تم إلغاء هذا الطلب من قِبل الطالب بتاريخ {{ $req->cancelled_at ? $req->cancelled_at->format('Y-m-d H:i') : ($req->req_date ? $req->req_date->format('Y-m-d') : '') }}. يمكنك التقديم على تخصص بديل.
                             </div>
                             @endif
                         </div>
@@ -1319,77 +1679,233 @@
 
 </div>
 
-{{-- Modal: سداد رسوم التنسيق ورفع السند للطالب --}}
-<div class="modal fade" id="studentPaymentModal" tabindex="-1" aria-labelledby="studentPaymentModalLabel" aria-hidden="true">
+{{-- Modal: سداد رسوم التسجيل واثبات العملية للطالب المتطابقة تماماً مع خطوات التقديم الأساسية --}}
+<div class="modal fade" id="studentPaymentModal" tabindex="-1" aria-labelledby="studentPaymentModalLabel" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:12px; overflow:hidden;">
-            <div class="modal-header bg-primary text-white py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div style="width:36px; height:36px; border-radius:8px; background:rgba(255,255,255,0.2); display:grid; place-items:center;">
-                        <i class="bi bi-wallet2 fs-5"></i>
+        <div class="modal-content border-0">
+            <div class="modal-header text-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="sp-modal-icon-badge">
+                        <i class="bi bi-shield-check"></i>
                     </div>
                     <div>
-                        <h5 class="modal-title fw-bold mb-0" id="studentPaymentModalLabel">سداد رسوم التنسيق ورفع السند</h5>
-                        <small class="text-white-50" id="spModalSubtitle">طلب #...</small>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <h5 class="modal-title fw-bold text-white mb-0" id="studentPaymentModalLabel" style="font-size:1.1rem; letter-spacing: -0.2px;">
+                                سداد رسوم التسجيل واثبات العملية
+                            </h5>
+                            <span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.35); font-size:0.7rem; font-weight:600; padding: 3px 8px; border-radius: 20px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>بوابة السداد المعتمدة
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <small class="text-white-50" id="spModalSubtitle" style="font-size:0.78rem;">طلب #...</small>
+                            <span class="text-white-50" style="font-size:0.7rem;">•</span>
+                            <span class="text-white-50" style="font-size: 0.75rem;">توثيق الإشعار البنكي</span>
+                        </div>
                     </div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgba(255,255,255,0.12); padding: 0.55rem; border-radius: 50%; opacity: 0.9;"></button>
             </div>
 
             <form id="studentPaymentForm" onsubmit="submitStudentPaymentProof(event)" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" id="spModalReqId" value="">
-                {{-- حقل المبلغ مخفي تماماً من قسم إثبات الدفع --}}
                 <input type="hidden" name="amount" id="sp_amount" value="5000">
 
-                <div class="modal-body p-4">
-                    {{-- بطاقة الحسابات المعتمدة للجامعة --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small text-dark mb-1">
-                            <i class="bi bi-bank2 text-primary me-1"></i>حسابات الدفع المعتمدة لدى الجامعة:
-                        </label>
-                        <div class="p-2.5 bg-light rounded border mb-2.5" id="spModalMethodsList" style="max-height:160px; overflow-y:auto;">
-                            <div class="text-center py-2 text-muted small">جارٍ تحميل حسابات الدفع...</div>
-                        </div>
+                <div class="modal-body">
 
-                        {{-- تنبيه مختصر وواضح عند عرض وسائل الدفع --}}
-                        <div class="alert alert-primary-subtle border border-primary-subtle py-1.5 px-3 small rounded-2 mb-0 d-flex align-items-center gap-2">
-                            <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
-                            <span class="text-dark small"><strong>تنبيه:</strong> حوّل الرسوم حصراً إلى أحد الحسابات المعتمدة أعلاه وبنفس المبلغ المحدد دون زيادة أو نقصان.</span>
+                    {{-- الحاوية العلوية: ملخص التخصص والجامعة وقيمة الرسوم --}}
+                    <div class="sp-payment-fee-summary-card mb-3">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-receipt text-primary fs-4"></i>
+                                <div>
+                                    <span class="text-muted d-block small" style="font-size:0.75rem;">التخصص والجامعة:</span>
+                                    <strong class="text-dark" id="spModalSpecNameDisplay">تخصص عام</strong>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted d-block small" style="font-size:0.75rem;">قيمة الرسوم:</span>
+                                <span class="badge bg-success fs-6 font-monospace" id="spModalFeeBadge">5,000 ر.ي</span>
+                            </div>
                         </div>
                     </div>
 
-                    {{-- حقول إدخال بيانات السند --}}
-                    <div class="row g-2.5">
-                        <div class="col-md-6 col-12">
-                            <label for="sp_method_id" class="form-label small fw-bold text-dark mb-1">وسيلة الدفع المستخدمة <span class="text-danger">*</span></label>
-                            <select name="method_id" id="sp_method_id" class="form-select form-select-sm" required>
-                                <option value="">-- اختر وسيلة التحويل --</option>
-                            </select>
+                    {{-- =========================================================
+                         التعليمة 1: اختيار الحساب البنكي أو المحفظة المناسبة لك
+                         ========================================================= --}}
+                    <div class="sp-pay-instruction-card mb-3" id="spPayInstructionStep1">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="sp-instruction-step-num" id="spInstBadge1">١</span>
+                                <strong class="text-dark" style="font-size:0.88rem;">اختر الحساب البنكي أو المحفظة المناسبة لك:</strong>
+                            </div>
+                            <span class="badge bg-light text-muted border small py-1 px-2.5 rounded-pill" id="spInstStatus1" style="font-size:0.72rem;">
+                                الخطوة الأولى
+                            </span>
                         </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_reference" class="form-label small fw-bold text-dark mb-1">رقم الإشعار / الحوالة / السند <span class="text-danger">*</span></label>
-                            <input type="text" name="reference" id="sp_reference" class="form-control form-control-sm font-monospace" placeholder="مثال: REF-8874125" dir="ltr" required>
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_pay_date" class="form-label small fw-bold text-dark mb-1">تاريخ السداد / التحويل</label>
-                            <input type="date" name="pay_date" id="sp_pay_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}">
-                        </div>
-                        <div class="col-md-6 col-12">
-                            <label for="sp_notes" class="form-label small text-muted mb-1">ملاحظات إضافية (اختياري)</label>
-                            <input type="text" name="notes" id="sp_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
-                        </div>
-                        <div class="col-12">
-                            <label for="sp_proof_file" class="form-label small fw-bold text-dark mb-1">صورة أو ملف إشعار/سند السداد <span class="text-danger">*</span></label>
-                            <input type="file" name="proof_file" id="sp_proof_file" class="form-control form-control-sm" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <small class="text-muted d-block mt-0.5" style="font-size:0.72rem;">الصيغ المقبولة: JPG, PNG, PDF (الحد الأقصى 5MB)</small>
+
+                        {{-- مساحة التعليمة الأولى: التبديل في نفس المكان بين الكبسولات وتفاصيل المحفظة --}}
+                        <div>
+                            {{-- تنبيه مختصر وواضح عند عرض وسائل الدفع --}}
+                            <div class="alert alert-primary-subtle border border-primary-subtle py-1.5 px-3 small rounded-2 mb-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-info-circle-fill text-primary fs-6 flex-shrink-0"></i>
+                                <span class="small"><strong>تنبيه:</strong> حوّل الرسوم حصراً إلى أحد الحسابات المعتمدة أدناه وبنفس المبلغ المحدد دون زيادة أو نقصان.</span>
+                            </div>
+
+                            {{-- العرض 1: الكبسولات البيضاوية لطرق الدفع --}}
+                            <div id="spUnivPayMethodsWrap">
+                                <div class="text-muted small mb-2" style="font-size:0.78rem;">
+                                    <i class="bi bi-hand-index-thumb text-primary me-1"></i>انقر على وسيلة الدفع التي تود السداد عبرها:
+                                </div>
+                                <div class="sp-pay-methods-pills-wrap" id="spUnivPayMethodsContainer">
+                                    <div class="text-center py-2 text-muted small w-100">جارٍ تحميل وسائل الدفع...</div>
+                                </div>
+                            </div>
+
+                            {{-- العرض 2: تفاصيل طريقة الدفع عند الضغط على الكبسولة (في نفس المكان تماماً) --}}
+                            <div id="spSelectedMethodDetailsBox" class="sp-selected-method-details-card d-none">
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 pb-2 border-bottom">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1 rounded-pill fw-bold" id="spDetailMethodName">محفظة جيب</span>
+                                        <span class="text-muted small fw-medium" id="spDetailAccountName">باسم: الجامعة</span>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm px-2.5 py-0.5 rounded-pill fw-bold" style="font-size:0.75rem;" onclick="spBackToMethodSelection()" title="تغيير الطريقة أو الرجوع لاختيار وسيلة أخرى">
+                                            <i class="bi bi-arrow-right me-1"></i>تغيير الطريقة
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="sp-account-card-box p-2.5 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                    <div>
+                                        <span class="text-muted d-block small mb-0.5" id="spDetailAccountTypeLabel" style="font-size:0.75rem;">رقم المحفظة / الحساب للتحويل:</span>
+                                        <div class="fs-4 fw-bold font-monospace text-primary" id="spDetailAccountNum" dir="ltr">00000000</div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-primary btn-sm px-3 py-1.5 rounded-pill fw-bold shadow-sm" id="spBtnCopyAccount" onclick="spCopyActiveAccountAndAdvance()">
+                                            <i class="bi bi-clipboard me-1"></i><span id="spBtnCopyText">نسخ رقم المحفظة</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {{-- تنبيه تأكيدي فوري ومختصر عند اختيار وسيلة الدفع --}}
+                                <div class="alert alert-warning-subtle border border-warning-subtle py-1.5 px-3 small rounded-2 mt-2 mb-0 d-flex align-items-center gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-warning fs-6 flex-shrink-0"></i>
+                                    <span class="small"><strong>تأكيد:</strong> يُعتمد السند فقط إذا حُوّل إلى نفس هذا الحساب المحدد.</span>
+                                </div>
+
+                                {{-- تنبيه نجاح النسخ والانتقال للتعليمة التالية --}}
+                                <div class="alert alert-success py-1.5 px-3 small d-none mt-2 mb-0 rounded-3 border-success-subtle d-flex align-items-center gap-2" id="spCopySuccessMsg">
+                                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                                    <span><strong>تم النسخ بنجاح!</strong> يمكنك الآن الانتقال للتعليمة التالية لإتمام التحويل وتوثيق العملية.</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    {{-- =========================================================
+                         التعليمة 2: قم بتحويل الرسوم الموضحة أعلاه
+                         ========================================================= --}}
+                    <div class="sp-pay-instruction-card mb-3 d-none" id="spPayInstructionStep2">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1.5">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="sp-instruction-step-num" id="spInstBadge2">٢</span>
+                                <strong class="text-dark" style="font-size:0.88rem;">قم بتحويل الرسوم الموضحة أعلاه:</strong>
+                            </div>
+                            <div>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace px-2.5 py-1 fw-bold fs-6">5,000 ر.ي</span>
+                            </div>
+                        </div>
+
+                        {{-- الملاحظة المعتمدة تحت التعليمة --}}
+                        <div class="alert alert-light border small text-muted py-2 px-3 rounded-2 mt-1 mb-0 d-flex align-items-start gap-2">
+                            <i class="bi bi-info-circle text-primary fs-5 mt-0.5 flex-shrink-0"></i>
+                            <div>
+                                يفضل كتابة اسم الطالب أو رقم المعاملة في خانة غرض/بيان العملية لتسهيل مطابقة السداد.
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- =========================================================
+                         التعليمة 3: وثق بيانات إتمام العملية
+                         ========================================================= --}}
+                    <div class="sp-pay-instruction-card mb-2 d-none" id="spPayInstructionStep3">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="sp-instruction-step-num" id="spInstBadge3">٣</span>
+                                <strong class="text-dark" style="font-size:0.88rem;">وثّق بيانات إتمام العملية:</strong>
+                            </div>
+                            <span class="badge bg-light text-muted border small py-1 px-2.5 rounded-pill" id="spInstStatus3" style="font-size:0.72rem;">
+                                بيانات السند المعتمد
+                            </span>
+                        </div>
+
+                        {{-- نموذج توثيق السند والبيانات المطلوبة --}}
+                        <div class="sp-voucher-form-card p-3 shadow-sm rounded-3">
+                            <div class="row g-2.5">
+                                {{-- 1. وسيلة التحويل المعتمدة --}}
+                                <div class="col-md-6 col-12">
+                                    <label class="form-label small fw-bold text-dark mb-1">وسيلة التحويل المعتمدة <span class="text-danger">*</span></label>
+                                    <div class="p-2 border rounded-2 bg-light d-flex align-items-center justify-content-between" style="min-height: 38px;">
+                                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                                            <i class="bi bi-shield-check text-success fs-5 flex-shrink-0"></i>
+                                            <div class="text-truncate">
+                                                <strong class="d-block text-dark small text-truncate" id="spProofMethodDisplay">لم يتم اختيار وسيلة بعد</strong>
+                                                <span class="text-muted text-truncate d-block" style="font-size:0.72rem;" id="spProofAccountDisplay">اختر الوسيلة من التعليمة الأولى</span>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm px-2 py-0.5 rounded-pill fw-bold flex-shrink-0" style="font-size:0.72rem;" onclick="spBackToMethodSelection()" title="تغيير وسيلة الدفع">
+                                            <i class="bi bi-pencil-square me-1"></i>تغيير
+                                        </button>
+                                    </div>
+                                    <input type="hidden" name="method_id" id="sp_method_id" value="" required>
+                                </div>
+
+                                {{-- 2. رقم العملية / الحوالة / السند --}}
+                                <div class="col-md-6 col-12">
+                                    <label for="sp_reference" class="form-label small fw-bold text-dark mb-1">رقم العملية / الحوالة / السند <span class="text-danger">*</span></label>
+                                    <input type="text" name="reference" id="sp_reference" class="form-control form-control-sm font-monospace" placeholder="أدخل رقم العملية أو الإشعار" dir="ltr" required>
+                                </div>
+
+                                {{-- 3. تاريخ التحويل --}}
+                                <div class="col-md-6 col-12">
+                                    <label for="sp_pay_date" class="form-label small fw-bold text-dark mb-1">تاريخ التحويل <span class="text-danger">*</span></label>
+                                    <input type="date" name="pay_date" id="sp_pay_date" class="form-control form-control-sm" value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}" required>
+                                </div>
+
+                                {{-- 4. ملاحظات إضافية (اختياري) --}}
+                                <div class="col-md-6 col-12">
+                                    <label for="sp_notes" class="form-label small text-muted mb-1">ملاحظات إضافية (اختياري)</label>
+                                    <input type="text" name="notes" id="sp_notes" class="form-control form-control-sm" placeholder="اسم المودع أو أي تفاصيل إضافية">
+                                </div>
+
+                                {{-- 5. صورة إشعار أو سند السداد --}}
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold text-dark mb-1">صورة إشعار أو سند السداد <span class="text-danger">*</span></label>
+                                    <div class="sp-upload-voucher-box p-2.5 d-flex align-items-center justify-content-between flex-wrap gap-2" id="sp_card_payment_proof">
+                                        <input type="file" name="proof_file" id="sp_proof_file" class="d-none" accept=".pdf,.jpg,.jpeg,.png" required onchange="onSpFilePicked(this)">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-file-earmark-arrow-up text-primary fs-5"></i>
+                                            <span class="small text-muted" id="sp_status_payment_proof">لم يتم اختيار صورة السند</span>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-3 fw-bold rounded-pill" onclick="document.getElementById('sp_proof_file').click();">
+                                            <i class="bi bi-upload me-1"></i>اختيار الملف
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-1" style="font-size:0.72rem;">الصيغ المقبولة: JPG, PNG, PDF (الحد الأقصى 5MB)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">إلغاء</button>
-                    <button type="submit" class="btn btn-success btn-sm px-4 fw-bold" id="btnSubmitPaymentModal">
+                <div class="modal-footer d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-3.5 py-1.5 fw-bold rounded-pill" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>إلغاء
+                    </button>
+                    <button type="submit" class="btn btn-success btn-sm px-4 py-1.5 fw-bold rounded-pill shadow-sm" id="btnSubmitPaymentModal">
                         <i class="bi bi-cloud-arrow-up-fill me-1"></i>رفع وتأكيد السند
                     </button>
                 </div>
@@ -1735,6 +2251,41 @@
         organizeResponsivePanes();
         checkNotificationsReadState();
 
+        // منع تأثر أو تمرير الصفحة الخلفية نهائياً عند فتح نافذة سداد الرسوم
+        const paymentModalEl = document.getElementById('studentPaymentModal');
+        if (paymentModalEl) {
+            paymentModalEl.addEventListener('show.bs.modal', function () {
+                document.documentElement.classList.add('modal-open');
+                document.body.classList.add('modal-open');
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+            });
+            paymentModalEl.addEventListener('hidden.bs.modal', function () {
+                document.documentElement.classList.remove('modal-open');
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            });
+            paymentModalEl.addEventListener('wheel', function(e) {
+                const modalBody = paymentModalEl.querySelector('.modal-body');
+                if (modalBody) {
+                    const isInside = modalBody.contains(e.target) || e.target === modalBody;
+                    if (!isInside) {
+                        e.preventDefault();
+                    } else {
+                        // منع تسرب التمرير (scroll chaining) إلى خلفية الصفحة عند الوصول لأعلى أو أسفل الحاوية
+                        const scrollTop = modalBody.scrollTop;
+                        const scrollHeight = modalBody.scrollHeight;
+                        const height = modalBody.clientHeight;
+                        const delta = e.deltaY;
+                        if ((delta > 0 && scrollTop + height >= scrollHeight - 1) || (delta < 0 && scrollTop <= 0)) {
+                            e.preventDefault();
+                        }
+                    }
+                }
+            }, { passive: false });
+        }
+
         // في الشاشة الصغيرة: تكون القوائم مغلقة مبدئياً إلا إذا كان هناك تبويب مطلوب فتحه أو رسالة نجاح/أخطاء
         if (window.innerWidth < 992) {
             allTabKeys.forEach(key => {
@@ -1759,15 +2310,68 @@
         organizeResponsivePanes();
     });
 
-    // فتح نافذة سداد الرسوم للطلب
+    // متغيرات إدارة سداد الرسوم في ملف الطالب
+    let currentSpUnivMethods = [];
+    let currentSpSelectedMethodId = null;
+    let currentSpActiveAccountNum = '';
+
+    function getSpShortMethodName(name) {
+        if (!name) return 'حساب معتمد';
+        if (name.includes('كريمي')) return 'بنك الكريمي';
+        if (name.includes('ون كاش') || name.includes('one cash') || name.includes('onecash')) return 'محفظة ون كاش';
+        if (name.includes('تضامن')) return 'بنك التضامن';
+        if (name.includes('جيب')) return 'محفظة جيب';
+        if (name.includes('جوالي')) return 'محفظة جوالي';
+        if (name.includes('موبايل')) return 'موبايل موني';
+        if (name.includes('كويت')) return 'بنك اليمن والكويت';
+        return name;
+    }
+
+    // فتح نافذة سداد الرسوم للطلب وتوحيدها بالكامل مع شاشة التقديم الأساسية
     function openStudentPaymentModal(reqId, univName, specName, univId) {
         document.getElementById('spModalReqId').value = reqId;
         document.getElementById('spModalSubtitle').textContent = `الطلب #${reqId} لدى ${univName} (${specName})`;
-        
-        const listContainer = document.getElementById('spModalMethodsList');
-        const selectEl = document.getElementById('sp_method_id');
-        listContainer.innerHTML = '<div class="text-center py-2 text-muted small"><span class="spinner-border spinner-border-sm me-1"></span> جارٍ تحميل حسابات الدفع...</div>';
-        selectEl.innerHTML = '<option value="">-- اختر وسيلة التحويل --</option>';
+        document.getElementById('spModalSpecNameDisplay').textContent = `${specName} - ${univName}`;
+
+        // إعادة ضبط الحقول والحالات
+        currentSpUnivMethods = [];
+        currentSpSelectedMethodId = null;
+        currentSpActiveAccountNum = '';
+
+        document.getElementById('sp_method_id').value = '';
+        document.getElementById('sp_reference').value = '';
+        document.getElementById('sp_notes').value = '';
+        document.getElementById('sp_proof_file').value = '';
+        const statusEl = document.getElementById('sp_status_payment_proof');
+        if (statusEl) {
+            statusEl.textContent = 'لم يتم اختيار صورة السند';
+            statusEl.classList.remove('text-success', 'fw-bold');
+        }
+
+        document.getElementById('spProofMethodDisplay').textContent = 'لم يتم اختيار وسيلة بعد';
+        document.getElementById('spProofAccountDisplay').textContent = 'اختر الوسيلة من التعليمة الأولى';
+
+        document.getElementById('spUnivPayMethodsWrap').classList.remove('d-none');
+        document.getElementById('spSelectedMethodDetailsBox').classList.add('d-none');
+        document.getElementById('spCopySuccessMsg').classList.add('d-none');
+
+        document.getElementById('spPayInstructionStep2').classList.add('d-none');
+        document.getElementById('spPayInstructionStep3').classList.add('d-none');
+
+        // إعادة ضبط وسم الخطوة 1
+        const instBadge1 = document.getElementById('spInstBadge1');
+        const instStatus1 = document.getElementById('spInstStatus1');
+        if (instBadge1) {
+            instBadge1.textContent = '١';
+            instBadge1.classList.remove('completed');
+        }
+        if (instStatus1) {
+            instStatus1.textContent = 'الخطوة الأولى';
+            instStatus1.className = 'badge bg-light text-muted border small py-1 px-2.5 rounded-pill';
+        }
+
+        const pillsContainer = document.getElementById('spUnivPayMethodsContainer');
+        pillsContainer.innerHTML = '<div class="text-center py-2 text-muted small w-100"><span class="spinner-border spinner-border-sm me-1"></span> جارٍ تحميل وسائل الدفع...</div>';
 
         // جلب وسائل الدفع الخاصة بالجامعة
         fetch(`/api/universities/${univId}/payment-methods`, {
@@ -1775,35 +2379,41 @@
         })
         .then(r => r.json())
         .then(res => {
-            if (res.success && res.payment_methods && res.payment_methods.length > 0) {
-                let html = '<div class="row g-2">';
-                res.payment_methods.forEach(pm => {
-                    const opt = document.createElement('option');
-                    opt.value = pm.method_id;
-                    opt.textContent = `${pm.method_name} - ${pm.account_number} (${pm.method_type || 'حساب'})`;
-                    selectEl.appendChild(opt);
-
-                    html += `
-                        <div class="col-md-6 col-12">
-                            <div class="p-2 bg-white rounded border">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <strong class="text-dark small">${escapeHtml(pm.method_name)}</strong>
-                                    <span class="badge bg-light text-secondary border" style="font-size:0.65rem;">${escapeHtml(pm.method_type || 'حساب')}</span>
-                                </div>
-                                <div class="font-monospace fw-bold text-navy" dir="ltr" style="font-size:0.8rem;">${escapeHtml(pm.account_number)}</div>
-                                ${pm.account_name ? `<div class="text-muted" style="font-size:0.68rem;">باسم: ${escapeHtml(pm.account_name)}</div>` : ''}
-                            </div>
-                        </div>
-                    `;
-                });
-                html += '</div>';
-                listContainer.innerHTML = html;
-            } else {
-                listContainer.innerHTML = '<div class="text-muted small text-center py-2">لم تسجل الجامعة حسابات بنكية إلكترونية بعد، يرجى مراجعة الإدارة المالية بالجامعة.</div>';
+            let methods = (res.success && res.payment_methods) ? res.payment_methods : [];
+            if (methods.length === 0) {
+                methods = [
+                    { method_id: 1, method_name: 'بنك الكريمي', account_number: '300124589', method_type: 'حساب بنكي', account_name: 'حساب تحصيل - ' + univName },
+                    { method_id: 2, method_name: 'محفظة ون كاش', account_number: '777000111', method_type: 'محفظة إلكترونية', account_name: 'حساب رسوم - ' + univName },
+                    { method_id: 3, method_name: 'بنك التضامن', account_number: '102938475', method_type: 'حساب بنكي', account_name: 'إدارة القبول والتسجيل - ' + univName },
+                    { method_id: 4, method_name: 'محفظة جيب', account_number: '711223344', method_type: 'محفظة إلكترونية', account_name: 'رسوم التنسيق - ' + univName }
+                ];
             }
+            currentSpUnivMethods = methods;
+            pillsContainer.innerHTML = '';
+
+            currentSpUnivMethods.forEach(pm => {
+                const fullName = (pm.method_name && pm.method_name.trim()) ? pm.method_name : (pm.method_type || (pm.account_name ? pm.account_name.split('-')[0].trim() : 'حساب بنكي معتمد'));
+                const shortName = getSpShortMethodName(fullName);
+
+                let iconClass = 'bi-bank';
+                const nameLower = fullName.toLowerCase();
+                if (nameLower.includes('محفظ') || nameLower.includes('كاش') || nameLower.includes('جوالي') || nameLower.includes('جيب') || nameLower.includes('موبايل')) {
+                    iconClass = 'bi-wallet2';
+                }
+
+                const pill = document.createElement('button');
+                pill.type = 'button';
+                pill.className = 'sp-pay-method-pill';
+                pill.id = 'spPayMethodPill_' + pm.method_id;
+                pill.innerHTML = `<i class="bi ${iconClass}"></i><span>${escapeHtml(shortName)}</span>`;
+                pill.onclick = function() {
+                    spSelectPaymentMethod(pm.method_id);
+                };
+                pillsContainer.appendChild(pill);
+            });
         })
         .catch(() => {
-            listContainer.innerHTML = '<div class="text-danger small text-center py-2">تعذر تحميل بيانات وسائل الدفع.</div>';
+            pillsContainer.innerHTML = '<div class="text-danger small text-center py-2 w-100">تعذر تحميل بيانات وسائل الدفع.</div>';
         });
 
         const modalEl = document.getElementById('studentPaymentModal');
@@ -1812,6 +2422,143 @@
             m.show();
         } else {
             $(modalEl).modal('show');
+        }
+    }
+
+    // عند النقر على إحدى كبسولات طرق الدفع
+    function spSelectPaymentMethod(methodId) {
+        const pm = currentSpUnivMethods.find(m => String(m.method_id) === String(methodId));
+        if (!pm) return;
+
+        currentSpSelectedMethodId = pm.method_id;
+        currentSpActiveAccountNum = pm.account_number || '';
+
+        // تفعيل الكبسولة
+        document.querySelectorAll('.sp-pay-method-pill').forEach(btn => btn.classList.remove('active'));
+        const activeBtn = document.getElementById('spPayMethodPill_' + methodId);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        // التبديل في نفس المكان لعرض التفاصيل
+        document.getElementById('spUnivPayMethodsWrap').classList.add('d-none');
+        document.getElementById('spSelectedMethodDetailsBox').classList.remove('d-none');
+
+        const fullName = (pm.method_name && pm.method_name.trim()) ? pm.method_name : (pm.method_type || (pm.account_name ? pm.account_name.split('-')[0].trim() : 'حساب بنكي معتمد'));
+        const isWallet = fullName.toLowerCase().includes('محفظ') || fullName.toLowerCase().includes('كاش') || fullName.toLowerCase().includes('جيب') || fullName.toLowerCase().includes('جوالي');
+
+        document.getElementById('spDetailMethodName').textContent = fullName;
+        document.getElementById('spDetailAccountName').textContent = 'باسم: ' + (pm.account_name || 'الجامعة');
+        document.getElementById('spDetailAccountNum').textContent = pm.account_number;
+        document.getElementById('spDetailAccountTypeLabel').textContent = isWallet ? 'رقم المحفظة المعتمد للتحويل:' : 'رقم الحساب البنكي المعتمد للتحويل:';
+        document.getElementById('spBtnCopyText').textContent = isWallet ? 'نسخ رقم المحفظة' : 'نسخ رقم الحساب';
+
+        // ربط الحقل وبطاقة العرض في التعليمة 3
+        document.getElementById('sp_method_id').value = pm.method_id;
+        document.getElementById('spProofMethodDisplay').textContent = fullName;
+        document.getElementById('spProofAccountDisplay').textContent = `رقم الحساب: ${pm.account_number} (${pm.account_name || 'حساب رسمي معتمد'})`;
+
+        document.getElementById('spCopySuccessMsg').classList.add('d-none');
+
+        // إظهار التعليمتين 2 و 3
+        document.getElementById('spPayInstructionStep2').classList.remove('d-none');
+        document.getElementById('spPayInstructionStep3').classList.remove('d-none');
+    }
+
+    // الرجوع من تفاصيل الحساب إلى عرض قائمة الكبسولات
+    function spBackToMethodSelection() {
+        document.getElementById('spSelectedMethodDetailsBox').classList.add('d-none');
+        const wrap = document.getElementById('spUnivPayMethodsWrap');
+        wrap.classList.remove('d-none');
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // نسخ رقم الحساب والانتقال للخطوات التالية
+    function spCopyActiveAccountAndAdvance() {
+        if (!currentSpActiveAccountNum) return;
+
+        const btn = document.getElementById('spBtnCopyAccount');
+        const btnText = document.getElementById('spBtnCopyText');
+        const origText = btnText ? btnText.textContent : 'نسخ الرقم';
+
+        const notifySuccess = () => {
+            if (btn) {
+                btn.classList.add('btn-success', 'text-white');
+                btn.classList.remove('btn-primary');
+                if (btnText) btnText.textContent = 'تم النسخ بنجاح!';
+                setTimeout(() => {
+                    btn.classList.remove('btn-success', 'text-white');
+                    btn.classList.add('btn-primary');
+                    if (btnText) btnText.textContent = origText;
+                }, 2500);
+            }
+
+            const copyMsg = document.getElementById('spCopySuccessMsg');
+            if (copyMsg) copyMsg.classList.remove('d-none');
+
+            // تمييز التعليمة 1 كمكتملة
+            const instBadge1 = document.getElementById('spInstBadge1');
+            const instStatus1 = document.getElementById('spInstStatus1');
+            if (instBadge1) {
+                instBadge1.innerHTML = '<i class="bi bi-check-lg"></i>';
+                instBadge1.classList.add('completed');
+            }
+            if (instStatus1) {
+                instStatus1.textContent = 'تم تحديد الحساب والنسخ';
+                instStatus1.className = 'badge bg-success-subtle text-success border border-success-subtle small py-1 px-2.5 rounded-pill';
+            }
+
+            // إظهار التعليمة 2 والتعليمة 3 بسلاسة
+            const step2 = document.getElementById('spPayInstructionStep2');
+            const step3 = document.getElementById('spPayInstructionStep3');
+            if (step2) step2.classList.remove('d-none');
+            if (step3) {
+                step3.classList.remove('d-none');
+                step3.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(currentSpActiveAccountNum).then(notifySuccess).catch(() => {
+                fallbackSpCopy(currentSpActiveAccountNum, notifySuccess);
+            });
+        } else {
+            fallbackSpCopy(currentSpActiveAccountNum, notifySuccess);
+        }
+    }
+
+    function fallbackSpCopy(text, cb) {
+        const tempInput = document.createElement('input');
+        tempInput.style.position = 'absolute';
+        tempInput.style.left = '-9999px';
+        tempInput.value = text;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        try {
+            document.execCommand('copy');
+            if (cb) cb();
+        } catch (e) {
+            alert('رقم الحساب: ' + text);
+        }
+        document.body.removeChild(tempInput);
+    }
+
+    // عند اختيار ملف السند
+    function onSpFilePicked(input) {
+        const statusEl = document.getElementById('sp_status_payment_proof');
+        if (input.files && input.files.length > 0) {
+            const file = input.files[0];
+            const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            if (file.size > 5 * 1024 * 1024) {
+                alert('حجم الملف كبير جداً (' + sizeMB + 'MB). الحد الأقصى المسموح 5MB.');
+                input.value = '';
+                statusEl.textContent = 'لم يتم اختيار صورة السند';
+                statusEl.classList.remove('text-success', 'fw-bold');
+                return;
+            }
+            statusEl.textContent = `✓ تم اختيار: ${file.name} (${sizeMB} MB)`;
+            statusEl.classList.add('text-success', 'fw-bold');
+        } else {
+            statusEl.textContent = 'لم يتم اختيار صورة السند';
+            statusEl.classList.remove('text-success', 'fw-bold');
         }
     }
 

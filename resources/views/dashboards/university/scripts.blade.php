@@ -209,9 +209,27 @@ function initLiveSearch() {
 // ==========================================
 function switchTab(tabId, pushHistory = true) {
     if (!tabId) tabId = 'overview';
+    if (tabId === 'announcements') {
+        window.location.href = "{{ route('university.advertisements.index') }}";
+        return;
+    }
     
-    const validTabs = ['overview', 'profile', 'colleges', 'admission', 'applications', 'referrals', 'payments', 'announcements', 'reports', 'notifications', 'settings'];
+    const validTabs = ['overview', 'profile', 'colleges', 'admission', 'applications', 'referrals', 'payments', 'reports', 'notifications', 'settings'];
     if (!validTabs.includes(tabId)) tabId = 'overview';
+
+    // التحقق مما إذا كنا في لوحة التحكم الرئيسية الحاوية على الأقسام والتبويبات
+    const overviewPane = document.getElementById('overviewTabContent') || document.getElementById('summaryAndIntroSection');
+    const isMainDashboard = overviewPane || document.getElementById('profileTabContent') || document.getElementById('collegesTabContent');
+
+    if (!isMainDashboard) {
+        // إذا كنا في صفحة فرعية مستقلة (مثل الإعلانات الممولة)، ننتقل مباشرة للوحة التحكم مع التبويب المطلوب
+        const targetUrl = new URL("{{ route('university.dashboard') }}", window.location.origin);
+        if (tabId && tabId !== 'overview') {
+            targetUrl.searchParams.set('tab', tabId);
+        }
+        window.location.href = targetUrl.href;
+        return;
+    }
 
     // تحديث سجل التنقل
     if (pushHistory && window.currentActiveTab !== tabId) {
@@ -229,7 +247,6 @@ function switchTab(tabId, pushHistory = true) {
     });
 
     // تبديل إظهار المحتوى وإخفاء غيره بالكامل
-    const overviewPane = document.getElementById('overviewTabContent') || document.getElementById('summaryAndIntroSection');
     const tabPanes = {
         'overview': overviewPane,
         'profile': document.getElementById('profileTabContent'),
@@ -238,7 +255,6 @@ function switchTab(tabId, pushHistory = true) {
         'applications': document.getElementById('applicationsTabContent'),
         'referrals': document.getElementById('referralsTabContent'),
         'payments': document.getElementById('paymentsTabContent'),
-        'announcements': document.getElementById('announcementsTabContent'),
         'reports': document.getElementById('reportsTabContent'),
         'notifications': document.getElementById('notificationsTabContent'),
         'settings': document.getElementById('settingsTabContent')
@@ -284,6 +300,14 @@ function switchTab(tabId, pushHistory = true) {
 }
 
 function initHashTab() {
+    const overviewPane = document.getElementById('overviewTabContent') || document.getElementById('summaryAndIntroSection');
+    const isMainDashboard = overviewPane || document.getElementById('profileTabContent') || document.getElementById('collegesTabContent');
+
+    if (!isMainDashboard) {
+        // لا نتدخل في الصفحات الفرعية المستقلة
+        return;
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const tabFromUrl = urlParams.get('tab') || window.location.hash.replace('#', '') || 'overview';
     switchTab(tabFromUrl, false);
@@ -2787,5 +2811,232 @@ function escapeHtml(text) {
     if (!text) return '';
     const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
     return String(text).replace(/[&<>"']/g, m => map[m]);
+}
+
+// ==========================================
+// نافذة استعراض التوجيهات وتصحيح البيانات الرقابية
+// ==========================================
+
+function openModerationCorrectionModal(modId = null) {
+    const modal = document.getElementById('moderationCorrectionModal');
+    if (!modal) return;
+    const select = document.getElementById('modCorrectionItemId');
+    if (select) {
+        if (modId) {
+            select.value = modId;
+        }
+        updateModerationModalDisplay();
+    }
+    openModal('moderationCorrectionModal');
+}
+
+function onModerationItemChange(selectEl) {
+    updateModerationModalDisplay();
+}
+
+function updateModerationModalDisplay() {
+    const select = document.getElementById('modCorrectionItemId');
+    if (!select || !select.options || select.options.length === 0) return;
+    const opt = select.selectedOptions[0] || select.options[0];
+    if (!opt) return;
+
+    const itemType = opt.getAttribute('data-type') || 'specialization';
+    const title = opt.getAttribute('data-title') || '';
+    const reason = opt.getAttribute('data-reason') || 'لا يوجد سبب محدد.';
+    const guidance = opt.getAttribute('data-guidance') || 'يرجى مراجعة وتصحيح بيانات هذا العنصر ليتوافق مع المعايير الرسمية.';
+    const date = opt.getAttribute('data-date') || '';
+    const status = opt.getAttribute('data-status') || 'محجوب';
+
+    // تحديث بطاقة التوجيهات
+    const badgeEl = document.getElementById('modBadgeTitle');
+    if (badgeEl) {
+        const typeLabels = {
+            'logo': 'شعار الجامعة',
+            'campus_image': 'صورة الحرم الجامعي',
+            'description': 'النبذة والوصف التعريفي',
+            'contact_info': 'بيانات التواصل',
+            'college': 'كلية أكاديمية',
+            'specialization': 'تخصص أكاديمي',
+            'announcement': 'إعلان جامعي'
+        };
+        const label = typeLabels[itemType] || itemType;
+        badgeEl.innerHTML = `<i class="fa-solid fa-ban me-1"></i> [${label}] ${title ? '— ' + title : ''}`;
+    }
+
+    const dateEl = document.getElementById('modDateText');
+    if (dateEl) {
+        dateEl.innerHTML = date ? `<i class="fa-regular fa-clock me-1"></i> ${date}` : '';
+    }
+
+    const reasonEl = document.getElementById('modViolationReasonText');
+    if (reasonEl) {
+        reasonEl.textContent = reason;
+    }
+
+    const guidanceEl = document.getElementById('modAdminGuidanceText');
+    if (guidanceEl) {
+        guidanceEl.textContent = guidance;
+    }
+
+    // تبديل محرر التعديل المباشر بحسب نوع العنصر
+    document.querySelectorAll('.mod-type-editor').forEach(el => el.style.display = 'none');
+    const targetEditor = document.getElementById('editorType_' + itemType);
+    if (targetEditor) {
+        targetEditor.style.display = 'block';
+    }
+}
+
+// معاينة الصورة المرفوعة في محرر الشعار أو الحرم
+function previewModUploadedImg(input, targetImgId) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(targetImgId);
+            if (img) img.src = e.target.result;
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// إرسال التعديلات لمدير النظام عبر AJAX بواسطة FormData
+function submitModerationCorrectionAjax(e) {
+    e.preventDefault();
+    const form = document.getElementById('moderationCorrectionForm');
+    const modId = document.getElementById('modCorrectionItemId')?.value;
+    const btn = document.getElementById('btnSubmitModCorrection');
+
+    if (!modId) {
+        showToast('يرجى اختيار العنصر المحجوب أولاً.', 'warning');
+        return;
+    }
+
+    const formData = new FormData(form);
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin me-1"></i> جاري إرسال التعديلات...';
+    }
+
+    fetch(`/university/moderations/${modId}/correction`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> إرسال التعديلات لمدير النظام وفك الحجب';
+        }
+        if (data.success) {
+            closeModal('moderationCorrectionModal');
+            showToast(data.message || 'تم إرسال التعديلات لمدير النظام بنجاح', 'success');
+            setTimeout(() => window.location.reload(), 1400);
+        } else {
+            showToast(data.message || 'تعذر إرسال التعديل. يرجى التحقق من المدخلات.', 'error');
+        }
+    })
+    .catch(err => {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-1"></i> إرسال التعديلات لمدير النظام وفك الحجب';
+        }
+        console.error(err);
+        showToast('حدث خطأ أثناء الاتصال بالخادم.', 'error');
+    });
+}
+
+// ==========================================
+// إدارة الإشعارات والتنقل التفاعلي
+// ==========================================
+
+function handleNotificationClick(notifId, targetType, targetId = null) {
+    // 1. تحديد الإشعار كمقروء عبر AJAX
+    if (notifId) {
+        fetch(`/university/notifications/${notifId}/read`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json'
+            }
+        }).then(res => res.json()).then(data => {
+            const item = document.getElementById(`notif-item-${notifId}`);
+            if (item) {
+                item.classList.remove('notif-unread');
+                item.style.borderColor = '#e2e8f0';
+                item.style.background = '#ffffff';
+                const unreadDot = item.querySelector('.unread-dot');
+                if (unreadDot) unreadDot.remove();
+            }
+            if (data && data.unread_count !== undefined) {
+                updateUnreadBadge(data.unread_count);
+            }
+        }).catch(e => console.log('Notification read status update failed:', e));
+    }
+
+    // 2. الانتقال المباشر للوجهة المناسبة بحسب نوع الإشعار
+    if (targetType === 'moderation') {
+        openModerationCorrectionModal();
+    } else if (targetType === 'application' && targetId) {
+        switchTab('applications');
+        setTimeout(() => {
+            if (typeof viewRequestDetails === 'function') {
+                viewRequestDetails(targetId);
+            }
+        }, 150);
+    } else if (targetType === 'applications') {
+        switchTab('applications');
+    } else if (targetType === 'referrals') {
+        switchTab('referrals');
+    } else if (targetType === 'advertisements') {
+        window.location.href = "{{ route('university.advertisements.index') }}";
+    }
+}
+
+function markAllNotificationsAsReadAjax() {
+    fetch("{{ route('university.notifications.read_all') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            'Accept': 'application/json'
+        }
+    }).then(res => res.json()).then(data => {
+        if (data.success) {
+            document.querySelectorAll('.notif-feed-item').forEach(el => {
+                el.classList.remove('notif-unread');
+                el.style.borderColor = '#e2e8f0';
+                el.style.background = '#ffffff';
+            });
+            document.querySelectorAll('.unread-dot').forEach(el => el.remove());
+            updateUnreadBadge(0);
+            showToast(data.message || 'تم تحديد جميع الإشعارات كمقروءة', 'success');
+        }
+    }).catch(e => {
+        showToast('تعذر تحديث حالة الإشعارات', 'error');
+    });
+}
+
+function updateUnreadBadge(count) {
+    document.querySelectorAll('.unread-notifs-badge').forEach(badge => {
+        if (count > 0) {
+            badge.textContent = `${count} غير مقروء`;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    });
+
+    // تحديث شارة الإشعارات في الشريط العلوي والقائمة الجانبية
+    document.querySelectorAll('.notif-btn .notif-badge, .sidebar-nav [data-tab="notifications"] .badge').forEach(badge => {
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    });
 }
 </script>

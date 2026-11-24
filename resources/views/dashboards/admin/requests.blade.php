@@ -87,72 +87,39 @@
 <div class="supervisory-toolbar">
     <form method="GET" action="{{ route('admin.requests') }}" id="filterForm" class="toolbar-form">
         <!-- الحفاظ على الفلاتر النشطة -->
-        @if(request('tab'))
-            <input type="hidden" name="tab" id="filterTab" value="{{ request('tab') }}">
-        @endif
-        @if(request('status') && !request('tab'))
-            <input type="hidden" name="status" id="filterStatus" value="{{ request('status') }}">
-        @endif
+        <input type="hidden" name="tab" id="filterTab" value="{{ request('tab', '') }}">
+        <input type="hidden" name="status" id="filterStatus" value="{{ (!request('tab') && request('status')) ? request('status') : '' }}">
 
-        <!-- مسار أزرار التصفية السريعة الحاوية على الأعداد بداخلها -->
-        <div class="quick-chips-wrapper">
-            <span class="chips-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chips-svg-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                المسار السريع:
-            </span>
-            <div class="chips-track">
-                <!-- كافة الطلبات -->
-                <a href="{{ route('admin.requests', request()->except(['tab', 'status', 'page'])) }}" 
-                   class="quick-filter-btn {{ !request('tab') && !request('status') ? 'btn-active-dark' : '' }}"
-                   title="عرض كافة الطلبات بالمنظومة">
-                    <span class="btn-text">كافة الطلبات</span>
-                    <span class="btn-count-badge badge-all">{{ number_format($stats['total']) }}</span>
-                </a>
-
-                <!-- المعلقة (قيد الانتظار) -->
-                <a href="{{ route('admin.requests', array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'pending'])) }}" 
-                   class="quick-filter-btn {{ request('tab') === 'pending' || request('status') === 'قيد المراجعة' ? 'btn-active-amber' : '' }}"
-                   title="الطلبات المعلقة بانتظار قرارات لجان القبول بالجامعات">
-                    <span class="btn-dot dot-amber"></span>
-                    <span class="btn-text">المعلقة (قيد الانتظار)</span>
-                    <span class="btn-count-badge badge-amber">{{ number_format($stats['pending']) }}</span>
-                </a>
-
-                <!-- الحديثة -->
-                <a href="{{ route('admin.requests', array_merge(request()->except(['tab', 'status', 'page']), ['tab' => 'recent'])) }}" 
-                   class="quick-filter-btn {{ request('tab') === 'recent' ? 'btn-active-cyan' : '' }}"
-                   title="الطلبات الواردة حديثاً خلال آخر 72 ساعة">
-                    <span class="btn-dot dot-cyan"></span>
-                    <span class="btn-text">الحديثة</span>
-                    <span class="btn-count-badge badge-cyan">{{ number_format($stats['recent']) }}</span>
-                </a>
-
-                <!-- المقبولة -->
-                <a href="{{ route('admin.requests', array_merge(request()->except(['tab', 'status', 'page']), ['status' => 'مقبول'])) }}" 
-                   class="quick-filter-btn {{ request('status') === 'مقبول' ? 'btn-active-emerald' : '' }}"
-                   title="الطلبات المقبولة والمعتمدة نهائياً من الجامعات">
-                    <span class="btn-dot dot-emerald"></span>
-                    <span class="btn-text">المقبولة</span>
-                    <span class="btn-count-badge badge-emerald">{{ number_format($stats['accepted']) }}</span>
-                </a>
-
-                <!-- تتطلب استكمال -->
-                <a href="{{ route('admin.requests', array_merge(request()->except(['tab', 'status', 'page']), ['status' => 'يتطلب استكمال'])) }}" 
-                   class="quick-filter-btn {{ request('status') === 'يتطلب استكمال' ? 'btn-active-violet' : '' }}"
-                   title="طلبات تتطلب استكمال وثائق من الطالب">
-                    <span class="btn-dot dot-violet"></span>
-                    <span class="btn-text">تتطلب استكمال</span>
-                    <span class="btn-count-badge badge-violet">{{ number_format($stats['needs_complete']) }}</span>
-                </a>
-
-                <!-- المرفوضة -->
-                <a href="{{ route('admin.requests', array_merge(request()->except(['tab', 'status', 'page']), ['status' => 'مرفوض'])) }}" 
-                   class="quick-filter-btn {{ request('status') === 'مرفوض' ? 'btn-active-rose' : '' }}"
-                   title="طلبات لم تستوفِ شروط القبول">
-                    <span class="btn-dot dot-rose"></span>
-                    <span class="btn-text">المرفوضة</span>
-                    <span class="btn-count-badge badge-rose">{{ number_format($stats['rejected']) }}</span>
-                </a>
+        <!-- القائمة المنسدلة المنسقة لحالات الطلبات في وسط الصفحة مع عرض الأعداد -->
+        <div class="quick-chips-wrapper status-dropdown-center-wrapper">
+            <div class="status-dropdown-box">
+                <label for="statusQuickSelect" class="status-dropdown-label">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="chips-svg-icon"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                    <span>حالة الطلبات:</span>
+                </label>
+                <div class="status-select-wrap">
+                    <select id="statusQuickSelect" class="status-select-control" onchange="onStatusDropdownChange(this.value)">
+                        <option value="all" {{ (!request('tab') && !request('status')) ? 'selected' : '' }}>
+                            كافة الطلبات ({{ number_format($stats['total']) }})
+                        </option>
+                        <option value="tab:pending" {{ (request('tab') === 'pending' || request('status') === 'قيد المراجعة') ? 'selected' : '' }}>
+                            الحالات المعلقة ({{ number_format($stats['pending']) }})
+                        </option>
+                        <option value="tab:recent" {{ request('tab') === 'recent' ? 'selected' : '' }}>
+                            الطلبات الحديثة ({{ number_format($stats['recent']) }})
+                        </option>
+                        <option value="status:مقبول" {{ request('status') === 'مقبول' ? 'selected' : '' }}>
+                            المقبولة ({{ number_format($stats['accepted']) }})
+                        </option>
+                        <option value="status:يتطلب استكمال" {{ request('status') === 'يتطلب استكمال' ? 'selected' : '' }}>
+                            تتطلب استكمال ({{ number_format($stats['needs_complete']) }})
+                        </option>
+                        <option value="status:مرفوض" {{ request('status') === 'مرفوض' ? 'selected' : '' }}>
+                            المرفوضة ({{ number_format($stats['rejected']) }})
+                        </option>
+                    </select>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="select-chevron-svg"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
             </div>
         </div>
 
@@ -165,7 +132,7 @@
                 <div class="field-icon-wrap">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7m0 1a3 3 0 0 0 6 0V7H3l2-4h14l2 4M5 21V10.85M19 21V10.85M9 21v-4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v4"/></svg>
                 </div>
-                <select name="university_id" class="control-select" onchange="document.getElementById('filterForm').submit()">
+                <select name="university_id" id="universitySelect" class="control-select" onchange="triggerAutoFilter(true)">
                     <option value="">جميع الجامعات المعتمدة ({{ $universities->count() }})</option>
                     @foreach($universities as $u)
                         <option value="{{ $u->university_id }}" {{ request('university_id') == $u->university_id ? 'selected' : '' }}>
@@ -281,21 +248,16 @@
                 </div>
             </div>
 
-            <!-- 3. البحث السريع وزر التنفيذ -->
+            <!-- 3. البحث السريع والتصفية الفورية التلقائية -->
             <div class="control-col col-search">
                 <div class="smart-search-box">
                     <svg class="search-addon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                     </svg>
-                    <input type="text" name="search" id="searchInput" value="{{ request('search') }}" class="control-search-input" placeholder="رقم الطلب، اسم الطالب، رقم الهاتف...">
-                    <button type="submit" class="btn-apply-filters" title="تطبيق البحث">
-                        تطبيق الفلترة
+                    <input type="text" name="search" id="searchInput" value="{{ request('search') }}" class="control-search-input" placeholder="رقم الطلب، اسم الطالب، رقم الهاتف..." autocomplete="off">
+                    <button type="button" id="btnResetFilters" onclick="resetAllFilters(event)" class="btn-reset-filters" title="إلغاء كافة الفلاتر والبحث" style="{{ request()->anyFilled(['university_id', 'tab', 'status', 'date_from', 'date_to', 'search']) ? '' : 'display:none;' }}">
+                        إلغاء
                     </button>
-                    @if(request()->anyFilled(['university_id', 'tab', 'status', 'date_from', 'date_to', 'search']))
-                        <a href="{{ route('admin.requests') }}" class="btn-reset-filters" title="إلغاء كافة الفلاتر والبحث">
-                            إلغاء
-                        </a>
-                    @endif
                 </div>
             </div>
         </div>
@@ -305,7 +267,7 @@
 <!-- ========================================================================
      3. جدول المتابعة العصري فائق الوضوح
      ======================================================================== -->
-<div class="stream-matrix-card">
+<div class="stream-matrix-card" id="requestsResultsContainer">
     <div class="matrix-header-bar">
         <div class="matrix-meta-left">
             <div class="matrix-title-badge">
@@ -314,9 +276,11 @@
             </div>
             <span class="matrix-counter-tag">{{ number_format($requests->total()) }} معاملة مسجلة</span>
         </div>
-        <div class="matrix-governance-pill">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            <span>شاشة رقابية استعراضية • صلاحيات القبول والسداد مستقلة للجامعات</span>
+        <div class="matrix-actions-right" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <a href="{{ route('admin.requests.export', request()->query()) }}" class="btn-matrix-export" id="btnExportRequests" title="تصدير كافة طلبات الالتحاق المطابقة للبحث والتصفية الحالية إلى ملف Excel / CSV">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                <span>تصدير الطلبات (CSV)</span>
+            </a>
         </div>
     </div>
 
@@ -325,27 +289,17 @@
             <thead>
                 <tr>
                     <th class="th-id" style="width:100px; text-align:center;">رقم المعاملة</th>
-                    <th class="th-student">اسم الطالب ورقم هاتفه</th>
-                    <th class="th-univ">الجامعة والبرنامج المطلوب</th>
+                    <th class="th-student">اسم الطالب</th>
+                    <th class="th-univ">الجامعة</th>
                     <th class="th-date" style="width:140px;">تاريخ التقديم</th>
                     <!-- لا يوجد عمود مستقل لتاريخ المراجعة؛ مدمج مع حالة الطلب عملاً بالمحددات -->
                     <th class="th-status" style="width:190px;">حالة الطلب وتاريخ مراجعته</th>
-                    <!-- حالة السداد فقط دون كشف السندات أو العمليات المالية -->
-                    <th class="th-pay" style="width:145px; text-align:center;">حالة السداد</th>
                     <th class="th-action" style="width:70px; text-align:center;">معاينة</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($requests as $req)
                     @php
-                        $paymentStatus = $req->payment_status ?? 'بانتظار السداد';
-                        $payTheme = match($paymentStatus) {
-                            'مسدد ومعتمد'  => 'pay-theme-success',
-                            'قيد التحقق'   => 'pay-theme-warning',
-                            'سند مرفوض'    => 'pay-theme-danger',
-                            default        => 'pay-theme-muted',
-                        };
-
                         $statusTheme = match($req->status) {
                             'مقبول'         => 'st-theme-accepted',
                             'قيد المراجعة'  => 'st-theme-pending',
@@ -354,8 +308,6 @@
                             'ملغي'          => 'st-theme-cancelled',
                             default         => 'st-theme-default'
                         };
-
-                        $isRecent = $req->req_date && $req->req_date->isAfter(now()->subDays(3));
                     @endphp
                     <tr class="stream-row">
                         <!-- 1. رقم المعاملة -->
@@ -363,7 +315,7 @@
                             <span class="order-id-badge">#{{ $req->req_id }}</span>
                         </td>
 
-                        <!-- 2. اسم الطالب ورقم الهاتف -->
+                        <!-- 2. اسم الطالب -->
                         <td class="td-student">
                             <div class="student-profile-cell">
                                 <div class="student-avatar-ring">
@@ -371,28 +323,16 @@
                                 </div>
                                 <div class="student-text-group">
                                     <div class="student-full-name">{{ $req->full_name }}</div>
-                                    @if($req->phone)
-                                        <div class="student-phone-row">
-                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="phone-svg"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                                            <a href="tel:{{ $req->phone }}" class="phone-link" dir="ltr" title="اتصال بالطالب">{{ $req->phone }}</a>
-                                        </div>
-                                    @else
-                                        <span class="phone-unavailable">لا يوجد هاتف</span>
-                                    @endif
                                 </div>
                             </div>
                         </td>
 
-                        <!-- 3. الجامعة والتخصص -->
+                        <!-- 3. الجامعة -->
                         <td class="td-univ">
                             <div class="academic-target-cell">
                                 <div class="academic-univ-title">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="academic-svg"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                                     <span>{{ $req->university?->university_name ?? '—' }}</span>
-                                </div>
-                                <div class="academic-spec-name">
-                                    <span class="spec-bullet">▪</span>
-                                    {{ $req->desired_spec ?? 'تخصص عام' }}
                                 </div>
                             </div>
                         </td>
@@ -403,9 +343,6 @@
                                 <span class="date-calendar-str">{{ $req->req_date ? $req->req_date->format('Y/m/d') : '—' }}</span>
                                 <div class="date-time-tag">
                                     <span>{{ $req->req_date ? $req->req_date->format('H:i') : '' }}</span>
-                                    @if($isRecent)
-                                        <span class="freshness-chip">حديث</span>
-                                    @endif
                                 </div>
                             </div>
                         </td>
@@ -428,32 +365,19 @@
                                     {{ $req->status }}
                                 </span>
 
-                                <!-- تاريخ المراجعة مدمج داخل نفس الخلية أسفل الحالة مباشرة -->
-                                <div class="review-subline">
-                                    @if($req->decision_date)
+                                @if($req->decision_date)
+                                    <!-- تاريخ المراجعة مدمج داخل نفس الخلية أسفل الحالة مباشرة -->
+                                    <div class="review-subline">
                                         <span class="decision-recorded">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
                                             روجع: {{ $req->decision_date->format('Y/m/d') }}
                                         </span>
-                                    @else
-                                        <span class="decision-awaiting">
-                                            <span class="awaiting-pulse"></span>
-                                            بانتظار قرار الجامعة
-                                        </span>
-                                    @endif
-                                </div>
+                                    </div>
+                                @endif
                             </div>
                         </td>
 
-                        <!-- 6. حالة السداد فقط دون كشف العمليات أو الإيصالات -->
-                        <td class="td-pay" style="text-align:center;">
-                            <span class="pay-quantum-badge {{ $payTheme }}">
-                                <span class="pay-dot"></span>
-                                {{ $paymentStatus }}
-                            </span>
-                        </td>
-
-                        <!-- 7. زر المعاينة الإشرافية المقتصرة على الحقول المحددة -->
+                        <!-- 6. زر المعاينة الإشرافية المقتصرة على الحقول المحددة -->
                         <td class="td-action" style="text-align:center;">
                             <button type="button" class="btn-inspect-stream" onclick="openReqOverviewModal({{ $req->req_id }})" title="معاينة إشرافية للطلب">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -462,7 +386,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="empty-stream-cell">
+                        <td colspan="6" class="empty-stream-cell">
                             <div class="empty-stream-box">
                                 <div class="empty-icon-halo">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
@@ -480,17 +404,66 @@
         </table>
     </div>
 
-    <!-- Pagination -->
-    @if($requests->hasPages())
-        <div class="matrix-pagination-strip">
-            <div class="pagination-summary">
-                عرض السجلات من <strong>{{ $requests->firstItem() }}</strong> إلى <strong>{{ $requests->lastItem() }}</strong> من أصل <strong>{{ number_format($requests->total()) }}</strong> طلب
-            </div>
-            <div class="pagination-navigation">
-                {{ $requests->links() }}
+    <!-- شريط الترقيم والإحصاء السفلي المتطور فائق الوضوح -->
+    <div class="matrix-pagination-strip" id="paginationStrip">
+        @php
+            $totalCount = $requests->total();
+            $firstItem = $requests->firstItem() ?? 0;
+            $lastItem = $requests->lastItem() ?? 0;
+            $remaining = max(0, $totalCount - $lastItem);
+            $currentPage = $requests->currentPage();
+            $lastPage = $requests->lastPage();
+        @endphp
+        <div class="pagination-summary">
+            <div class="summary-chip-group">
+                <span class="summary-pill current-range">
+                    <i class="fa-solid fa-list-ol"></i>
+                    عرض <strong>{{ $firstItem }}</strong> إلى <strong>{{ $lastItem }}</strong> من أصل <strong>{{ number_format($totalCount) }}</strong> طلب
+                </span>
+                <span class="summary-pill remaining-count {{ $remaining > 0 ? 'has-remaining' : 'all-done' }}">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                    المتبقي للاستعراض: <strong>{{ number_format($remaining) }}</strong> طلب
+                </span>
             </div>
         </div>
-    @endif
+
+        @if($lastPage > 1)
+            <div class="pagination-navigation-modern">
+                {{-- زر السابق --}}
+                @if($requests->onFirstPage())
+                    <span class="modern-page-btn disabled" aria-disabled="true">
+                        <i class="fa-solid fa-chevron-right"></i>
+                        السابق
+                    </span>
+                @else
+                    <a href="{{ $requests->previousPageUrl() }}" class="modern-page-btn nav-link-btn" title="الانتقال للصفحة السابقة">
+                        <i class="fa-solid fa-chevron-right"></i>
+                        السابق
+                    </a>
+                @endif
+
+                {{-- مؤشر الصفحة الحالية --}}
+                <div class="modern-page-indicators">
+                    <span class="page-current-indicator">
+                        صفحة <strong>{{ $currentPage }}</strong> من <strong>{{ $lastPage }}</strong>
+                    </span>
+                </div>
+
+                {{-- زر التالي --}}
+                @if($requests->hasMorePages())
+                    <a href="{{ $requests->nextPageUrl() }}" class="modern-page-btn nav-link-btn" title="الانتقال للصفحة التالية">
+                        التالي
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </a>
+                @else
+                    <span class="modern-page-btn disabled" aria-disabled="true">
+                        التالي
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </span>
+                @endif
+            </div>
+        @endif
+    </div>
 </div>
 
 <!-- ========================================================================
@@ -681,130 +654,89 @@
     gap: 16px;
 }
 
-/* أزرار التصفية السريعة الحاوية على الأعداد */
-.quick-chips-wrapper {
+/* القائمة المنسدلة المنسقة لحالات الطلبات في وسط الصفحة */
+.status-dropdown-center-wrapper {
     display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    margin: 0 auto;
+    padding: 4px 0 10px;
+}
+
+.status-dropdown-box {
+    display: inline-flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 6px 14px 6px 8px;
+    box-shadow: 0 4px 14px rgba(11, 61, 107, 0.06);
+    transition: all 0.25s ease;
+    max-width: 480px;
+    width: 100%;
 }
 
-.chips-label {
-    font-size: 12.5px;
-    font-weight: 700;
-    color: #64748b;
+.status-dropdown-box:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(11, 61, 107, 0.15);
+}
+
+.status-dropdown-label {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 800;
+    color: #0f172a;
+    white-space: nowrap;
+    margin: 0;
+    cursor: default;
 }
 
-.chips-svg-icon {
-    width: 14px;
-    height: 14px;
+.status-dropdown-label svg {
+    width: 16px;
+    height: 16px;
     color: #0284c7;
 }
 
-.chips-track {
+.status-select-wrap {
+    position: relative;
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
 }
 
-.quick-filter-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    border-radius: 30px;
-    background: #f1f5f9;
-    color: #334155;
-    font-size: 12.5px;
-    font-weight: 600;
-    text-decoration: none;
+.status-select-control {
+    width: 100%;
+    background: #f8fafc;
     border: 1px solid #e2e8f0;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.quick-filter-btn:hover {
-    background: #e2e8f0;
+    border-radius: 8px;
+    padding: 8px 32px 8px 12px;
+    font-size: 13.5px;
+    font-weight: 700;
     color: #0f172a;
-    transform: translateY(-1px);
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: all 0.2s ease;
 }
 
-.btn-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+.status-select-control:focus {
+    background: #ffffff;
+    border-color: #0284c7;
 }
 
-.dot-amber { background: #d97706; }
-.dot-cyan { background: #0284c7; }
-.dot-emerald { background: #16a34a; }
-.dot-violet { background: #9333ea; }
-.dot-rose { background: #e11d48; }
-
-.btn-count-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1px 7px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: 800;
-    font-family: ui-monospace, monospace;
-    background: #e2e8f0;
-    color: #1e293b;
+.select-chevron-svg {
+    position: absolute;
+    left: 10px;
+    width: 14px;
+    height: 14px;
+    color: #64748b;
+    pointer-events: none;
 }
-
-/* Active states for buttons */
-.btn-active-dark {
-    background: #0f172a !important;
-    color: #ffffff !important;
-    border-color: #0f172a !important;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.25);
-}
-.btn-active-dark .btn-count-badge { background: rgba(255, 255, 255, 0.2); color: #fff; }
-
-.btn-active-amber {
-    background: #d97706 !important;
-    color: #ffffff !important;
-    border-color: #d97706 !important;
-    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
-}
-.btn-active-amber .btn-count-badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
-
-.btn-active-cyan {
-    background: #0284c7 !important;
-    color: #ffffff !important;
-    border-color: #0284c7 !important;
-    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
-}
-.btn-active-cyan .btn-count-badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
-
-.btn-active-emerald {
-    background: #16a34a !important;
-    color: #ffffff !important;
-    border-color: #16a34a !important;
-    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.25);
-}
-.btn-active-emerald .btn-count-badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
-
-.btn-active-violet {
-    background: #9333ea !important;
-    color: #ffffff !important;
-    border-color: #9333ea !important;
-    box-shadow: 0 4px 10px rgba(147, 51, 234, 0.25);
-}
-.btn-active-violet .btn-count-badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
-
-.btn-active-rose {
-    background: #e11d48 !important;
-    color: #ffffff !important;
-    border-color: #e11d48 !important;
-    box-shadow: 0 4px 10px rgba(225, 29, 72, 0.25);
-}
-.btn-active-rose .btn-count-badge { background: rgba(255, 255, 255, 0.25); color: #fff; }
 
 .toolbar-divider {
     height: 1px;
@@ -1164,6 +1096,32 @@
     color: #2563eb;
 }
 
+.btn-matrix-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #059669;
+    color: #ffffff !important;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 8px;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(5, 150, 105, 0.22);
+}
+
+.btn-matrix-export:hover {
+    background: #047857;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(5, 150, 105, 0.32);
+}
+
+.btn-matrix-export i {
+    font-size: 13px;
+}
+
 .matrix-table-responsive {
     overflow-x: auto;
 }
@@ -1503,16 +1461,108 @@
 
 .matrix-pagination-strip {
     padding: 14px 22px;
-    background: #f8fafc;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
     border-top: 1px solid #e2e8f0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 14px;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
 }
 
-.pagination-summary { font-size: 12.5px; color: #64748b; }
+.pagination-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.summary-chip-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.summary-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.summary-pill.current-range {
+    background: #eef4f9;
+    color: #072b4f;
+    border: 1px solid #d0e0ed;
+}
+
+.summary-pill.remaining-count {
+    background: #fdf8eb;
+    color: #8c6b12;
+    border: 1px solid #fae6b2;
+}
+
+.summary-pill.remaining-count.all-done {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.pagination-navigation-modern {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modern-page-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 15px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0b3d6b;
+    background: #ffffff;
+    border: 1.5px solid #d0e0ed;
+    transition: all .2s ease;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 1px 3px rgba(11, 61, 107, 0.05);
+}
+
+.modern-page-btn:hover:not(.disabled) {
+    background: #0b3d6b;
+    color: #ffffff;
+    border-color: #0b3d6b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(11, 61, 107, 0.15);
+}
+
+.modern-page-btn.disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.page-current-indicator {
+    padding: 7px 13px;
+    background: #072b4f;
+    color: #ffffff;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+.page-current-indicator strong {
+    color: #f0c842;
+}
 
 /* ---------------- 4. نافذة المعاينة والاتصال بالجامعة ---------------- */
 .stream-modal-backdrop {
@@ -1761,12 +1811,128 @@
 }
 
 @media (max-width: 768px) {
-    .cockpit-container { padding: 18px 16px; }
-    .cockpit-main-title { font-size: 19px; }
+    .cockpit-container { padding: 14px 12px; }
+    .cockpit-main-title { font-size: 18px; }
     .cockpit-sys-meter { width: 100%; }
-    .stream-table th, .stream-table td { padding: 10px 12px; }
     .smart-date-group { flex-direction: column; gap: 10px; }
     .date-link-arrow { transform: rotate(90deg); }
+
+    /* حصر أعمدة الجدول في الشاشات الصغيرة على 3 أعمدة فقط: الاسم، الجامعة، زر العين */
+    .th-id, .td-id,
+    .th-date, .td-date,
+    .th-status, .td-status,
+    .th-pay, .td-pay {
+        display: none !important;
+    }
+
+    .matrix-table-responsive {
+        overflow-x: hidden !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .stream-table {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+    }
+
+    .th-student, .td-student {
+        width: 48% !important;
+        padding: 10px 8px !important;
+    }
+
+    .th-univ, .td-univ {
+        width: 38% !important;
+        padding: 10px 8px !important;
+    }
+
+    .th-action, .td-action {
+        width: 14% !important;
+        padding: 10px 4px !important;
+        text-align: center !important;
+    }
+
+    /* حماية النصوص من تجاوز أبعاد الشاشة */
+    .student-profile-cell {
+        gap: 6px !important;
+    }
+    .student-avatar-ring {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 11px !important;
+        flex-shrink: 0;
+    }
+    .student-full-name {
+        font-size: 12px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 115px;
+    }
+    .student-phone-row {
+        font-size: 10px !important;
+    }
+    .phone-link {
+        font-size: 10px !important;
+    }
+    .academic-target-cell {
+        gap: 2px;
+    }
+    .academic-univ-title {
+        font-size: 11.5px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 95px;
+    }
+    .academic-spec-name {
+        font-size: 10px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 95px;
+    }
+    .btn-inspect-stream {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 13px !important;
+        margin: 0 auto;
+    }
+
+    /* شريط الترقيم والإحصاء في الشاشات الصغيرة */
+    .matrix-pagination-strip {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px 14px;
+        gap: 12px;
+    }
+    .summary-chip-group {
+        justify-content: space-between;
+        width: 100%;
+        gap: 8px;
+    }
+    .summary-pill {
+        font-size: 11px;
+        padding: 5px 10px;
+        flex: 1;
+        justify-content: center;
+    }
+    .pagination-navigation-modern {
+        justify-content: space-between;
+        width: 100%;
+    }
+    .modern-page-btn {
+        padding: 7px 12px;
+        font-size: 12px;
+        flex: 1;
+        justify-content: center;
+    }
+    .page-current-indicator {
+        padding: 7px 10px;
+        font-size: 11px;
+    }
 }
 </style>
 
@@ -1942,7 +2108,7 @@ function initSegmentedDatePicker(type) {
                         nextDay.select();
                     }
                 } else {
-                    document.getElementById('filterForm').submit();
+                    triggerAutoFilter(true);
                 }
             }
         });
@@ -1960,29 +2126,10 @@ function initSegmentedDatePicker(type) {
 initSegmentedDatePicker('From');
 initSegmentedDatePicker('To');
 
-// تصحيح واستكمال الخانات شكلياً ورقمياً قبل إرسال النموذج
-const filterForm = document.getElementById('filterForm');
-if (filterForm) {
-    filterForm.addEventListener('submit', function() {
-        ['From', 'To'].forEach(type => {
-            const d = document.getElementById('day' + type);
-            const m = document.getElementById('month' + type);
-            const y = document.getElementById('year' + type);
-            const h = document.getElementById('hiddenDate' + type);
-            if (d && d.value.trim().length === 1) d.value = d.value.trim().padStart(2, '0');
-            if (m && m.value.trim().length === 1) m.value = m.value.trim().padStart(2, '0');
-            if (y && y.value.trim().length === 2) y.value = '20' + y.value.trim();
-            if (d && d.value.trim().length > 0 && h) {
-                h.value = `${y.value.trim()}-${m.value.trim()}-${d.value.trim()}`;
-            }
-        });
-    });
-}
-
 /**
  * زر مسح التاريخ وإعادته للحالة الافتراضية غير المفعلة
  */
-function resetDateSegment(type) {
+function resetDateSegment(type, skipFilter = false) {
     const curMonth = '{{ date("m") }}';
     const curYear = '{{ date("Y") }}';
     const dayInput = document.getElementById('day' + type);
@@ -1999,8 +2146,9 @@ function resetDateSegment(type) {
     if (wrap) wrap.classList.remove('is-active-date');
     if (clearBtn) clearBtn.style.display = 'none';
 
-    // إعادة التركيز على اليوم
-    if (dayInput) dayInput.focus();
+    if (!skipFilter) {
+        triggerAutoFilter(true);
+    }
 }
 
 /**
@@ -2038,8 +2186,208 @@ function onNativePicked(type, val) {
         if (hiddenInput) hiddenInput.value = val;
         if (wrap) wrap.classList.add('is-active-date');
         if (clearBtn) clearBtn.style.display = 'inline-flex';
+
+        triggerAutoFilter(true);
     }
 }
+
+/**
+ * منظومة الفلترة التلقائية اللحظية والتمرير السلس
+ */
+let autoFilterTimeout = null;
+let isFiltering = false;
+
+function triggerAutoFilter(immediate = false) {
+    clearTimeout(autoFilterTimeout);
+    if (immediate) {
+        executeAutoFilter();
+    } else {
+        autoFilterTimeout = setTimeout(executeAutoFilter, 380);
+    }
+}
+
+function executeAutoFilter(customUrl = null) {
+    if (isFiltering) return;
+    isFiltering = true;
+
+    const form = document.getElementById('filterForm');
+    if (!form && !customUrl) {
+        isFiltering = false;
+        return;
+    }
+
+    // مزامنة حقول التاريخ المجزأة قبل التجهيز
+    ['From', 'To'].forEach(type => {
+        const d = document.getElementById('day' + type);
+        const m = document.getElementById('month' + type);
+        const y = document.getElementById('year' + type);
+        const h = document.getElementById('hiddenDate' + type);
+        if (d && d.value.trim().length === 1) d.value = d.value.trim().padStart(2, '0');
+        if (m && m.value.trim().length === 1) m.value = m.value.trim().padStart(2, '0');
+        if (y && y.value.trim().length === 2) y.value = '20' + y.value.trim();
+        if (d && d.value.trim().length > 0 && h) {
+            h.value = `${y.value.trim()}-${m.value.trim()}-${d.value.trim()}`;
+        }
+    });
+
+    let fetchUrl = customUrl;
+    if (!fetchUrl && form) {
+        const formData = new FormData(form);
+        const cleanParams = new URLSearchParams();
+        for (const [key, val] of formData.entries()) {
+            if (val !== null && val.toString().trim() !== '') {
+                cleanParams.append(key, val.toString().trim());
+            }
+        }
+        fetchUrl = form.action + (cleanParams.toString() ? '?' + cleanParams.toString() : '');
+    }
+
+    // إظهار حالة المعالجة الناعمة
+    const resultsContainer = document.getElementById('requestsResultsContainer');
+    if (resultsContainer) {
+        resultsContainer.style.opacity = '0.55';
+        resultsContainer.style.pointerEvents = 'none';
+        resultsContainer.style.transition = 'opacity 0.2s ease';
+    }
+
+    // تحديث ظهور زر الإلغاء
+    const resetBtn = document.getElementById('btnResetFilters');
+    if (resetBtn) {
+        const searchVal = document.getElementById('searchInput')?.value.trim();
+        const univVal = document.querySelector('select[name="university_id"]')?.value;
+        const fromVal = document.getElementById('hiddenDateFrom')?.value;
+        const toVal = document.getElementById('hiddenDateTo')?.value;
+        const hasFilters = Boolean(searchVal || univVal || fromVal || toVal);
+        resetBtn.style.display = hasFilters ? 'inline-flex' : 'none';
+    }
+
+    fetch(fetchUrl, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const newResults = doc.getElementById('requestsResultsContainer');
+
+        if (newResults && resultsContainer) {
+            resultsContainer.innerHTML = newResults.innerHTML;
+        }
+
+        // تحديث أعداد وخيارات القائمة المنسدلة لحالات الطلبات
+        const newChips = doc.querySelector('.quick-chips-wrapper');
+        const oldChips = document.querySelector('.quick-chips-wrapper');
+        if (newChips && oldChips) {
+            oldChips.innerHTML = newChips.innerHTML;
+        }
+
+        // تحديث الرابط في شريط المتصفح دون إعادة تحميل
+        window.history.pushState(null, '', fetchUrl);
+
+        // سحب الشاشة بهدوء ونعومة لمكان النتائج مباشرة أسفل الفلاتر
+        smoothScrollToResults();
+    })
+    .catch(err => {
+        console.error('Filter fetch error:', err);
+        if (form && !customUrl) form.submit();
+    })
+    .finally(() => {
+        if (resultsContainer) {
+            resultsContainer.style.opacity = '1';
+            resultsContainer.style.pointerEvents = 'auto';
+        }
+        isFiltering = false;
+        bindPaginationLinks();
+    });
+}
+
+/**
+ * معالجة اختيار حالة الطلبات من القائمة المنسدلة المنسقة في الوسط
+ */
+function onStatusDropdownChange(val) {
+    const tabInput = document.getElementById('filterTab');
+    const statusInput = document.getElementById('filterStatus');
+
+    if (!val || val === 'all') {
+        if (tabInput) tabInput.value = '';
+        if (statusInput) statusInput.value = '';
+    } else if (val.startsWith('tab:')) {
+        if (tabInput) tabInput.value = val.replace('tab:', '');
+        if (statusInput) statusInput.value = '';
+    } else if (val.startsWith('status:')) {
+        if (tabInput) tabInput.value = '';
+        if (statusInput) statusInput.value = val.replace('status:', '');
+    }
+
+    triggerAutoFilter(true);
+}
+
+function smoothScrollToResults() {
+    const container = document.getElementById('requestsResultsContainer');
+    if (container) {
+        const offset = 85; // يضمن بقاء شريط الفلاتر والبحث ظاهراً تماماً في الأعلى
+        const targetY = container.getBoundingClientRect().top + window.pageYOffset - offset;
+        const currentScroll = window.pageYOffset;
+        if (Math.abs(targetY - currentScroll) > 40) {
+            window.scrollTo({
+                top: Math.max(0, targetY),
+                behavior: 'smooth'
+            });
+        }
+    }
+}
+
+function resetAllFilters(e) {
+    if (e) e.preventDefault();
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+    const univSelect = document.querySelector('select[name="university_id"]');
+    if (univSelect) univSelect.value = '';
+    
+    // مسح حقول التاريخ
+    resetDateSegment('From', true);
+    resetDateSegment('To', true);
+
+    const tabInput = document.getElementById('filterTab');
+    if (tabInput) tabInput.value = '';
+    const statusInput = document.getElementById('filterStatus');
+    if (statusInput) statusInput.value = '';
+
+    const statusSelect = document.getElementById('statusQuickSelect');
+    if (statusSelect) statusSelect.value = 'all';
+
+    triggerAutoFilter(true);
+}
+
+function bindPaginationLinks() {
+    const pagLinks = document.querySelectorAll('.modern-page-btn.nav-link-btn');
+    pagLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            executeAutoFilter(this.href);
+        });
+    });
+}
+
+// ربط حقل البحث والتنقل عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            triggerAutoFilter(false);
+        });
+        searchInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                triggerAutoFilter(true);
+            }
+        });
+    }
+
+    bindPaginationLinks();
+});
 
 /**
  * نافذة المعاينة الإشرافية مع زر التواصل الهاتفي بالجامعة
@@ -2129,6 +2477,12 @@ function openReqOverviewModal(reqId) {
                         <span class="pay-quantum-badge" style="background:#e0f2fe;color:#0369a1;">${r.payment_status}</span>
                     </span>
                 </div>
+                ${r.rejection_reason ? `
+                <div class="modal-record-item" style="grid-column: 1 / -1; background:#fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 12px 16px;">
+                    <span class="modal-record-label" style="color:#dc2626; font-weight:700;">سبب الرفض / ملاحظات الجامعة:</span>
+                    <span class="modal-record-value" style="color:#991b1b; font-weight:600; margin-top:4px; display:block;">${r.rejection_reason}</span>
+                </div>
+                ` : ''}
             `;
         })
         .catch(err => {
