@@ -136,11 +136,11 @@ class AdminController extends Controller
     }
 
     /**
-     * تصدير بيانات المستخدمين إلى ملف CSV متوافق مع Excel
+     * تصدير بيانات المستخدمين إلى ملف CSV متوافق مع Excel بكافة الحقول والبيانات المتاحة
      */
     public function exportUsers(Request $request)
     {
-        $query = User::query()->with(['student', 'university', 'admin']);
+        $query = User::query()->with(['student.regRequests.university', 'university', 'admin']);
 
         if ($request->filled('type')) {
             $query->where('user_type', $request->type);
@@ -168,7 +168,7 @@ class AdminController extends Controller
             'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
-        $callback = function () use ($users) {
+        return response()->streamDownload(function () use ($users) {
             $file = fopen('php://output', 'w');
             // Write UTF-8 BOM for Arabic character rendering in MS Excel
             fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
@@ -176,21 +176,29 @@ class AdminController extends Controller
             fputcsv($file, [
                 'المعرف',
                 'اسم المستخدم',
-                'الاسم الكامل / الجهة',
+                'الاسم الكامل / جهة الانتساب',
                 'نوع الحساب / الصلاحية',
                 'البريد الإلكتروني',
-                'رقم الهاتف',
+                'حالة توثيق البريد',
+                'رقم الهاتف للتواصل',
                 'حالة الحساب',
+                'طريقة تسجيل الدخول',
                 'إلزام تغيير كلمة المرور',
-                'تاريخ الإنشاء',
-                'آخر تسجيل دخول'
+                'الجهة / التبعية الإدارية',
+                'تاريخ ووقت الانضمام',
+                'آخر تسجيل دخول',
             ]);
 
             foreach ($users as $u) {
+                $st = $u->student;
+                $univ = $u->university;
+                $adm = $u->admin;
+                $latestReq = $st?->regRequests?->sortByDesc('req_id')->first();
+
                 $displayName = match($u->user_type) {
-                    'admin'      => $u->admin?->full_name ?: 'مسؤول نظام',
-                    'university' => $u->university?->university_name ?: 'حساب جامعة',
-                    'student'    => $u->student?->full_name ?: 'طالب مسجل',
+                    'admin'      => $adm?->full_name ?: ($u->username === 'admin' ? 'مدير المنظومة العام' : 'مسؤول نظام'),
+                    'university' => $univ?->university_name ?: 'حساب جامعة',
+                    'student'    => $st?->full_name ?: ($latestReq?->full_name ?: $u->username),
                     default      => $u->username,
                 };
 
@@ -201,23 +209,41 @@ class AdminController extends Controller
                     default      => $u->user_type,
                 };
 
+                $email = $u->email ?: ($univ?->email ?: ($latestReq?->email ?: '—'));
+                $phone = $u->phone ?: ($univ?->contact_phone ?: ($univ?->phone ?: ($latestReq?->phone ?: '—')));
+
+                $entity = match($u->user_type) {
+                    'admin'      => 'إدارة المنظومة والرقابة المركزية',
+                    'university' => $univ ? "جامعة {$univ->university_type} ({$univ->district})" : 'صرح جامعي',
+                    'student'    => $latestReq ? ('متقدم إلى: ' . ($latestReq->university?->university_name ?? 'جامعة')) : ($st?->city ? "المدينة: {$st->city}" : ($st?->address ?: 'طالب مسجل')),
+                    default      => '—',
+                };
+
+                $emailVerified = $u->email_verified_at ? 'موثق' : ($u->google_id ? 'موثق (Google)' : 'غير موثق');
+                $authMethod = $u->google_id ? 'حساب قوقل Google' : 'بريد إلكتروني وكلمة مرور';
+                $status = $u->account_status === 'active' ? 'نشط' : 'معلق';
+                $tempPass = $u->must_change_password ? 'نعم (مؤقتة)' : 'لا';
+                $joinedAt = $u->created_at ? $u->created_at->format('Y-m-d H:i') : '—';
+                $lastLogin = $u->last_login ? \Carbon\Carbon::parse($u->last_login)->format('Y-m-d H:i') : 'لم يسجل دخول بعد';
+
                 fputcsv($file, [
                     $u->user_id,
                     $u->username,
                     $displayName,
                     $roleName,
-                    $u->email ?: '—',
-                    $u->phone ?: '—',
-                    $u->account_status === 'active' ? 'نشط' : 'معلق',
-                    $u->must_change_password ? 'نعم (مؤقت)' : 'لا',
-                    $u->created_at ? $u->created_at->format('Y-m-d H:i') : '—',
-                    $u->last_login ? $u->last_login : 'لم يسجل دخول',
+                    $email,
+                    $emailVerified,
+                    $phone,
+                    $status,
+                    $authMethod,
+                    $tempPass,
+                    $entity,
+                    $joinedAt,
+                    $lastLogin,
                 ]);
             }
             fclose($file);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        }, $filename, $headers);
     }
 
     /**
@@ -845,12 +871,26 @@ class AdminController extends Controller
             'university_id', 'university_name', 'university_type', 'status', 'logo', 'campus_image', 'description'
         ]);
 
-        $selectedUnivId = (int)$request->get('university_id', $universities->first()?->university_id ?? 0);
+        // لا يجب أن تكون هناك جامعة محددة تلقائياً عند فتح الصفحة
+        $selectedUnivId = (int)$request->get('university_id', 0);
 
         $activeModerations = ContentModeration::with(['university', 'suspendedByUser'])
             ->activeQuarantine()
             ->latest('moderation_id')
             ->get();
+
+        // التعديلات والمراجعات الواردة من الجامعات للعناصر المحجوبة
+        $pendingReviews = ContentModeration::with(['university', 'suspendedByUser'])
+            ->where(function ($q) {
+                $q->where('status', 'قيد_المراجعة')
+                  ->orWhere(function ($sub) {
+                      $sub->activeQuarantine()->whereNotNull('correction_notes');
+                  });
+            })
+            ->latest('updated_at')
+            ->get();
+
+        $pendingReviewsCount = $pendingReviews->count();
 
         $historyModerations = ContentModeration::with(['university', 'suspendedByUser', 'resolvedByUser'])
             ->where('status', 'تم_الحل')
@@ -864,12 +904,15 @@ class AdminController extends Controller
             'profile'      => $activeModerations->whereIn('item_type', ['description', 'contact_info'])->count(),
             'academic'     => $activeModerations->whereIn('item_type', ['specialization', 'college'])->count(),
             'resolved'     => ContentModeration::where('status', 'تم_الحل')->count(),
+            'pending_reviews' => $pendingReviewsCount,
         ];
 
         return view('dashboards.admin.moderation', compact(
             'universities',
             'selectedUnivId',
             'activeModerations',
+            'pendingReviews',
+            'pendingReviewsCount',
             'historyModerations',
             'stats'
         ));
@@ -1019,7 +1062,7 @@ class AdminController extends Controller
             \App\Models\Notification::create([
                 'user_id'           => $university->user_id,
                 'notification_type' => 'moderation_quarantine',
-                'title'             => 'إشعار رقابي عاجل: إيقاف ظهور (' . $request->item_title . ') في المنصة',
+                'title'             => 'إيقاف ظهور (' . $request->item_title . ') في المنصة',
                 'message'           => "أصدرت إدارة الرقابة والحوكمة المركزية بالمنظومة قراراً إدارياً بإيقاف ظهور ({$request->item_title} - {$itemLabel}) للطلاب والزوار مؤقتاً.\n\nسبب المخالفة الرقابية:\n{$request->violation_reason}\n" . ($request->admin_guidance ? "\nالتوجيهات الإدارية لتصحيح الوضع:\n{$request->admin_guidance}\n" : '') . "\nيرجى مراجعة وتصحيح البيانات في أسرع وقت لتمكين إدارة الرقابة من فك الحجب وإعادة تفعيل الظهور للطلاب.",
                 'is_read'           => false,
                 'created_at'        => now(),
@@ -1051,7 +1094,7 @@ class AdminController extends Controller
             \App\Models\Notification::create([
                 'user_id'           => $university->user_id,
                 'notification_type' => 'moderation_resolved',
-                'title'             => 'إشعار اعتمادي: فك الحجب عن (' . $moderation->item_title . ')',
+                'title'             => 'فك الحجب عن (' . $moderation->item_title . ')',
                 'message'           => "يسر إدارة الرقابة والحوكمة إبلاغكم بأنه تم التحقق وفك الحجب الرقابي بنجاح عن ({$moderation->item_title})، وإعادة تفعيل ظهوره للطلاب والزوار في المنصة وفق المعايير المعتمدة.",
                 'is_read'           => false,
                 'created_at'        => now(),
@@ -1197,6 +1240,9 @@ class AdminController extends Controller
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+        if ($request->filled('package')) {
+            $query->where('package', $request->package);
+        }
         if ($request->filled('search')) {
             $q = $request->search;
             $query->where(function ($sq) use ($q) {
@@ -1205,7 +1251,7 @@ class AdminController extends Controller
             });
         }
 
-        $advertisements = $query->latest('adv_id')->paginate(15)->withQueryString();
+        $advertisements = $query->latest('adv_id')->paginate(12)->withQueryString();
 
         $stats = [
             'total'    => Advertisement::count(),
@@ -1215,7 +1261,13 @@ class AdminController extends Controller
             'active'   => Advertisement::where('status', 'نشط')->count(),
         ];
 
-        return view('dashboards.admin.advertisements', compact('advertisements', 'stats'));
+        // جلب الإعلانات المعلقة التي تحتاج مراجعة للبطاقة العلوية الخاصة
+        $pendingAds = Advertisement::with('university')
+            ->where('review_status', 'قيد المراجعة')
+            ->latest('adv_id')
+            ->get();
+
+        return view('dashboards.admin.advertisements', compact('advertisements', 'stats', 'pendingAds'));
     }
 
     /**
@@ -1224,6 +1276,10 @@ class AdminController extends Controller
     public function showAdvertisement($id)
     {
         $ad = Advertisement::with('university')->findOrFail($id);
+        
+        $expiresCarbon = $ad->expires_at ? \Carbon\Carbon::parse($ad->expires_at) : null;
+        $publishedCarbon = $ad->published_at ? \Carbon\Carbon::parse($ad->published_at) : null;
+
         return response()->json([
             'success' => true,
             'ad' => [
@@ -1231,6 +1287,7 @@ class AdminController extends Controller
                 'title'           => $ad->adv_title,
                 'content'         => $ad->adv_content,
                 'package'         => $ad->package,
+                'package_label'   => $ad->getPackageLabel(),
                 'duration'        => $ad->duration,
                 'amount'          => $ad->amount,
                 'pay_method'      => $ad->pay_method,
@@ -1239,8 +1296,25 @@ class AdminController extends Controller
                 'status'          => $ad->status,
                 'notes'           => $ad->notes,
                 'created_at'      => $ad->created_at?->format('Y-m-d H:i'),
-                'university_name' => $ad->university?->university_name,
+                'created_at_time' => $ad->created_at ? $ad->created_at->format('Y/m/d - h:i A') : null,
+                'university_name' => $ad->university?->university_name ?? 'الجامعة',
                 'university_id'   => $ad->university_id,
+                'university_logo' => $ad->university?->logo_url ? asset($ad->university->logo_url) : asset('logo.png'),
+                'receipt_url'     => $ad->receipt_url ? (str_starts_with($ad->receipt_url, 'http') ? $ad->receipt_url : asset(ltrim($ad->receipt_url, '/'))) : null,
+                'media_type'      => $ad->media_type,
+                'media_files'     => array_map(function($f) {
+                    if (empty($f)) return null;
+                    if (str_starts_with($f, 'http://') || str_starts_with($f, 'https://')) return $f;
+                    return asset(ltrim($f, '/'));
+                }, array_values(array_filter($ad->mediaFilesArray()))),
+                'first_media'     => $ad->firstMediaUrl(),
+                'video_url'       => $ad->formattedVideoUrl(),
+                'published_at'    => $publishedCarbon ? $publishedCarbon->format('Y-m-d H:i') : null,
+                'published_at_time' => $publishedCarbon ? $publishedCarbon->format('Y/m/d - h:i A') : null,
+                'expires_at'      => $expiresCarbon ? $expiresCarbon->format('Y-m-d H:i') : null,
+                'expires_at_time' => $expiresCarbon ? $expiresCarbon->format('Y/m/d - h:i A') : null,
+                'expires_remaining' => $expiresCarbon ? ($expiresCarbon->isPast() ? 'منتهي منذ ' . $expiresCarbon->diffForHumans() : 'متبقي ' . $expiresCarbon->diffForHumans(null, true)) : null,
+                'is_expired'      => $expiresCarbon ? $expiresCarbon->isPast() : false,
             ],
         ]);
     }
@@ -1254,9 +1328,58 @@ class AdminController extends Controller
         $ad->update([
             'review_status' => 'معتمد',
             'status'        => 'نشط',
+            'published_at'  => now(),
+            'expires_at'    => now()->addDays($ad->duration ?? 2),
             'notes'         => $request->input('notes', $ad->notes),
         ]);
+
+        $university = $ad->university;
+        if ($university && $university->user_id) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id'           => $university->user_id,
+                    'notification_type' => 'ad_approved',
+                    'title'             => 'تم اعتماد إعلانكم: ' . $ad->adv_title,
+                    'message'           => 'تمت مراجعة الإعلان والموافقة عليه ونشره رسمياً في المنصة بنجاح على الباقة (' . $ad->package . ').',
+                    'is_read'           => false,
+                    'created_at'        => now(),
+                ]);
+            } catch (\Throwable $e) {}
+        }
+
         return response()->json(['success' => true, 'message' => 'تم اعتماد الإعلان ونشره بنجاح.']);
+    }
+
+    /**
+     * طلب تعديل إعلان (إعادته للجامعة)
+     */
+    public function requestAdvertisementEdit(Request $request, $id)
+    {
+        $request->validate(['reason' => 'required|string|max:1000'], [
+            'reason.required' => 'يرجى كتابة سبب طلب التعديل.',
+        ]);
+        $ad = Advertisement::findOrFail($id);
+        $ad->update([
+            'review_status' => 'مطلوب تعديل',
+            'status'        => 'غير نشط',
+            'notes'         => $request->reason,
+        ]);
+
+        $university = $ad->university;
+        if ($university && $university->user_id) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id'           => $university->user_id,
+                    'notification_type' => 'ad_edit_requested',
+                    'title'             => 'طلب تعديل إعلان: ' . $ad->adv_title,
+                    'message'           => 'أعادت إدارة المنصة الإعلان لإجراء التعديل التالي: ' . $request->reason,
+                    'is_read'           => false,
+                    'created_at'        => now(),
+                ]);
+            } catch (\Throwable $e) {}
+        }
+
+        return response()->json(['success' => true, 'message' => 'تم إرسال طلب التعديل للجامعة بنجاح.']);
     }
 
     /**
@@ -1271,6 +1394,21 @@ class AdminController extends Controller
             'status'        => 'متوقف',
             'notes'         => $request->reason,
         ]);
+
+        $university = $ad->university;
+        if ($university && $university->user_id) {
+            try {
+                \App\Models\Notification::create([
+                    'user_id'           => $university->user_id,
+                    'notification_type' => 'ad_rejected',
+                    'title'             => 'تم رفض الإعلان: ' . $ad->adv_title,
+                    'message'           => 'تعذر قبول الإعلان بسبب: ' . $request->reason,
+                    'is_read'           => false,
+                    'created_at'        => now(),
+                ]);
+            } catch (\Throwable $e) {}
+        }
+
         return response()->json(['success' => true, 'message' => 'تم رفض الإعلان مع إشعار الجهة المقدِّمة.']);
     }
 
@@ -1282,6 +1420,48 @@ class AdminController extends Controller
         $ad = Advertisement::findOrFail($id);
         $ad->delete();
         return response()->json(['success' => true, 'message' => 'تم حذف الإعلان بنجاح.']);
+    }
+
+    /**
+     * إيقاف مؤقت أو استئناف عرض الإعلان المعتمد
+     */
+    public function togglePauseAdvertisement($id)
+    {
+        $ad = Advertisement::findOrFail($id);
+
+        if ($ad->review_status !== 'معتمد') {
+            return response()->json([
+                'success' => false,
+                'message' => 'لا يمكن إيقاف أو استئناف إعلان غير معتمد.',
+            ], 422);
+        }
+
+        if ($ad->status === 'متوقف مؤقتا') {
+            if ($ad->expires_at && \Carbon\Carbon::parse($ad->expires_at)->isPast()) {
+                $ad->status = 'منتهي';
+                $ad->save();
+                return response()->json([
+                    'success' => false,
+                    'message' => 'انتهت فترة صلاحية هذا الإعلان بالفعل ولا يمكن استئنافه.',
+                ], 422);
+            }
+            $ad->status = 'نشط';
+            $msg = 'تم استئناف عرض الإعلان بنجاح، ويظهر الآن للطلاب على المنصة.';
+            $newStatus = 'نشط';
+        } else {
+            $ad->status = 'متوقف مؤقتا';
+            $msg = 'تم إيقاف عرض الإعلان مؤقتاً، ولن يظهر للطلاب حتى يتم استئنافه.';
+            $newStatus = 'متوقف مؤقتا';
+        }
+
+        $ad->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => $msg,
+            'new_status' => $newStatus,
+            'status' => $ad->status,
+        ]);
     }
 
     /**
@@ -1454,6 +1634,120 @@ class AdminController extends Controller
         $universities = University::select('university_id', 'university_name', 'logo')->orderBy('university_name')->get();
 
         return view('dashboards.admin.requests', compact('requests', 'stats', 'universities'));
+    }
+
+    /**
+     * تصدير بيانات طلبات الالتحاق إلى ملف CSV متوافق مع Excel
+     * يصدر البيانات الإدارية والرقابية المتاحة والمهمة لمدير النظام
+     */
+    public function exportRequests(Request $request)
+    {
+        $query = RegRequest::with(['university', 'payments'])
+            ->where('status', '!=', 'مسودة');
+
+        // 1. فلترة بحسب الجامعة
+        if ($request->filled('university_id')) {
+            $query->where('university_id', $request->university_id);
+        }
+
+        // 2. فلترة سريعة بالتبويبات (الطلبات المعلقة / الحديثة) أو الحالة
+        if ($request->filled('tab')) {
+            if ($request->tab === 'pending') {
+                $query->where('status', 'قيد المراجعة');
+            } elseif ($request->tab === 'recent') {
+                $query->where('req_date', '>=', now()->subDays(3));
+            }
+        } elseif ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // 3. فلترة بحسب النطاق الزمني والتاريخ
+        if ($request->filled('date_from')) {
+            try {
+                $dFrom = \Carbon\Carbon::parse(str_replace('/', '-', trim($request->date_from)))->format('Y-m-d');
+                $query->whereDate('req_date', '>=', $dFrom);
+            } catch (\Exception $e) {
+                // Ignore
+            }
+        }
+        if ($request->filled('date_to')) {
+            try {
+                $dTo = \Carbon\Carbon::parse(str_replace('/', '-', trim($request->date_to)))->format('Y-m-d');
+                $query->whereDate('req_date', '<=', $dTo);
+            } catch (\Exception $e) {
+                // Ignore
+            }
+        }
+
+        // 4. بحث سريع (برقم الطلب، اسم الطالب، أو رقم الهاتف)
+        if ($request->filled('search')) {
+            $q = trim($request->search);
+            $query->where(function ($sq) use ($q) {
+                if (is_numeric($q)) {
+                    $sq->where('req_id', $q)->orWhere('phone', 'like', "%$q%");
+                } else {
+                    $sq->where('full_name', 'like', "%$q%")
+                       ->orWhere('phone', 'like', "%$q%")
+                       ->orWhere('desired_spec', 'like', "%$q%")
+                       ->orWhereHas('university', fn($u) => $u->where('university_name', 'like', "%$q%"));
+                }
+            });
+        }
+
+        $requests = $query->latest('req_id')->get();
+
+        $filename = "registration_requests_" . date('Y_m_d_His') . ".csv";
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        return response()->streamDownload(function () use ($requests) {
+            $file = fopen('php://output', 'w');
+            // Write UTF-8 BOM for Arabic character rendering in MS Excel
+            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+
+            fputcsv($file, [
+                'رقم المعاملة',
+                'اسم الطالب الرباعي',
+                'رقم الهاتف',
+                'البريد الإلكتروني',
+                'الجامعة المتقدم إليها',
+                'نوع الجامعة',
+                'التخصص المطلوب',
+                'معدل الثانوية %',
+                'القسم الثانوي',
+                'سنة التخرج',
+                'المحافظة والسكن',
+                'تاريخ التقديم',
+                'حالة الطلب الإدارية',
+                'تاريخ قرار الجامعة',
+                'حالة سداد الرسوم',
+                'سبب الرفض / ملاحظات الجامعة',
+            ]);
+
+            foreach ($requests as $r) {
+                fputcsv($file, [
+                    $r->req_id,
+                    $r->full_name,
+                    $r->phone ?: '—',
+                    $r->email ?: '—',
+                    $r->university?->university_name ?? '—',
+                    $r->university?->university_type ?? '—',
+                    $r->desired_spec ?? '—',
+                    $r->sec_avg ? number_format($r->sec_avg, 2) . '%' : '—',
+                    $r->sec_section ?: '—',
+                    $r->grad_year ?: '—',
+                    trim(($r->province ?? '') . ' - ' . ($r->residence ?? ''), ' -') ?: '—',
+                    $r->req_date ? $r->req_date->format('Y-m-d H:i') : '—',
+                    $r->status,
+                    $r->decision_date ? $r->decision_date->format('Y-m-d H:i') : 'بانتظار القرار',
+                    $r->payment_status,
+                    $r->rejection_reason ?: '—',
+                ]);
+            }
+            fclose($file);
+        }, $filename, $headers);
     }
 
     /**

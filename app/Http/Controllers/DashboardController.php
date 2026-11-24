@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AdmissionData;
 use App\Models\AdmissionDoc;
+use App\Models\Advertisement;
 use App\Models\College;
 use App\Models\Course;
 use App\Models\Notification;
@@ -189,7 +190,7 @@ class DashboardController extends Controller
 
         $activeTab = ($request && $request->filled('tab')) ? $request->query('tab') : 'overview';
 
-                $notifications = $user->notifications()->latest('notification_id')->take(30)->get();
+        $notifications = $user->notifications()->orderBy('created_at', 'desc')->orderBy('notification_id', 'desc')->take(60)->get();
         $unreadNotifsCount = $notifications->where('is_read', false)->count();
         $activeModerations = $university->activeModerations()->get();
 
@@ -208,7 +209,11 @@ class DashboardController extends Controller
             abort(403, 'لا يوجد ملف طالب مرتبط بهذا الحساب.');
         }
 
-        $requests = $student->regRequests()->with(['university.paymentMethods' => function($q) { $q->where('is_active', true); }, 'regDocs', 'payments.paymentMethod'])->latest('req_id')->get();
+        $requests = $student->regRequests()
+            ->where('status', '!=', 'ملغي')
+            ->with(['university.paymentMethods' => function($q) { $q->where('is_active', true); }, 'regDocs', 'payments.paymentMethod'])
+            ->latest('req_id')
+            ->get();
         $referrals = $student->referrals()->with('university')->latest('referral_id')->get();
         $universities = University::whereNotIn('status', ['معلقة', 'محظورة'])->with(['colleges.specializations'])->get();
 
@@ -340,6 +345,42 @@ class DashboardController extends Controller
         }
 
         return redirect()->route('student.dashboard')->with('success', 'تم تحديث إعدادات الإشعارات بنجاح.');
+    }
+
+    /**
+     * تحديد جميع إشعارات المستخدم كمقروءة
+     */
+    public function markAllNotificationsRead(Request $request)
+    {
+        $user = Auth::user();
+        if ($user) {
+            $user->notifications()->where('is_read', false)->update(['is_read' => true]);
+        }
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم تحديد جميع الإشعارات كمقروءة بنجاح.'
+            ]);
+        }
+
+        return back()->with('success', 'تم تحديد جميع الإشعارات كمقروءة.');
+    }
+
+    /**
+     * تحديد إشعار معين كمقروء
+     */
+    public function markNotificationRead(Request $request, $id)
+    {
+        $user = Auth::user();
+        if ($user) {
+            $user->notifications()->where('notification_id', $id)->update(['is_read' => true]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'unread_count' => $user ? $user->notifications()->where('is_read', false)->count() : 0
+        ]);
     }
 
     /**
@@ -695,57 +736,35 @@ class DashboardController extends Controller
             'rejection_reason' => $status === 'قيد المراجعة' ? null : ($regReq->rejection_reason ?? null),
         ];
 
-        if ($regReq) {
-            $regReq->update($reqData);
-        } else {
-            $regReq = RegRequest::create($reqData);
-        }
-
-        // معالجة وحفظ الوثائق المرفوعة
-        $docsMap = [
-            'doc_id_card' => 'صورة البطاقة الشخصية',
-            'idCard' => 'صورة البطاقة الشخصية',
-            'doc_cert' => 'شهادة الثانوية الأصل',
-            'originalCertificate' => 'شهادة الثانوية الأصل',
-            'doc_transcript' => 'صورة استمارة الثانوية',
-            'secondaryForm' => 'صورة استمارة الثانوية',
-            'doc_other' => 'وثيقة أخرى',
-            'otherDocument' => 'وثيقة أخرى',
-            'doc_file' => 'استمارة الثانوية / وثيقة الهوية',
-        ];
-
-        foreach ($docsMap as $inputKey => $docLabel) {
-            if ($request->hasFile($inputKey)) {
-                $file = $request->file($inputKey);
-                $ext = $file->getClientOriginalExtension();
-                $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-                $storedFileName = $docLabel . ' - ' . $originalName . '.' . $ext;
-                $uniqueStorageName = time() . '_' . uniqid() . '.' . $ext;
-                $path = $file->storeAs('reg_docs', $uniqueStorageName, 'public');
-
-                RegDoc::create([
-                    'req_id' => $regReq->req_id,
-                    'file_name' => $storedFileName,
-                    'file_path' => $path,
-                    'up_at' => now(),
-                    'ver_status' => 'قيد المراجعة',
-                ]);
+        \Illuminate\Support\Facades\DB::beginTransaction();
+        try {
+            if ($regReq) {
+                $regReq->update($reqData);
+            } else {
+                $regReq = RegRequest::create($reqData);
             }
-        }
 
-        // معالجة الوثائق المرفوعة بصيغة مصفوفة إن وجدت
-        if ($request->hasFile('documents')) {
-            $docs = $request->file('documents');
-            $docTypes = (array) $request->input('doc_type', []);
-            foreach ((array)$docs as $idx => $docFile) {
-                if ($docFile) {
-                    $typeKey = $docTypes[$idx] ?? 'otherDocument';
-                    $label = $docsMap[$typeKey] ?? 'مستند مرفق';
-                    $ext = $docFile->getClientOriginalExtension();
-                    $originalName = pathinfo($docFile->getClientOriginalName(), PATHINFO_FILENAME);
-                    $storedFileName = $label . ' - ' . $originalName . '.' . $ext;
+            // معالجة وحفظ الوثائق المرفوعة
+            $docsMap = [
+                'doc_id_card' => 'صورة البطاقة الشخصية',
+                'idCard' => 'صورة البطاقة الشخصية',
+                'doc_cert' => 'شهادة الثانوية الأصل',
+                'originalCertificate' => 'شهادة الثانوية الأصل',
+                'doc_transcript' => 'صورة استمارة الثانوية',
+                'secondaryForm' => 'صورة استمارة الثانوية',
+                'doc_other' => 'وثيقة أخرى',
+                'otherDocument' => 'وثيقة أخرى',
+                'doc_file' => 'استمارة الثانوية / وثيقة الهوية',
+            ];
+
+            foreach ($docsMap as $inputKey => $docLabel) {
+                if ($request->hasFile($inputKey)) {
+                    $file = $request->file($inputKey);
+                    $ext = $file->getClientOriginalExtension();
+                    $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                    $storedFileName = $docLabel . ' - ' . $originalName . '.' . $ext;
                     $uniqueStorageName = time() . '_' . uniqid() . '.' . $ext;
-                    $path = $docFile->storeAs('reg_docs', $uniqueStorageName, 'public');
+                    $path = $file->storeAs('reg_docs', $uniqueStorageName, 'public');
 
                     RegDoc::create([
                         'req_id' => $regReq->req_id,
@@ -756,84 +775,116 @@ class DashboardController extends Controller
                     ]);
                 }
             }
-        }
 
-        // معالجة وحفظ سند سداد الرسوم المرفوع مع استمارة التقديم
-        $proofPath = null;
-        if ($request->hasFile('payment_proof')) {
-            $pFile = $request->file('payment_proof');
-            $pExt = $pFile->getClientOriginalExtension();
-            $proofPath = $pFile->storeAs('payments', time() . '_' . uniqid() . '.' . $pExt, 'public');
-        } elseif ($request->hasFile('proof_file')) {
-            $pFile = $request->file('proof_file');
-            $pExt = $pFile->getClientOriginalExtension();
-            $proofPath = $pFile->storeAs('payments', time() . '_' . uniqid() . '.' . $pExt, 'public');
-        }
+            // معالجة الوثائق المرفوعة بصيغة مصفوفة إن وجدت
+            if ($request->hasFile('documents')) {
+                $docs = $request->file('documents');
+                $docTypes = (array) $request->input('doc_type', []);
+                foreach ((array)$docs as $idx => $docFile) {
+                    if ($docFile) {
+                        $typeKey = $docTypes[$idx] ?? 'otherDocument';
+                        $label = $docsMap[$typeKey] ?? 'مستند مرفق';
+                        $ext = $docFile->getClientOriginalExtension();
+                        $originalName = pathinfo($docFile->getClientOriginalName(), PATHINFO_FILENAME);
+                        $storedFileName = $label . ' - ' . $originalName . '.' . $ext;
+                        $uniqueStorageName = time() . '_' . uniqid() . '.' . $ext;
+                        $path = $docFile->storeAs('reg_docs', $uniqueStorageName, 'public');
 
-        $methodId = $request->payment_method_id ?? ($request->method_id ?? null);
-        $reference = $request->payment_reference ?? ($request->reference ?? null);
-
-        // احتساب رسوم التسجيل الرسمية المقررة من الجامعة للتخصص تلقائياً
-        $officialFee = 5000;
-        if ($request->university_id && $regReq->desired_spec) {
-            $specModel = Specialization::where('university_id', $request->university_id)
-                ->where('specialization_name', $regReq->desired_spec)
-                ->first();
-            if ($specModel && $specModel->admission && $specModel->admission->registration_fee) {
-                $officialFee = (float)$specModel->admission->registration_fee;
+                        RegDoc::create([
+                            'req_id' => $regReq->req_id,
+                            'file_name' => $storedFileName,
+                            'file_path' => $path,
+                            'up_at' => now(),
+                            'ver_status' => 'قيد المراجعة',
+                        ]);
+                    }
+                }
             }
-        }
-        $amount = $officialFee;
-        $payDate = $request->payment_date ?? ($request->pay_date ?? now()->toDateString());
-        $payNotes = $request->payment_notes ?? ($request->pay_notes ?? null);
 
-        if ($proofPath || $reference || $methodId) {
-            Payment::create([
-                'req_id' => $regReq->req_id,
-                'method_id' => $methodId,
-                'amount' => $amount,
-                'pay_date' => $payDate,
-                'reference' => $reference,
-                'proof_file' => $proofPath,
-                'ver_status' => 'قيد التحقق',
-                'notes' => $payNotes,
-            ]);
-        }
+            // معالجة وحفظ سند سداد الرسوم المرفوع مع استمارة التقديم
+            $proofPath = null;
+            if ($request->hasFile('payment_proof')) {
+                $pFile = $request->file('payment_proof');
+                $pExt = $pFile->getClientOriginalExtension();
+                $proofPath = $pFile->storeAs('payments', time() . '_' . uniqid() . '.' . $pExt, 'public');
+            } elseif ($request->hasFile('proof_file')) {
+                $pFile = $request->file('proof_file');
+                $pExt = $pFile->getClientOriginalExtension();
+                $proofPath = $pFile->storeAs('payments', time() . '_' . uniqid() . '.' . $pExt, 'public');
+            }
 
-        if ($request->filled('referral_code')) {
-            StudentReferral::where('student_id', $student->student_id)
-                ->where('university_id', $request->university_id)
-                ->where('referral_code', trim($request->referral_code))
-                ->update(['used_at' => now(), 'status' => 'مستخدم']);
-        }
+            $methodId = $request->payment_method_id ?? ($request->method_id ?? null);
+            $reference = $request->payment_reference ?? ($request->reference ?? null);
 
-        // إرسال إشعارات في النظام
-        $univ = University::find($request->university_id);
-        $univName = $univ ? $univ->university_name : 'الجامعة';
+            // احتساب رسوم التسجيل الرسمية المقررة من الجامعة للتخصص تلقائياً
+            $officialFee = 5000;
+            if ($request->university_id && $regReq->desired_spec) {
+                $specModel = Specialization::where('specialization_name', $regReq->desired_spec)
+                    ->whereHas('college', function ($q) use ($request) {
+                        $q->where('university_id', $request->university_id);
+                    })
+                    ->first();
+                if ($specModel && $specModel->admission && $specModel->admission->registration_fee) {
+                    $officialFee = (float)$specModel->admission->registration_fee;
+                }
+            }
+            $amount = $officialFee;
+            $payDate = $request->payment_date ?? ($request->pay_date ?? now()->toDateString());
+            $payNotes = $request->payment_notes ?? ($request->pay_notes ?? null);
 
-        // إشعار للطالب
-        Notification::create([
-            'user_id' => $user->user_id,
-            'notification_type' => $isDraft ? 'registration_draft' : ($existingReqId ? 'registration_completed' : 'registration_submitted'),
-            'title' => $isDraft ? 'تم حفظ مسودة طلب التسجيل' : ($existingReqId ? 'تم استكمال وإعادة إرسال طلب التسجيل' : 'تم استلام طلب التسجيل بنجاح'),
-            'message' => $isDraft
-                ? 'تم حفظ مسودة طلبك لتخصص ' . $regReq->desired_spec . ' لدى ' . $univName . ' (رقم المسودة #' . $regReq->req_id . '). المسودة محفوظة في حسابك فقط ولم تُرسل للجامعة بعد.'
-                : ($existingReqId ? 'تم استكمال وإعادة إرسال طلبك برقم #' . $regReq->req_id . ' لتخصص ' . $regReq->desired_spec . ' لدى ' . $univName : 'تم تقديم طلب الالتحاق بتخصص ' . $regReq->desired_spec . ' لدى ' . $univName . ' برقم طلب #' . $regReq->req_id),
-            'is_read' => false,
-            'created_at' => now(),
-        ]);
+            if ($proofPath || $reference || $methodId) {
+                Payment::create([
+                    'req_id' => $regReq->req_id,
+                    'method_id' => $methodId,
+                    'amount' => $amount,
+                    'pay_date' => $payDate,
+                    'reference' => $reference,
+                    'proof_file' => $proofPath,
+                    'ver_status' => 'قيد التحقق',
+                    'notes' => $payNotes,
+                ]);
+            }
 
-        // لا يتم إرسال أي إشعار أو بيانات للجامعة إذا كان الطلب مسودة!
-        // يتم إرسال الطلب وإشعار الجامعة فقط عند قيام الطالب بالضغط على "إرسال طلب التسجيل" (is_draft = 0)
-        if (!$isDraft && $univ && $univ->user_id) {
+            if ($request->filled('referral_code')) {
+                StudentReferral::where('student_id', $student->student_id)
+                    ->where('university_id', $request->university_id)
+                    ->where('referral_code', trim($request->referral_code))
+                    ->update(['used_at' => now(), 'status' => 'مستخدم']);
+            }
+
+            // إرسال إشعارات في النظام
+            $univ = University::find($request->university_id);
+            $univName = $univ ? $univ->university_name : 'الجامعة';
+
+            // إشعار للطالب
             Notification::create([
-                'user_id' => $univ->user_id,
-                'notification_type' => $existingReqId ? 'registration_resubmitted' : 'new_registration_request',
-                'title' => ($existingReqId ? 'تم استكمال طلب التسجيل #' : 'طلب تسجيل جديد #') . $regReq->req_id,
-                'message' => ($existingReqId ? 'قام الطالب ' . $regReq->full_name . ' باستكمال وإعادة إرسال طلبه لتخصص ' : 'وصل طلب تسجيل جديد من الطالب ' . $regReq->full_name . ' للالتحاق بتخصص ') . $regReq->desired_spec,
+                'user_id' => $user->user_id,
+                'notification_type' => $isDraft ? 'registration_draft' : ($existingReqId ? 'registration_completed' : 'registration_submitted'),
+                'title' => $isDraft ? 'تم حفظ مسودة طلب التسجيل' : ($existingReqId ? 'تم استكمال وإعادة إرسال طلب التسجيل' : 'تم استلام طلب التسجيل بنجاح'),
+                'message' => $isDraft
+                    ? 'تم حفظ مسودة طلبك لتخصص ' . $regReq->desired_spec . ' لدى ' . $univName . ' (رقم المسودة #' . $regReq->req_id . '). المسودة محفوظة في حسابك فقط ولم تُرسل للجامعة بعد.'
+                    : ($existingReqId ? 'تم استكمال وإعادة إرسال طلبك برقم #' . $regReq->req_id . ' لتخصص ' . $regReq->desired_spec . ' لدى ' . $univName : 'تم تقديم طلب الالتحاق بتخصص ' . $regReq->desired_spec . ' لدى ' . $univName . ' برقم طلب #' . $regReq->req_id),
                 'is_read' => false,
                 'created_at' => now(),
             ]);
+
+            // لا يتم إرسال أي إشعار أو بيانات للجامعة إذا كان الطلب مسودة!
+            // يتم إرسال الطلب وإشعار الجامعة فقط عند قيام الطالب بالضغط على "إرسال طلب التسجيل" (is_draft = 0)
+            if (!$isDraft && $univ && $univ->user_id) {
+                Notification::create([
+                    'user_id' => $univ->user_id,
+                    'notification_type' => $existingReqId ? 'registration_resubmitted' : 'new_registration_request',
+                    'title' => ($existingReqId ? 'تم استكمال طلب التسجيل #' : 'طلب تسجيل جديد #') . $regReq->req_id,
+                    'message' => ($existingReqId ? 'قام الطالب ' . $regReq->full_name . ' باستكمال وإعادة إرسال طلبه لتخصص ' : 'وصل طلب تسجيل جديد من الطالب ' . $regReq->full_name . ' للالتحاق بتخصص ') . $regReq->desired_spec,
+                    'is_read' => false,
+                    'created_at' => now(),
+                ]);
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            throw $e;
         }
 
         if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
@@ -887,30 +938,34 @@ class DashboardController extends Controller
             ], 403);
         }
 
-        $regReq->update([
-            'status' => 'ملغي',
-            'cancelled_at' => now(),
-        ]);
-
         $univName = $regReq->university ? $regReq->university->university_name : 'الجامعة';
+        $desiredSpec = $regReq->desired_spec;
+        $reqId = $regReq->req_id;
+        $studentFullName = $student->full_name ?: ($user->username ?? 'الطالب');
+        $univUserId = $regReq->university?->user_id;
+
+        // حذف الطلب نهائياً وكلياً من قاعدة البيانات لتجنب إرباك الطالب
+        $regReq->regDocs()->delete();
+        $regReq->payments()->delete();
+        $regReq->delete();
 
         // إشعار للطالب
         Notification::create([
             'user_id' => $user->user_id,
             'notification_type' => 'registration_cancelled',
-            'title' => 'تم إلغاء طلب التسجيل #' . $regReq->req_id,
-            'message' => 'تم إلغاء طلبك للالتحاق بتخصص ' . $regReq->desired_spec . ' لدى ' . $univName . ' بنجاح. يمكنك الآن التقديم على تخصص بديل.',
+            'title' => 'تم إلغاء وحذف طلب التسجيل #' . $reqId,
+            'message' => 'تم إلغاء طلبك للالتحاق بتخصص ' . $desiredSpec . ' لدى ' . $univName . ' بنجاح. يمكنك الآن التقديم على تخصص بديل.',
             'is_read' => false,
             'created_at' => now(),
         ]);
 
         // إشعار لمسؤول القبول في الجامعة
-        if ($regReq->university && $regReq->university->user_id) {
+        if ($univUserId) {
             Notification::create([
-                'user_id' => $regReq->university->user_id,
+                'user_id' => $univUserId,
                 'notification_type' => 'registration_cancelled_by_student',
-                'title' => 'إلغاء طلب تسجيل #' . $regReq->req_id,
-                'message' => 'قام الطالب ' . $regReq->full_name . ' بإلغاء طلبه للالتحاق بتخصص ' . $regReq->desired_spec . '.',
+                'title' => 'إلغاء طلب تسجيل #' . $reqId,
+                'message' => 'قام الطالب ' . $studentFullName . ' بإلغاء طلبه للالتحاق بتخصص ' . $desiredSpec . '.',
                 'is_read' => false,
                 'created_at' => now(),
             ]);
@@ -2314,8 +2369,10 @@ public function deleteSpecialization($id)
         // احتساب رسوم التسجيل الرسمية المقررة من الجامعة للتخصص تلقائياً
         $officialFee = 5000;
         if ($regReq->university_id && $regReq->desired_spec) {
-            $specModel = Specialization::where('university_id', $regReq->university_id)
-                ->where('specialization_name', $regReq->desired_spec)
+            $specModel = Specialization::where('specialization_name', $regReq->desired_spec)
+                ->whereHas('college', function ($q) use ($regReq) {
+                    $q->where('university_id', $regReq->university_id);
+                })
                 ->first();
             if ($specModel && $specModel->admission && $specModel->admission->registration_fee) {
                 $officialFee = (float)$specModel->admission->registration_fee;
@@ -2446,6 +2503,717 @@ public function deleteSpecialization($id)
         }
 
         return back()->with('success', 'تم تحديث وسيلة الدفع بنجاح.');
+    }
+
+    /**
+     * إرسال تعديلات وبيان تصحيح من الجامعة لمدير النظام بخصوص عنصر محجوب رقابياً
+     */
+    public function submitModerationCorrection(Request $request, $id)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+        }
+
+        $mod = \App\Models\ContentModeration::where('moderation_id', $id)
+            ->where('university_id', $user->university->university_id)
+            ->firstOrFail();
+
+        $university = $user->university;
+        $updatedDetails = [];
+
+        // 1. معالجة وتطبيق التعديل بحسب نوع العنصر المحجوب مباشرة من النافذة
+        if ($mod->item_type === 'logo' && $request->hasFile('new_logo')) {
+            $request->validate([
+                'new_logo' => 'file|image|mimes:jpeg,png,jpg,webp,svg|max:5120',
+            ]);
+            $file = $request->file('new_logo');
+            $fileName = 'logo_' . $university->university_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            if (!file_exists(public_path('uploads/logos'))) {
+                mkdir(public_path('uploads/logos'), 0777, true);
+            }
+            $file->move(public_path('uploads/logos'), $fileName);
+            $university->logo = 'uploads/logos/' . $fileName;
+            $university->save();
+            $updatedDetails[] = 'تم رفع وتعديل الشعار الرسمي للجامعة مباشرة من نافذة التوجيهات: uploads/logos/' . $fileName;
+        } elseif ($mod->item_type === 'campus_image' && $request->hasFile('new_campus_image')) {
+            $request->validate([
+                'new_campus_image' => 'file|image|mimes:jpeg,png,jpg,webp|max:10240',
+            ]);
+            $file = $request->file('new_campus_image');
+            $fileName = 'campus_' . $university->university_id . '_' . time() . '.' . $file->getClientOriginalExtension();
+            if (!file_exists(public_path('uploads/campus'))) {
+                mkdir(public_path('uploads/campus'), 0777, true);
+            }
+            $file->move(public_path('uploads/campus'), $fileName);
+            $university->campus_image = 'uploads/campus/' . $fileName;
+            $university->save();
+            $updatedDetails[] = 'تم رفع وتعديل صورة الحرم الجامعي.';
+        } elseif ($mod->item_type === 'description' && $request->filled('new_description')) {
+            $university->description = $request->input('new_description');
+            $university->save();
+            $updatedDetails[] = 'تم تحديث النبذة والوصف التعريفي للجامعة.';
+        } elseif ($mod->item_type === 'contact_info') {
+            if ($request->filled('new_phone')) $university->phone = $request->input('new_phone');
+            if ($request->filled('new_email')) $university->email = $request->input('new_email');
+            if ($request->filled('new_website')) $university->website = $request->input('new_website');
+            $university->save();
+            $updatedDetails[] = 'تم تصحيح بيانات الاتصال والتواصل.';
+        } elseif ($mod->item_type === 'college' && $mod->item_id) {
+            $col = \App\Models\College::where('college_id', $mod->item_id)->where('university_id', $university->university_id)->first();
+            if ($col) {
+                if ($request->filled('new_college_name')) $col->college_name = $request->input('new_college_name');
+                if ($request->filled('new_college_desc')) $col->description = $request->input('new_college_desc');
+                $col->save();
+                $updatedDetails[] = 'تم تعديل بيانات الكلية (' . $col->college_name . ').';
+            }
+        } elseif ($mod->item_type === 'specialization' && $mod->item_id) {
+            $spec = \App\Models\Specialization::where('specialization_id', $mod->item_id)->first();
+            if ($spec) {
+                if ($request->filled('new_spec_name')) $spec->specialization_name = $request->input('new_spec_name');
+                if ($request->filled('new_min_percentage')) $spec->min_percentage = $request->input('new_min_percentage');
+                if ($request->filled('new_study_years')) $spec->study_years = $request->input('new_study_years');
+                if ($request->filled('new_annual_fees')) $spec->annual_fees = $request->input('new_annual_fees');
+                $spec->save();
+                $updatedDetails[] = 'تم تصحيح بيانات وشروط التخصص (' . $spec->specialization_name . ').';
+            }
+        } elseif ($mod->item_type === 'announcement' && $mod->item_id) {
+            $ann = \App\Models\Announcement::where('announcement_id', $mod->item_id)->where('university_id', $university->university_id)->first();
+            if ($ann) {
+                if ($request->filled('new_ann_title')) $ann->title = $request->input('new_ann_title');
+                if ($request->filled('new_ann_content')) $ann->content = $request->input('new_ann_content');
+                $ann->save();
+                $updatedDetails[] = 'تم تعديل عنوان ومحتوى الإعلان الأكاديمي.';
+            }
+        }
+
+        $notes = $request->input('correction_notes', '');
+        if (!empty($updatedDetails)) {
+            $combinedNotes = implode("\n", $updatedDetails) . ($notes ? "\n--- ملاحظات وإيضاحات الجامعة ---\n" . $notes : '');
+        } else {
+            $combinedNotes = $notes;
+        }
+
+        if (empty(trim($combinedNotes))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى إرفاق التعديل المطلوب أو كتابة توضيح لمدير النظام.'
+            ], 422);
+        }
+
+        $mod->update([
+            'correction_notes' => trim($combinedNotes),
+            'status' => 'قيد_المراجعة',
+            'updated_at' => now(),
+        ]);
+
+        // إشعار المشرفين بوجود تعديلات واردة من الجامعة
+        try {
+            \App\Models\Notification::create([
+                'user_id' => 1, // Super Admin
+                'notification_type' => 'moderation_review_requested',
+                'title' => 'تعديل وارد بانتظار الفحص من ' . $university->university_name,
+                'message' => "قامت جامعة {$university->university_name} بإرسال تعديلات وتوضيحات بخصوص العنصر المحجوب ({$mod->item_title}):\n{$combinedNotes}",
+                'link' => route('admin.moderation'),
+                'is_read' => false,
+            ]);
+        } catch (\Throwable $e) {}
+
+        if ($request->expectsJson() || $request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'تم إرسال التعديلات لمدير النظام بنجاح. سيتم مراجعتها والبت فيها قريباً.',
+            ]);
+        }
+
+        return back()->with('success', 'تم إرسال التعديلات لمدير النظام بنجاح. سيتم مراجعتها والبت فيها قريباً.');
+    }
+
+
+
+    // =========================================================================
+    //  معالج وبوابة الإعلانات الممولة للجامعة (Sponsored Advertisements Wizard)
+    // =========================================================================
+
+    /**
+     * عرض قائمة إعلانات الجامعة مع إحصائياتها
+     */
+    public function universityAdvertisements()
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            abort(403, 'لا يوجد ملف جامعة مرتبط بهذا الحساب.');
+        }
+        $university = $user->university;
+
+        $ads = Advertisement::where('university_id', $university->university_id)
+            ->latest('adv_id')
+            ->get();
+
+        $stats = [
+            'total'      => $ads->count(),
+            'active'     => $ads->where('status', 'نشط')->count(),
+            'pending'    => $ads->where('review_status', 'قيد المراجعة')->count(),
+            'draft'      => $ads->where('review_status', 'مسودة')->count(),
+            'needs_edit' => $ads->where('review_status', 'مطلوب تعديل')->count(),
+            'rejected'   => $ads->where('review_status', 'مرفوض')->count(),
+            'expired'    => $ads->where('status', 'منتهي')->count(),
+        ];
+
+        // مسودة معلقة غير مكتملة
+        $pendingDraft = Advertisement::where('university_id', $university->university_id)
+            ->where('review_status', 'مسودة')
+            ->latest('adv_id')
+            ->first();
+
+        // الإعلانات النشطة والمنتهية لحاوية رأس الصفحة
+        $activeAds = $ads->filter(function($a) {
+            return $a->status === 'نشط' && $a->isActive();
+        })->values();
+
+        $expiredAds = $ads->filter(function($a) {
+            return $a->status === 'منتهي' || $a->isExpired();
+        })->values();
+
+        $paymentAccounts = [
+            'kuraimi' => [
+                'name'        => 'بنك الكريمي للتمويل الأصغر الإسلامي',
+                'account'     => \App\Models\SystemSetting::get('platform_kuraimi_account', '120456789'),
+                'beneficiary' => \App\Models\SystemSetting::get('platform_kuraimi_name', 'منصة إديو يمن - EduYemen للخدمات التعليمية'),
+            ],
+            'onecash' => [
+                'name'        => 'محفظة ون كاش التجارية (OneCash)',
+                'account'     => \App\Models\SystemSetting::get('platform_onecash_account', '777000123'),
+                'beneficiary' => \App\Models\SystemSetting::get('platform_onecash_name', 'EduYemen - إديو يمن'),
+            ],
+            'bank' => [
+                'name'        => \App\Models\SystemSetting::get('platform_bank_name', 'بنك التضامن الإسلامي الدولي'),
+                'iban'        => \App\Models\SystemSetting::get('platform_bank_iban', 'YE2900040000000123456789'),
+                'beneficiary' => \App\Models\SystemSetting::get('platform_bank_beneficiary', 'شركة إديو يمن لتقنية المعلومات والتعليم'),
+            ],
+        ];
+
+        return view('dashboards.university.advertisements.index', compact('university', 'ads', 'stats', 'pendingDraft', 'activeAds', 'expiredAds', 'paymentAccounts'));
+    }
+
+    /**
+     * معالج إنشاء إعلان جديد - المرحلة 1
+     */
+    public function advertisementWizard(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            abort(403, 'لا يوجد ملف جامعة مرتبط بهذا الحساب.');
+        }
+        $university = $user->university;
+
+        // دعم طلب تجديد إعلان منتهي (استنساخ المحتوى والتوجه فوراً لخطوة الدفع)
+        if ($request->filled('renew_id')) {
+            $sourceAd = Advertisement::where('university_id', $university->university_id)
+                ->where('adv_id', $request->renew_id)
+                ->first();
+
+            if ($sourceAd) {
+                $config = $sourceAd->getPackageConfig();
+                $renewDraft = Advertisement::create([
+                    'university_id' => $university->university_id,
+                    'package'       => $sourceAd->package,
+                    'duration'      => $config['duration'],
+                    'amount'        => $config['amount'],
+                    'adv_title'     => $sourceAd->adv_title,
+                    'adv_content'   => $sourceAd->adv_content,
+                    'media_type'    => $sourceAd->media_type,
+                    'media_files'   => $sourceAd->media_files,
+                    'video_url'     => $sourceAd->video_url,
+                    'review_status' => 'مسودة',
+                    'status'        => 'غير نشط',
+                    'wizard_step'   => 2, // جاهز لمرحلة الدفع وسند التحويل
+                    'created_at'    => now(),
+                ]);
+
+                return redirect()->route('university.advertisements.wizard', ['draft_id' => $renewDraft->adv_id])
+                    ->with('success', 'تم إنشاء مسودة تجديد جديدة بالإبقاء على بيانات ووسائط إعلانك السابق. يرجى إرفاق سند السداد الجديد للمتابعة.');
+            }
+        }
+
+        $draft = null;
+        if ($request->filled('draft_id')) {
+            $draft = Advertisement::where('university_id', $university->university_id)
+                ->where('adv_id', $request->draft_id)
+                ->first();
+        }
+
+        // إذا لم يُحدد مسودة ولم يطلب بدء إعلان جديد صراحةً
+        if (!$draft && !$request->has('new')) {
+            $pendingDraft = Advertisement::where('university_id', $university->university_id)
+                ->where('review_status', 'مسودة')
+                ->latest('adv_id')
+                ->first();
+
+            if ($pendingDraft) {
+                return redirect()->route('university.advertisements.wizard', ['draft_id' => $pendingDraft->adv_id])
+                    ->with('info', 'لديك مسودة إعلان معلقة غير مكتملة، يمكنك متابعة إكمالها أو النقر على "إعلان جديد" للبدء من جديد.');
+            }
+        }
+
+        $editAd = null;
+        if ($request->filled('edit_id')) {
+            $editAd = Advertisement::where('university_id', $university->university_id)
+                ->where('adv_id', $request->edit_id)
+                ->where('review_status', 'مطلوب تعديل')
+                ->first();
+        }
+
+        $paymentAccounts = [
+            'kuraimi' => [
+                'name'        => 'بنك الكريمي للتمويل الأصغر الإسلامي',
+                'account'     => \App\Models\SystemSetting::get('platform_kuraimi_account', '120456789'),
+                'beneficiary' => \App\Models\SystemSetting::get('platform_kuraimi_name', 'منصة إديو يمن - EduYemen للخدمات التعليمية'),
+            ],
+            'onecash' => [
+                'name'        => 'محفظة ون كاش التجارية (OneCash)',
+                'account'     => \App\Models\SystemSetting::get('platform_onecash_account', '777000123'),
+                'beneficiary' => \App\Models\SystemSetting::get('platform_onecash_name', 'EduYemen - إديو يمن'),
+            ],
+            'bank' => [
+                'name'        => \App\Models\SystemSetting::get('platform_bank_name', 'بنك التضامن الإسلامي الدولي'),
+                'iban'        => \App\Models\SystemSetting::get('platform_bank_iban', 'YE2900040000000123456789'),
+                'beneficiary' => \App\Models\SystemSetting::get('platform_bank_beneficiary', 'شركة إديو يمن لتقنية المعلومات والتعليم'),
+            ],
+        ];
+
+        return view('dashboards.university.advertisements.wizard', compact('university', 'draft', 'editAd', 'paymentAccounts'));
+    }
+
+    /**
+     * المعالج: الخطوة 2 - تثبيت الباقة وتخزين مسودة
+     */
+    public function advertisementWizardStep2(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+        }
+        $university = $user->university;
+
+        $request->validate([
+            'package' => 'required|in:اقتصادية,مميزة,شاملة',
+            'ad_id'   => 'nullable|integer',
+        ], [
+            'package.required' => 'يرجى اختيار إحدى الباقات الإعلانية المتاحة.',
+            'package.in'       => 'الباقة المختارة غير معتمدة.',
+        ]);
+
+        $packages = [
+            'اقتصادية' => ['duration' => 2, 'amount' => 5000],
+            'مميزة'     => ['duration' => 4, 'amount' => 9000],
+            'شاملة'     => ['duration' => 10, 'amount' => 20000],
+        ];
+
+        $pkg = $packages[$request->package];
+
+        $ad = null;
+        if ($request->filled('ad_id')) {
+            $ad = Advertisement::where('university_id', $university->university_id)
+                ->where('adv_id', $request->ad_id)
+                ->first();
+
+            if ($ad && in_array($ad->review_status, ['مسودة', 'مطلوب تعديل'])) {
+                $ad->update([
+                    'package'     => $request->package,
+                    'duration'    => $pkg['duration'],
+                    'amount'      => $pkg['amount'],
+                    'wizard_step' => max((int)$ad->wizard_step, 1),
+                ]);
+            } else {
+                $ad = null;
+            }
+        }
+
+        if (!$ad) {
+            $ad = Advertisement::create([
+                'university_id' => $university->university_id,
+                'adv_title'     => 'إعلان ' . $university->university_name . ' - ' . $request->package,
+                'adv_content'   => '',
+                'package'       => $request->package,
+                'duration'      => $pkg['duration'],
+                'amount'        => $pkg['amount'],
+                'review_status' => 'مسودة',
+                'status'        => 'غير نشط',
+                'wizard_step'   => 1,
+                'created_at'    => now(),
+            ]);
+        }
+
+        return response()->json([
+            'success'     => true,
+            'ad_id'       => $ad->adv_id,
+            'package'     => $ad->package,
+            'duration'    => $ad->duration,
+            'amount'      => $ad->amount,
+            'amount_fmt'  => number_format($ad->amount),
+            'wizard_step' => $ad->wizard_step,
+            'message'     => 'تم اختيار الباقة وحفظ مسودة الإعلان بنجاح.',
+        ]);
+    }
+
+    /**
+     * المعالج: الخطوة 3 - تثبيت بيانات الدفع وسند التحويل
+     */
+    public function advertisementWizardStep3(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+        }
+        $university = $user->university;
+
+        $request->validate([
+            'ad_id'         => 'required|integer|exists:advertisements,adv_id',
+            'pay_method'    => 'required|string|max:100',
+            'pay_reference' => 'required|string|max:150',
+            'receipt'       => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:5120',
+        ], [
+            'pay_method.required'    => 'يرجى اختيار وسيلة الدفع التي استخدمتها.',
+            'pay_reference.required' => 'يرجى إدخال رقم الحوالة أو إشعار التحويل البنكي.',
+            'receipt.mimes'          => 'يجب أن يكون السند بصيغة JPG أو PNG أو WEBP أو PDF.',
+            'receipt.max'            => 'الحد الأقصى لحجم ملف السند هو 5 ميجابايت.',
+        ]);
+
+        $ad = Advertisement::where('university_id', $university->university_id)
+            ->findOrFail($request->ad_id);
+
+        if ($request->hasFile('receipt')) {
+            $file = $request->file('receipt');
+            $ext = $file->getClientOriginalExtension();
+            $filename = time() . '_' . Str::random(12) . '.' . $ext;
+
+            // السندات تُرفع إلى storage/app/private/ads/receipts/{university_id}/
+            $privateDir = storage_path("app/private/ads/receipts/{$university->university_id}");
+            if (!is_dir($privateDir)) {
+                mkdir($privateDir, 0755, true);
+            }
+            $file->move($privateDir, $filename);
+
+            // نسخة في public/uploads/ads/receipts/{university_id}/ لتمكين الإدارة من المعاينة
+            $publicDir = public_path("uploads/ads/receipts/{$university->university_id}");
+            if (!is_dir($publicDir)) {
+                mkdir($publicDir, 0755, true);
+            }
+            copy("{$privateDir}/{$filename}", "{$publicDir}/{$filename}");
+
+            $ad->receipt_url = "uploads/ads/receipts/{$university->university_id}/{$filename}";
+        }
+
+        if (!$ad->receipt_url) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى إرفاق صورة سند إثبات الدفع للمتابعة إلى الخطوة التالية.',
+            ], 422);
+        }
+
+        $ad->pay_method = $request->pay_method;
+        $ad->pay_reference = $request->pay_reference;
+        if ((int)$ad->wizard_step < 2) {
+            $ad->wizard_step = 2;
+        }
+        $ad->save();
+
+        return response()->json([
+            'success'     => true,
+            'ad_id'       => $ad->adv_id,
+            'receipt_url' => asset($ad->receipt_url),
+            'wizard_step' => $ad->wizard_step,
+            'message'     => 'تم حفظ بيانات السداد وسند الدفع بنجاح.',
+        ]);
+    }
+
+    /**
+     * المعالج: الخطوة 4 - رفع محتوى الإعلان والوسائط
+     */
+    public function advertisementWizardStep4(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+        }
+        $university = $user->university;
+
+        $ad = Advertisement::where('university_id', $university->university_id)
+            ->findOrFail($request->ad_id);
+
+        $rules = [
+            'ad_id'       => 'required|integer',
+            'adv_title'   => 'required|string|min:5|max:75',
+            'adv_content' => 'required|string|min:10|max:200',
+            'media_type'  => 'required|in:image,gallery,video',
+        ];
+
+        $messages = [
+            'adv_title.required'   => 'يرجى كتابة عنوان الإعلان.',
+            'adv_title.min'        => 'عنوان الإعلان يجب ألا يقل عن 5 أحرف.',
+            'adv_title.max'        => 'عنوان الإعلان لا يتجاوز 75 حرفاً.',
+            'adv_content.required' => 'يرجى كتابة وصف ومحتوى الإعلان.',
+            'adv_content.min'      => 'محتوى الإعلان يجب ألا يقل عن 10 أحرف.',
+            'adv_content.max'      => 'محتوى الإعلان لا يتجاوز 200 حرف.',
+        ];
+
+        $existingMedia = $ad->mediaFilesArray();
+        $hasExistingMedia = !empty($existingMedia);
+        $hasExistingVideo = !empty($ad->video_url);
+
+        if ($ad->package === 'اقتصادية') {
+            $rules['media_type'] = 'in:image';
+            $rules['image'] = ($hasExistingMedia ? 'nullable' : 'required') . '|file|mimes:jpg,jpeg,png,webp|max:2048';
+            $messages['image.required'] = 'يرجى رفع صورة الإعلان (بحد أقصى 2 ميجابايت).';
+            $messages['image.max'] = 'حجم الصورة يجب ألا يتجاوز 2 ميجابايت للباقة الاقتصادية.';
+        } elseif ($ad->package === 'مميزة') {
+            $rules['media_type'] = 'in:image,gallery';
+            $rules['images'] = ($hasExistingMedia ? 'nullable' : 'required') . '|array|min:1|max:3';
+            $rules['images.*'] = 'file|mimes:jpg,jpeg,png,webp|max:3072';
+            $messages['images.required'] = 'يرجى رفع من 1 إلى 3 صور للإعلان.';
+            $messages['images.max'] = 'الباقة المميزة تتيح رفع 3 صور كحد أقصى.';
+        } elseif ($ad->package === 'شاملة') {
+            if ($request->media_type === 'video') {
+                $rules['video'] = ($hasExistingVideo ? 'nullable' : 'required') . '|file|mimes:mp4,webm|max:15360';
+                $messages['video.required'] = 'يرجى رفع الفيديو الترويجي للإعلان.';
+                $messages['video.max'] = 'حجم الفيديو يجب ألا يتجاوز 15 ميجابايت (10 ثوانٍ كحد أقصى).';
+            } else {
+                $rules['images'] = ($hasExistingMedia ? 'nullable' : 'required') . '|array|min:1|max:5';
+                $rules['images.*'] = 'file|mimes:jpg,jpeg,png,webp|max:4096';
+                $messages['images.required'] = 'يرجى رفع صور الإعلان (حتى 5 صور).';
+                $messages['images.max'] = 'الباقة الشاملة تتيح رفع 5 صور كحد أقصى.';
+            }
+        }
+
+        $request->validate($rules, $messages);
+
+        $imgDir = public_path("uploads/ads/images/{$university->university_id}");
+        if (!is_dir($imgDir)) {
+            mkdir($imgDir, 0755, true);
+        }
+
+        if ($ad->package === 'اقتصادية') {
+            $ad->media_type = 'image';
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . Str::random(12) . '.' . $file->getClientOriginalExtension();
+                $file->move($imgDir, $filename);
+                $ad->media_files = ["uploads/ads/images/{$university->university_id}/{$filename}"];
+            }
+            $ad->video_url = null;
+        } elseif ($request->media_type === 'video' && $ad->package === 'شاملة') {
+            $ad->media_type = 'video';
+            if ($request->hasFile('video')) {
+                $vidDir = public_path("uploads/ads/videos/{$university->university_id}");
+                if (!is_dir($vidDir)) {
+                    mkdir($vidDir, 0755, true);
+                }
+                $videoFile = $request->file('video');
+                $filename = time() . '_' . Str::random(12) . '.' . $videoFile->getClientOriginalExtension();
+                $videoFile->move($vidDir, $filename);
+                $ad->video_url = "uploads/ads/videos/{$university->university_id}/{$filename}";
+            }
+            $ad->media_files = null;
+        } else {
+            $ad->media_type = ($ad->package === 'مميزة' && $request->hasFile('images') && count($request->file('images')) === 1 && empty($existingMedia)) ? 'image' : 'gallery';
+            if ($request->hasFile('images')) {
+                $uploadedFiles = $request->boolean('replace_media') ? [] : $existingMedia;
+                $maxAllowed = ($ad->package === 'مميزة') ? 3 : 5;
+                foreach ($request->file('images') as $file) {
+                    if (count($uploadedFiles) < $maxAllowed) {
+                        $filename = time() . '_' . Str::random(12) . '.' . $file->getClientOriginalExtension();
+                        $file->move($imgDir, $filename);
+                        $uploadedFiles[] = "uploads/ads/images/{$university->university_id}/{$filename}";
+                    }
+                }
+                $ad->media_files = array_values($uploadedFiles);
+            }
+            $ad->video_url = null;
+        }
+
+        $ad->adv_title = $request->adv_title;
+        $ad->adv_content = $request->adv_content;
+        if ((int)$ad->wizard_step < 3) {
+            $ad->wizard_step = 3;
+        }
+        $ad->save();
+
+        return response()->json([
+            'success'     => true,
+            'ad_id'       => $ad->adv_id,
+            'adv_title'   => $ad->adv_title,
+            'adv_content' => $ad->adv_content,
+            'media_type'  => $ad->media_type,
+            'media_files' => array_map(fn($f) => asset($f), $ad->mediaFilesArray()),
+            'video_url'   => $ad->video_url ? asset($ad->video_url) : null,
+            'wizard_step' => $ad->wizard_step,
+            'message'     => 'تم حفظ محتوى الإعلان والوسائط بنجاح.',
+        ]);
+    }
+
+    /**
+     * المعالج: إرسال الإعلان للمراجعة والاعتماد
+     */
+    public function advertisementWizardSubmit(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+        }
+        $university = $user->university;
+
+        $request->validate(['ad_id' => 'required|integer|exists:advertisements,adv_id']);
+
+        $ad = Advertisement::where('university_id', $university->university_id)
+            ->findOrFail($request->ad_id);
+
+        if (!in_array($ad->review_status, ['مسودة', 'مطلوب تعديل'])) {
+            return response()->json(['success' => false, 'message' => 'تم إرسال هذا الإعلان للمراجعة مسبقاً.'], 400);
+        }
+
+        if (empty($ad->adv_title) || empty($ad->adv_content)) {
+            return response()->json(['success' => false, 'message' => 'يرجى إكمال عنوان الإعلان ووصفه أولاً.'], 422);
+        }
+
+        if (empty($ad->receipt_url) || empty($ad->pay_reference)) {
+            return response()->json(['success' => false, 'message' => 'يرجى إكمال بيانات الدفع وإرفاق السند أولاً.'], 422);
+        }
+
+        $mediaFiles = $ad->mediaFilesArray();
+        if (empty($mediaFiles) && empty($ad->video_url)) {
+            return response()->json(['success' => false, 'message' => 'يرجى رفع وسائط الإعلان (صورة أو فيديو) أولاً.'], 422);
+        }
+
+        $ad->update([
+            'review_status' => 'قيد المراجعة',
+            'status'        => 'غير نشط',
+            'wizard_step'   => 4,
+            'notes'         => null,
+        ]);
+
+        // إرسال إشعار للمدير العام
+        try {
+            \App\Models\Notification::create([
+                'user_id'           => 1, // Super Admin
+                'notification_type' => 'ad_submitted_for_review',
+                'title'             => 'إعلان ترويجي جديد بانتظار الاعتماد',
+                'message'           => "قامت جامعة {$university->university_name} بتقديم إعلان جديد بعنوان: \"{$ad->adv_title}\" على الباقة ({$ad->package})، وهو الآن بانتظار المراجعة والاعتماد.",
+                'link'              => route('admin.advertisements'),
+                'is_read'           => false,
+            ]);
+        } catch (\Throwable $e) {}
+
+        return response()->json([
+            'success'  => true,
+            'message'  => 'تم إرسال الإعلان للمراجعة والاعتماد بنجاح! سيتم فحص الطلب وإشعارك قريباً.',
+            'redirect' => route('university.advertisements.index'),
+        ]);
+    }
+
+    /**
+     * عرض تفاصيل إعلان محدد
+     */
+    public function showUniversityAdvertisement($id)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            abort(403, 'غير مصرح.');
+        }
+        $university = $user->university;
+
+        $ad = Advertisement::where('university_id', $university->university_id)
+            ->findOrFail($id);
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'ad' => [
+                    'id'               => $ad->adv_id,
+                    'title'            => $ad->adv_title,
+                    'content'          => $ad->adv_content,
+                    'package'          => $ad->package,
+                    'package_label'    => $ad->getPackageLabel(),
+                    'duration'         => $ad->duration,
+                    'amount'           => $ad->amount,
+                    'amount_formatted' => number_format($ad->amount) . ' ر.ي',
+                    'pay_method'       => $ad->pay_method,
+                    'pay_reference'    => $ad->pay_reference,
+                    'receipt_url'      => $ad->receipt_url ? asset($ad->receipt_url) : null,
+                    'media_type'       => $ad->media_type,
+                    'media_files'      => array_map(fn($f) => asset($f), $ad->mediaFilesArray()),
+                    'video_url'        => $ad->video_url ? asset($ad->video_url) : null,
+                    'review_status'    => $ad->review_status,
+                    'status'           => $ad->status,
+                    'notes'            => $ad->notes,
+                    'wizard_step'      => $ad->wizard_step,
+                    'remaining_days'   => $ad->remainingDays(),
+                    'is_active'        => $ad->isActive(),
+                    'is_expired'       => $ad->isExpired(),
+                    'published_at'     => $ad->published_at ? $ad->published_at->format('Y-m-d H:i') : null,
+                    'expires_at'       => $ad->expires_at ? $ad->expires_at->format('Y-m-d H:i') : null,
+                    'created_at'       => $ad->created_at ? $ad->created_at->format('Y-m-d H:i') : null,
+                ],
+            ]);
+        }
+
+        return view('dashboards.university.advertisements.show', compact('university', 'ad'));
+    }
+
+    /**
+     * إلغاء وحذف مسودة إعلان
+     */
+    public function cancelUniversityAd($id)
+    {
+        $user = Auth::user();
+        if (!$user || !$user->isUniversity() || !$user->university) {
+            return response()->json(['success' => false, 'message' => 'غير مصرح'], 403);
+        }
+        $university = $user->university;
+
+        $ad = Advertisement::where('university_id', $university->university_id)
+            ->where('adv_id', $id)
+            ->firstOrFail();
+
+        if ($ad->review_status !== 'مسودة') {
+            if (request()->ajax() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'لا يمكن حذف هذا الإعلان لأنه ليس مسودة معلقة.',
+                ], 403);
+            }
+            return back()->with('error', 'لا يمكن حذف هذا الإعلان لأنه ليس مسودة معلقة.');
+        }
+
+        // حذف الملفات المرتبطة
+        try {
+            if ($ad->receipt_url && file_exists(public_path($ad->receipt_url))) {
+                @unlink(public_path($ad->receipt_url));
+            }
+            if (!empty($ad->media_files)) {
+                foreach ($ad->mediaFilesArray() as $f) {
+                    if (file_exists(public_path($f))) {
+                        @unlink(public_path($f));
+                    }
+                }
+            }
+            if ($ad->video_url && file_exists(public_path($ad->video_url))) {
+                @unlink(public_path($ad->video_url));
+            }
+        } catch (\Throwable $e) {}
+
+        $ad->delete();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'success'  => true,
+                'message'  => 'تم إلغاء وحذف مسودة الإعلان بنجاح.',
+                'redirect' => route('university.advertisements.index'),
+            ]);
+        }
+
+        return redirect()->route('university.advertisements.index')
+            ->with('success', 'تم إلغاء وحذف مسودة الإعلان بنجاح.');
     }
 
 }

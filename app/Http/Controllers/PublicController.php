@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Advertisement;
 use App\Models\College;
 use App\Models\Specialization;
 use App\Models\University;
@@ -26,7 +27,43 @@ class PublicController extends Controller
             'specializations_count' => Specialization::where('specializations.status', 'نشط')->whereDoesntHave('activeModeration')->count(),
         ];
 
-        return view('home', compact('universities', 'stats'));
+        // جلب إعلانات الصفحة الرئيسية (كل الباقات المعتمدة والنشطة)
+        $activeAds = Advertisement::with('university')
+            ->where('review_status', 'معتمد')
+            ->where('status', 'نشط')
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->orderBy('duration', 'desc') // الإعلانات الأطول مدة أولاً (أعلى أولوية)
+            ->take(5)
+            ->get();
+
+        $activeAdsData = $activeAds->map(function($ad) {
+            $media = $ad->mediaFilesArray();
+            $formattedMedia = array_values(array_filter(array_map(function($item) {
+                if (!$item) return null;
+                if (str_starts_with($item, 'http://') || str_starts_with($item, 'https://')) {
+                    return $item;
+                }
+                return asset(ltrim($item, '/'));
+            }, is_array($media) ? $media : [])));
+
+            $videoUrl = $ad->video_url ? (str_starts_with($ad->video_url, 'http://') || str_starts_with($ad->video_url, 'https://') ? $ad->video_url : asset(ltrim($ad->video_url, '/'))) : null;
+
+            return [
+                'uni'       => $ad->university?->university_name ?? '',
+                'title'     => $ad->adv_title,
+                'desc'      => $ad->adv_content ?? '',
+                'img'       => $formattedMedia[0] ?? null,
+                'gallery'   => $formattedMedia,
+                'video'     => $videoUrl,
+                'mediaType' => $ad->media_type ?? 'image',
+                'link'      => route('universities.show', $ad->university_id),
+                'package'   => $ad->package,
+            ];
+        });
+
+        return view('home', compact('universities', 'stats', 'activeAds', 'activeAdsData'));
     }
 
     public function universities(Request $request)
@@ -57,7 +94,19 @@ class PublicController extends Controller
         $universities = $query->paginate(9)->withQueryString();
         $districts = University::whereNotIn('status', ['معلقة', 'محظورة'])->select('district')->distinct()->pluck('district');
 
-        return view('universities.index', compact('universities', 'districts'));
+        // جلب إعلانات دليل الجامعات (مميزة وشاملة فقط)
+        $directoryAds = Advertisement::with('university')
+            ->where('review_status', 'معتمد')
+            ->where('status', 'نشط')
+            ->whereIn('package', ['مميزة', 'شاملة'])
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->orderBy('duration', 'desc')
+            ->take(3)
+            ->get();
+
+        return view('universities.index', compact('universities', 'districts', 'directoryAds'));
     }
 
     public function showUniversity($id)
