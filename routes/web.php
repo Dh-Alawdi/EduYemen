@@ -22,21 +22,38 @@ Route::get('/specializations/{id}/admission', [PublicController::class, 'getSpec
 | مسارات المصادقة (Authentication Routes)
 |--------------------------------------------------------------------------
 */
-Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
-    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-});
+Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+// مسارات التحقق بالرمز OTP
+Route::get('/auth/verify-otp', [AuthController::class, 'showOtpForm'])->name('auth.otp.show');
+Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->name('auth.otp.verify');
+Route::post('/auth/resend-otp', [AuthController::class, 'resendOtp'])->name('auth.otp.resend');
+
+// مسارات المصادقة السريعة عبر Google
+Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+Route::post('/auth/google/mock', [AuthController::class, 'mockGoogleLogin'])->name('auth.google.mock');
+
+// مسارات استعادة وإعادة تعيين كلمة المرور
+Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+Route::post('/forgot-password', [AuthController::class, 'sendResetOtp'])->name('password.email');
+Route::get('/reset-password', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+Route::post('/reset-password/resend', [AuthController::class, 'resendResetOtp'])->name('password.resend');
+
+// توجيه أي طلب قديم لإنشاء الحساب إلى صفحة الدخول الموحدة الشاملة
+Route::redirect('/register', '/login', 301)->name('register');
+
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/user/theme', [DashboardController::class, 'updateStudentTheme'])->middleware('auth')->name('user.theme');
 
 /*
 |--------------------------------------------------------------------------
 | مسارات الطالب المحمية (Student Protected Routes)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'user_type:student'])->prefix('student')->name('student.')->group(function () {
+Route::middleware(['user_type:student'])->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'studentDashboard'])->name('dashboard');
     Route::post('/profile', [DashboardController::class, 'updateStudentProfile'])->name('profile.update');
     Route::post('/password', [DashboardController::class, 'changeStudentPassword'])->name('password.change');
@@ -106,7 +123,7 @@ Route::get('/api/universities/{id}/payment-methods', function ($id) {
 | مسارات الجامعة المحمية (University Protected Routes)
 |--------------------------------------------------------------------------
 */
-Route::middleware(['auth', 'user_type:university'])->prefix('university')->name('university.')->group(function () {
+Route::middleware(['user_type:university'])->prefix('university')->name('university.')->group(function () {
     // تهيئة الحساب لأول مرة وتغيير كلمة المرور وتحديث البيانات الأولية
     Route::get('/setup', [DashboardController::class, 'showFirstLoginForm'])->name('first_login');
     Route::post('/setup', [DashboardController::class, 'saveFirstLoginSetup'])->name('first_login.save');
@@ -161,6 +178,23 @@ Route::middleware(['auth', 'user_type:university'])->prefix('university')->name(
     Route::post('/payments/{id}/update', [DashboardController::class, 'updatePaymentMethod'])->name('payments.update');
     Route::post('/payments/{id}/toggle', [DashboardController::class, 'togglePaymentMethod'])->name('payments.toggle');
     Route::post('/payments/{id}/delete', [DashboardController::class, 'deletePaymentMethod'])->name('payments.delete');
+
+    // إرسال رد وتعديلات الجامعة لمدير النظام بخصوص العناصر المحجوبة
+    Route::post('/moderations/{id}/correction', [DashboardController::class, 'submitModerationCorrection'])->name('moderations.correction');
+
+    // إدارة الإشعارات
+    Route::post('/notifications/read-all', [DashboardController::class, 'markAllNotificationsRead'])->name('notifications.read_all');
+    Route::post('/notifications/{id}/read', [DashboardController::class, 'markNotificationRead'])->name('notifications.read');
+
+    // معالج إنشاء وإدارة إعلانات الجامعة (Sponsored Advertisements & Wizard)
+    Route::get('/advertisements', [DashboardController::class, 'universityAdvertisements'])->name('advertisements.index');
+    Route::get('/advertisements/wizard', [DashboardController::class, 'advertisementWizard'])->name('advertisements.wizard');
+    Route::post('/advertisements/wizard/step2', [DashboardController::class, 'advertisementWizardStep2'])->name('advertisements.wizard.step2');
+    Route::post('/advertisements/wizard/step3', [DashboardController::class, 'advertisementWizardStep3'])->name('advertisements.wizard.step3');
+    Route::post('/advertisements/wizard/step4', [DashboardController::class, 'advertisementWizardStep4'])->name('advertisements.wizard.step4');
+    Route::post('/advertisements/wizard/submit', [DashboardController::class, 'advertisementWizardSubmit'])->name('advertisements.wizard.submit');
+    Route::get('/advertisements/{id}', [DashboardController::class, 'showUniversityAdvertisement'])->name('advertisements.show');
+    Route::post('/advertisements/{id}/cancel', [DashboardController::class, 'cancelUniversityAd'])->name('advertisements.cancel');
 });
 
 /*
@@ -170,7 +204,7 @@ Route::middleware(['auth', 'user_type:university'])->prefix('university')->name(
 */
 use App\Http\Controllers\AdminController;
 
-Route::middleware(['auth', 'user_type:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['user_type:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
 
     // إدارة المستخدمين
@@ -204,6 +238,8 @@ Route::middleware(['auth', 'user_type:admin'])->prefix('admin')->name('admin.')-
     Route::get('/advertisements/{id}', [AdminController::class, 'showAdvertisement'])->name('advertisements.show');
     Route::post('/advertisements/{id}/approve', [AdminController::class, 'approveAdvertisement'])->name('advertisements.approve');
     Route::post('/advertisements/{id}/reject', [AdminController::class, 'rejectAdvertisement'])->name('advertisements.reject');
+    Route::post('/advertisements/{id}/request-edit', [AdminController::class, 'requestAdvertisementEdit'])->name('advertisements.request-edit');
+    Route::post('/advertisements/{id}/toggle-pause', [AdminController::class, 'togglePauseAdvertisement'])->name('advertisements.toggle-pause');
     Route::delete('/advertisements/{id}', [AdminController::class, 'deleteAdvertisement'])->name('advertisements.delete');
 
     // إدارة الإحالات
@@ -216,6 +252,7 @@ Route::middleware(['auth', 'user_type:admin'])->prefix('admin')->name('admin.')-
 
     // متابعة طلبات التسجيل
     Route::get('/requests', [AdminController::class, 'requests'])->name('requests');
+    Route::get('/requests/export', [AdminController::class, 'exportRequests'])->name('requests.export');
     Route::get('/requests/{id}', [AdminController::class, 'showRequest'])->name('requests.show');
 
     // التقارير والإحصائيات

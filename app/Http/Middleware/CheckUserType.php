@@ -17,34 +17,82 @@ class CheckUserType
      */
     public function handle(Request $request, Closure $next, string ...$types): Response
     {
-        if (!Auth::check()) {
-            return redirect()->route('login')->withErrors(['username' => 'يرجى تسجيل الدخول أولاً للوصول إلى هذه الصفحة.']);
+        // 1. أولاً: التحقق من الحراسة الخاصة بكل نوع مستخدم (Multi-Guard Session Isolation)
+        // هذا يسمح بفتح المدير والجامعة والطالب في نوافذ منفصلة دون أي تعارض بين الجلسات
+        foreach ($types as $type) {
+            if (in_array($type, ['admin', 'university', 'student']) && Auth::guard($type)->check()) {
+                $user = Auth::guard($type)->user();
+
+                if (!$user->isActive()) {
+                    Auth::guard($type)->logout();
+                    return redirect()->route('login')->withErrors([
+                        'username' => 'حسابك معطل أو غير نشط. يرجى التواصل مع إدارة المنصة.',
+                    ]);
+                }
+
+                Auth::shouldUse($type);
+                Auth::setUser($user);
+
+                return $next($request);
+            }
         }
 
-        $user = Auth::user();
+        // 2. ثانياً: فحص الحراسة الافتراضية web إذا كان المستخدم مسجلاً بها
+        if (Auth::guard('web')->check()) {
+            $user = Auth::guard('web')->user();
 
-        // فحص حالة الحساب
-        if (!$user->isActive()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            if (!$user->isActive()) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')->withErrors([
+                    'username' => 'حسابك معطل أو غير نشط. يرجى التواصل مع إدارة المنصة.',
+                ]);
+            }
+
+            // إذا كان نوع المستخدم يطابق النوع المطلوب، نقوم بمزامنته مع الحراسة المخصصة وتمرير الطلب
+            if (empty($types) || in_array($user->user_type, $types)) {
+                if (in_array($user->user_type, ['admin', 'university', 'student'])) {
+                    Auth::guard($user->user_type)->setUser($user);
+                    Auth::shouldUse($user->user_type);
+                }
+                Auth::setUser($user);
+
+                return $next($request);
+            }
+
+            // إذا كان المستخدم مسجلاً بنوع آخر (مثلاً طالب يحاول فتح لوحة الجامعة):
+            // لا نوجهه تلقائياً للوحة تحكمه لتجنب القفز بين النوافذ بل نطلب منه تسجيل الدخول بالحساب المطلوب
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'غير مصرح لك بالوصول إلى هذه الصفحة باستخدام هذا الحساب.'
+                ], 403);
+            }
+
+            $requiredRoleName = match (reset($types)) {
+                'admin' => 'مدير النظام',
+                'university' => 'الجامعة',
+                'student' => 'الطالب',
+                default => 'حساب مصرح له',
+            };
 
             return redirect()->route('login')->withErrors([
-                'username' => 'حسابك معطل أو غير نشط. يرجى التواصل مع إدارة المنصة.',
+                'username' => "أنت مسجل حالياً بحساب ($user->user_type). يتطلب الوصول إلى هذه الصفحة تسجيل الدخول بحساب ($requiredRoleName).",
             ]);
         }
 
-        // فحص نوع الحساب والصلاحيات
-        if (!empty($types) && !in_array($user->user_type, $types)) {
-            // توجيه المستخدم تلقائياً للوحة التحكم الخاصة به إذا حاول دخول لوحة فئة أخرى
-            return match ($user->user_type) {
-                'admin' => redirect()->route('admin.dashboard')->with('error', 'غير مصرح لك بالوصول إلى هذه الصفحة.'),
-                'university' => redirect()->route('university.dashboard')->with('error', 'غير مصرح لك بالوصول إلى هذه الصفحة.'),
-                'student' => redirect()->route('student.dashboard')->with('error', 'غير مصرح لك بالوصول إلى هذه الصفحة.'),
-                default => redirect()->route('home')->with('error', 'غير مصرح لك بالوصول إلى هذه الصفحة.'),
-            };
+        // 3. المستخدم غير مسجل دخول على الإطلاق
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'يرجى تسجيل الدخول أولاً للوصول إلى هذه الصفحة.'
+            ], 401);
         }
 
-        return $next($request);
+        return redirect()->route('login')->withErrors([
+            'username' => 'يرجى تسجيل الدخول أولاً للوصول إلى هذه الصفحة.',
+        ]);
     }
 }

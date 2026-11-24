@@ -39,4 +39,10 @@ return [
         'url' => env('MINISTRY_EXAMS_API_URL', 'http://127.0.0.1:8080/ministry_exams_service/public/api/verify.php'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect' => env('GOOGLE_REDIRECT_URI'),
+    ],
+
 ];

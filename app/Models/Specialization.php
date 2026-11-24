@@ -45,6 +45,11 @@ class Specialization extends Model
         return $this->hasOne(AdmissionData::class, 'specialization_id', 'specialization_id');
     }
 
+    public function admission(): HasOne
+    {
+        return $this->admissionData();
+    }
+
     public function studyPlans(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(StudyPlan::class, 'specialization_id', 'specialization_id');

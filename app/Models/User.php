@@ -27,6 +27,9 @@ class User extends Authenticatable
         'user_type',
         'phone',
         'email',
+        'email_verified_at',
+        'google_id',
+        'avatar_url',
         'account_status',
         'theme_mode',
         'theme_color',
@@ -57,6 +60,7 @@ class User extends Authenticatable
         return [
             'password' => 'hashed',
             'must_change_password' => 'boolean',
+            'email_verified_at' => 'datetime',
         ];
     }
 
